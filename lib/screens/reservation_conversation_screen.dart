@@ -1,0 +1,398 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../models/conversation_message.dart';
+import '../models/reservation_call.dart';
+import '../models/reservation_conversation.dart';
+import '../services/api_client.dart';
+import '../services/conversation_service.dart';
+import 'audio_call_screen.dart';
+
+class ReservationConversationScreen extends StatefulWidget {
+  const ReservationConversationScreen({
+    super.key,
+    required this.reservationId,
+    required this.otherPartyName,
+  });
+
+  final int reservationId;
+  final String otherPartyName;
+
+  @override
+  State<ReservationConversationScreen> createState() =>
+      _ReservationConversationScreenState();
+}
+
+class _ReservationConversationScreenState
+    extends State<ReservationConversationScreen> {
+  final _messageController = TextEditingController();
+  final _scrollController = ScrollController();
+  final List<ConversationMessage> _messages = [];
+  Timer? _refreshTimer;
+  ReservationConversation? _conversation;
+  int? _shownIncomingCallId;
+  bool _loading = true;
+  bool _sending = false;
+  bool _refreshing = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_refresh(initial: true));
+    _startRefreshTimer();
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => unawaited(_refresh()),
+    );
+  }
+
+  Future<void> _openCall(ReservationCall call) async {
+    _refreshTimer?.cancel();
+    try {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => AudioCallScreen(
+            call: call,
+            otherPartyName:
+                _conversation?.otherPartyName ?? widget.otherPartyName,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        _startRefreshTimer();
+        unawaited(_refresh());
+      }
+    }
+  }
+
+  Future<void> _refresh({bool initial = false}) async {
+    if (_refreshing) return;
+    _refreshing = true;
+    try {
+      final afterId = _messages.isEmpty ? 0 : _messages.last.id;
+      final conversation = await ConversationService.fetch(
+        widget.reservationId,
+        afterId: afterId,
+      );
+      if (!mounted) return;
+
+      setState(() {
+        _conversation = conversation;
+        for (final message in conversation.messages) {
+          if (_messages.every((existing) => existing.id != message.id)) {
+            _messages.add(message);
+          }
+        }
+        _messages.sort((a, b) => a.id.compareTo(b.id));
+        _loading = false;
+        _error = null;
+      });
+      unawaited(ConversationService.markRead(widget.reservationId));
+      if (conversation.messages.isNotEmpty || initial) _scrollToBottom();
+
+      final activeCall = await ConversationService.activeCall(
+        widget.reservationId,
+      );
+      if (activeCall?.isIncoming == true &&
+          activeCall!.status == 'ringing' &&
+          _shownIncomingCallId != activeCall.id &&
+          mounted) {
+        _shownIncomingCallId = activeCall.id;
+        unawaited(_showIncomingCall(activeCall));
+      }
+    } on ApiException catch (error) {
+      if (mounted && initial) {
+        setState(() {
+          _loading = false;
+          _error = error.message;
+        });
+      }
+    } finally {
+      _refreshing = false;
+    }
+  }
+
+  Future<void> _send() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    try {
+      final message = await ConversationService.sendMessage(
+        widget.reservationId,
+        text,
+      );
+      if (!mounted) return;
+      _messageController.clear();
+      setState(() => _messages.add(message));
+      _scrollToBottom();
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _startCall() async {
+    try {
+      final call = await ConversationService.createCall(widget.reservationId);
+      if (!mounted) return;
+      await _openCall(call);
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
+
+  Future<void> _showIncomingCall(ReservationCall call) async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.call),
+        title: Text('${widget.otherPartyName} is calling'),
+        content: const Text('Incoming E-Parada audio call'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Decline'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.call),
+            label: const Text('Answer'),
+          ),
+        ],
+      ),
+    );
+
+    if (accepted == true && mounted) {
+      await _openCall(call);
+    } else {
+      try {
+        await ConversationService.rejectCall(call);
+      } catch (_) {
+        // The caller may already have ended the call.
+      }
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conversation = _conversation;
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(conversation?.otherPartyName ?? widget.otherPartyName),
+            if (conversation != null)
+              Text(
+                '${conversation.reference} | ${conversation.parkingSpaceName}',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            onPressed: conversation?.canCall == true ? _startCall : null,
+            tooltip: 'Audio call',
+            icon: const Icon(Icons.call_outlined),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(child: _buildBody()),
+            if (!_loading && _error == null) _buildComposer(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: () => _refresh(initial: true),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    if (_messages.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.forum_outlined, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                'Start your reservation conversation',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Messages stay inside E-Parada and are visible only to this reservation\'s driver and parking provider.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final otherPartyId = _conversation?.otherPartyId;
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        final message = _messages[index];
+        final mine = message.senderId != otherPartyId;
+        return _MessageBubble(message: message, mine: mine);
+      },
+    );
+  }
+
+  Widget _buildComposer() {
+    return Material(
+      elevation: 8,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                minLines: 1,
+                maxLines: 5,
+                maxLength: 2000,
+                decoration: const InputDecoration(
+                  hintText: 'Message',
+                  counterText: '',
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: (_) => _send(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              onPressed: _sending ? null : _send,
+              tooltip: 'Send message',
+              icon: _sending
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageBubble extends StatelessWidget {
+  const _MessageBubble({required this.message, required this.mine});
+
+  final ConversationMessage message;
+  final bool mine;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final time = message.createdAt?.toLocal();
+    final timeLabel = time == null
+        ? ''
+        : '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+
+    return Align(
+      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 340),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+        decoration: BoxDecoration(
+          color: mine ? colors.primary : colors.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(18).copyWith(
+            bottomRight: mine ? const Radius.circular(4) : null,
+            bottomLeft: mine ? null : const Radius.circular(4),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              message.body,
+              style: TextStyle(
+                color: mine ? colors.onPrimary : colors.onSurface,
+              ),
+            ),
+            if (timeLabel.isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Text(
+                timeLabel,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: mine
+                      ? colors.onPrimary.withValues(alpha: 0.72)
+                      : colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

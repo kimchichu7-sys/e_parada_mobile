@@ -1,0 +1,6 @@
+# Copy this file to android/key.properties and replace every example value.
+# Keep android/key.properties and the keystore private and backed up securely.
+storePassword=replace-with-a-strong-password
+keyPassword=replace-with-a-strong-password
+keyAlias=eparada
+storeFile=eparada-release.jks
