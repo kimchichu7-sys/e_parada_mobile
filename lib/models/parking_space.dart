@@ -41,6 +41,16 @@ class ParkingSpace {
 
   bool get isAvailable => isOpenNow;
 
+  int get availableSlotsCount => isAvailable ? 1 : 0;
+
+  double getEffectiveRate({String? vehicleType}) {
+    final match = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(price);
+    if (match != null) {
+      return double.tryParse(match.group(1) ?? '') ?? 0.0;
+    }
+    return 0.0;
+  }
+
   String get clearanceSummary {
     if (maxHeight == null) return '';
     return 'Max Height Clearance: ${maxHeight!.toStringAsFixed(1)}m';
