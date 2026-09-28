@@ -38,4 +38,24 @@ void main() {
     expect(vehicle.isRejected, true);
     expect(vehicle.verificationNotes, 'The plate is not visible.');
   });
+
+  test('parses vehicle dimensions including length, width, and height', () {
+    final vehicle = Vehicle.fromJson({
+      'id': 6,
+      'plate_number': 'NDE 5432',
+      'vehicle_type': 'Van/Pickup',
+      'make': 'Toyota',
+      'color': 'Silver',
+      'model': 'HiAce',
+      'verification_status': 'approved',
+      'length': 4.8,
+      'width': 1.9,
+      'height': 2.1,
+    });
+
+    expect(vehicle.length, 4.8);
+    expect(vehicle.width, 1.9);
+    expect(vehicle.height, 2.1);
+    expect(vehicle.dimensionSummary, '4.8m × 1.9m × 2.1m (L×W×H)');
+  });
 }

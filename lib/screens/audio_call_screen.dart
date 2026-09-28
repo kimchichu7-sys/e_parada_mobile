@@ -24,13 +24,23 @@ class AudioCallScreen extends StatefulWidget {
 }
 
 class _AudioCallScreenState extends State<AudioCallScreen> {
+  static const _turnUrls = String.fromEnvironment('WEBRTC_TURN_URLS');
+  static const _turnUsername = String.fromEnvironment('WEBRTC_TURN_USERNAME');
+  static const _turnCredential = String.fromEnvironment(
+    'WEBRTC_TURN_CREDENTIAL',
+  );
+
   RTCPeerConnection? _peerConnection;
   MediaStream? _localStream;
+  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   Timer? _pollTimer;
   late ReservationCall _call;
   final List<RTCIceCandidate> _pendingCandidates = [];
+  RTCSessionDescription? _localAnswer;
   int _lastSignalId = 0;
   bool _remoteDescriptionSet = false;
+  bool _rendererInitialized = false;
+  bool _connected = false;
   bool _muted = false;
   bool _busy = true;
   bool _polling = false;
@@ -77,13 +87,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         'audio': true,
         'video': false,
       });
-      _peerConnection = await createPeerConnection({
-        'iceServers': [
-          {
-            'urls': ['stun:stun.l.google.com:19302'],
-          },
-        ],
-      });
+      if (!_rendererInitialized) {
+        await _remoteRenderer.initialize();
+        _rendererInitialized = true;
+      }
+      _peerConnection = await createPeerConnection(_peerConfiguration());
 
       for (final track in _localStream!.getAudioTracks()) {
         await _peerConnection!.addTrack(track, _localStream!);
@@ -99,9 +107,16 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           }),
         );
       };
+      _peerConnection!.onTrack = (event) {
+        if (event.track.kind != 'audio' || event.streams.isEmpty) return;
+        _remoteRenderer.srcObject = event.streams.first;
+      };
       _peerConnection!.onConnectionState = (state) {
         if (!mounted) return;
         setState(() {
+          _connected =
+              state ==
+              RTCPeerConnectionState.RTCPeerConnectionStateConnected;
           _status = switch (state) {
             RTCPeerConnectionState.RTCPeerConnectionStateConnected =>
               'Connected',
@@ -111,6 +126,27 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
               'Disconnected',
             _ => _call.status == 'ringing' ? 'Ringing...' : 'Connecting...',
           };
+        });
+      };
+      _peerConnection!.onIceConnectionState = (state) {
+        if (!mounted || _connected) return;
+        setState(() {
+          _status = switch (state) {
+            RTCIceConnectionState.RTCIceConnectionStateChecking =>
+              'Connecting audio...',
+            RTCIceConnectionState.RTCIceConnectionStateConnected ||
+            RTCIceConnectionState.RTCIceConnectionStateCompleted =>
+              'Connected',
+            RTCIceConnectionState.RTCIceConnectionStateFailed =>
+              'Direct connection failed. A TURN relay may be required.',
+            RTCIceConnectionState.RTCIceConnectionStateDisconnected =>
+              'Audio connection interrupted',
+            _ => _call.status == 'ringing' ? 'Ringing...' : 'Connecting...',
+          };
+          if (state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
+              state == RTCIceConnectionState.RTCIceConnectionStateCompleted) {
+            _connected = true;
+          }
         });
       };
 
@@ -162,7 +198,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     await _peerConnection?.close();
     _localStream = null;
     _peerConnection = null;
+    _remoteRenderer.srcObject = null;
     _remoteDescriptionSet = false;
+    _localAnswer = null;
+    _connected = false;
+    _lastSignalId = 0;
     _pendingCandidates.clear();
   }
 
@@ -176,37 +216,28 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       );
       _call = batch.call;
 
+      if (mounted && !_connected && _call.status == 'accepted') {
+        setState(() => _status = 'Connecting audio...');
+      }
+
       for (final signal in batch.signals) {
         final id = (signal['id'] as num).toInt();
-        if (id > _lastSignalId) _lastSignalId = id;
+        if (id <= _lastSignalId) continue;
         final senderId = (signal['sender_id'] as num).toInt();
         if (senderId == (_call.isIncoming ? _call.calleeId : _call.callerId)) {
+          _lastSignalId = id;
           continue;
         }
-        final type = signal['type']?.toString();
-        final payload = Map<String, dynamic>.from(signal['payload'] as Map);
-
-        if (type == 'offer') {
-          await _setRemoteDescription(payload);
-          final answer = await _peerConnection!.createAnswer();
-          await _peerConnection!.setLocalDescription(answer);
-          await ConversationService.sendSignal(_call, 'answer', {
-            'sdp': answer.sdp,
-            'type': answer.type,
-          });
-        } else if (type == 'answer') {
-          await _setRemoteDescription(payload);
-        } else if (type == 'ice') {
-          final candidate = RTCIceCandidate(
-            payload['candidate']?.toString(),
-            payload['sdpMid']?.toString(),
-            (payload['sdpMLineIndex'] as num?)?.toInt(),
-          );
-          if (_remoteDescriptionSet) {
-            await _peerConnection?.addCandidate(candidate);
-          } else {
-            _pendingCandidates.add(candidate);
+        try {
+          await _processSignal(signal);
+          _lastSignalId = id;
+        } on Object catch (error, stackTrace) {
+          debugPrint('Call signal $id could not be processed: $error');
+          debugPrintStack(stackTrace: stackTrace);
+          if (mounted && !_connected) {
+            setState(() => _status = 'Negotiating audio...');
           }
+          break;
         }
       }
 
@@ -216,10 +247,41 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         await Future<void>.delayed(const Duration(milliseconds: 700));
         if (mounted) Navigator.of(context).pop();
       }
-    } catch (_) {
-      // A later poll retries brief network interruptions.
+    } on Object catch (error) {
+      debugPrint('Call signal polling failed: $error');
+      // A later poll retries brief network interruptions without consuming data.
     } finally {
       _polling = false;
+    }
+  }
+
+  Future<void> _processSignal(Map<String, dynamic> signal) async {
+    final type = signal['type']?.toString();
+    final payload = Map<String, dynamic>.from(signal['payload'] as Map);
+
+    if (type == 'offer') {
+      await _setRemoteDescription(payload);
+      _localAnswer ??= await _peerConnection!.createAnswer();
+      if ((await _peerConnection!.getLocalDescription()) == null) {
+        await _peerConnection!.setLocalDescription(_localAnswer!);
+      }
+      await ConversationService.sendSignal(_call, 'answer', {
+        'sdp': _localAnswer!.sdp,
+        'type': _localAnswer!.type,
+      });
+    } else if (type == 'answer') {
+      await _setRemoteDescription(payload);
+    } else if (type == 'ice') {
+      final candidate = RTCIceCandidate(
+        payload['candidate']?.toString(),
+        payload['sdpMid']?.toString(),
+        (payload['sdpMLineIndex'] as num?)?.toInt(),
+      );
+      if (_remoteDescriptionSet) {
+        await _peerConnection?.addCandidate(candidate);
+      } else {
+        _pendingCandidates.add(candidate);
+      }
     }
   }
 
@@ -257,6 +319,34 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     }
   }
 
+  Map<String, dynamic> _peerConfiguration() {
+    final iceServers = <Map<String, dynamic>>[
+      {
+        'urls': [
+          'stun:stun.l.google.com:19302',
+          'stun:stun1.l.google.com:19302',
+        ],
+      },
+    ];
+    final turnUrls = _turnUrls
+        .split(',')
+        .map((url) => url.trim())
+        .where((url) => url.isNotEmpty)
+        .toList();
+    if (turnUrls.isNotEmpty) {
+      iceServers.add({
+        'urls': turnUrls,
+        'username': _turnUsername,
+        'credential': _turnCredential,
+      });
+    }
+
+    return {
+      'iceServers': iceServers,
+      'iceCandidatePoolSize': 10,
+    };
+  }
+
   @override
   void dispose() {
     _pollTimer?.cancel();
@@ -265,6 +355,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     }
     unawaited(_localStream?.dispose());
     unawaited(_peerConnection?.close());
+    if (_rendererInitialized) {
+      unawaited(_remoteRenderer.dispose());
+    }
     super.dispose();
   }
 
@@ -284,6 +377,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Offstage(child: RTCVideoView(_remoteRenderer)),
                 CircleAvatar(
                   radius: 54,
                   backgroundColor: colors.primaryContainer,

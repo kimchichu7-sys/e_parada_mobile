@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SOFTWARE DESIGN: The Architecture Decision (CPSOFT30)</title>
+<style>
+  @page {
+    size: letter portrait;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Calisto MT', 'Calisto', 'Bookman Old Style', Georgia, 'Times New Roman', serif;
+    color: #111827;
+    line-height: 1.4;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 20mm 24mm;
+    font-size: 11pt;
+  }
+
+  /* Header Section Exactly Matching Prompted Image */
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    gap: 28px;
+  }
+
+  .logo-shield {
+    width: 85px;
+    height: 98px;
+    flex-shrink: 0;
+  }
+
+  .header-text {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .main-title {
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+    font-size: 26pt;
+    font-weight: 700;
+    color: #7ba1cb;
+    margin: 0;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .sub-title {
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+    font-size: 18pt;
+    font-weight: 700;
+    color: #7ba1cb;
+    margin: 4px 0 0 0;
+    line-height: 1.2;
+  }
+
+  .course-code {
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+    font-size: 13pt;
+    font-weight: 700;
+    color: #7ba1cb;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .meta-info {
+    margin-top: 6px;
+    margin-bottom: 16px;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+  }
+
+  .meta-info div {
+    margin-bottom: 2px;
+  }
+
+  h2 {
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+    color: #1e3a8a;
+    font-size: 13pt;
+    font-weight: 700;
+    margin: 18px 0 8px 0;
+  }
+
+  p {
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+    margin: 0 0 8px 0;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 14px 0;
+    font-size: 10pt;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+  }
+
+  table.blue-table {
+    border: 1px solid #1e40af;
+  }
+
+  table.blue-table th {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: left;
+    padding: 6px 10px;
+    border: 1px solid #1d4ed8;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+  }
+
+  table.blue-table td {
+    border: 1px solid #93c5fd;
+    padding: 6px 10px;
+    vertical-align: top;
+  }
+
+  /* Decision Canvas Boxes */
+  .canvas-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+    border: 1px solid #2563eb;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+  }
+
+  .canvas-header {
+    background-color: #1d4ed8;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 10.5pt;
+    padding: 6px 10px;
+    text-transform: uppercase;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+  }
+
+  .canvas-row-title {
+    width: 175px;
+    font-weight: 700;
+    color: #0f172a;
+    background-color: #f1f5f9;
+    padding: 6px 10px;
+    border-top: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    font-size: 10pt;
+  }
+
+  .canvas-row-content {
+    padding: 6px 10px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 10pt;
+    color: #1e293b;
+  }
+
+  .pipeline-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 12px 0 16px 0;
+    gap: 8px;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+  }
+
+  .pipe-box {
+    flex: 1;
+    text-align: center;
+    padding: 8px 6px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    font-size: 9.5pt;
+  }
+
+  .pipe-arrow {
+    font-size: 16px;
+    font-weight: bold;
+    color: #64748b;
+  }
+
+  .bg-orange { background-color: #ea580c; }
+  .bg-green  { background-color: #16a34a; }
+  .bg-blue   { background-color: #0284c7; }
+  .bg-purple { background-color: #9333ea; }
+
+  /* Code Block */
+  .code-container {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+    font-size: 8.5pt;
+    line-height: 1.4;
+    margin: 8px 0 12px 0;
+    border: 1px solid #334155;
+    page-break-inside: avoid;
+  }
+
+  .code-comment { color: #94a3b8; }
+  .code-kw { color: #38bdf8; font-weight: 600; }
+  .code-type { color: #f472b6; }
+  .code-str { color: #4ade80; }
+  .code-fn { color: #fbbf24; }
+
+  .team-header-box {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    font-size: 10.5pt;
+    line-height: 1.6;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  @media print {
+    body {
+      padding: 18mm 22mm;
+    }
+    .no-print {
+      display: none;
+    }
+  }
+
+  .print-bar {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+  }
+
+  .print-btn {
+    background-color: #1e3a8a;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 10pt;
+    font-family: 'Calisto MT', 'Calisto', Georgia, serif;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .print-btn:hover {
+    background-color: #1d4ed8;
+  }
+</style>
+</head>
+<body>
+
+<div class="print-bar no-print">
+  <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+</div>
+
+<!-- PAGE 1 HEADER -->
+<div class="header-container">
+  <!-- National University Shield Logo SVG -->
+  <svg class="logo-shield" viewBox="0 0 160 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Outer Shield Contour -->
+    <path d="M15 35 C15 20, 28 12, 45 12 L115 12 C132 12, 145 20, 145 35 C145 75, 150 120, 80 178 C10 120, 15 75, 15 35 Z" 
+          fill="#8794b6" stroke="#b3bed6" stroke-width="4"/>
+    <!-- Inner Border line -->
+    <path d="M22 37 C22 26, 32 19, 47 19 L113 19 C128 19, 138 26, 138 37 C138 73, 142 114, 80 168 C18 114, 22 73, 22 37 Z" 
+          fill="none" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="0.5 0.5"/>
+    
+    <!-- Shield Core Shape -->
+    <path d="M26 40 C26 30, 35 24, 49 24 L111 24 C125 24, 134 30, 134 40 C134 72, 138 110, 80 162 C22 110, 26 72, 26 40 Z" 
+          fill="#7885a8"/>
+
+    <!-- NU Monogram (Gold) -->
+    <!-- 'N' letter -->
+    <path d="M43 118 L43 62 L55 62 L78 100 L78 62 L89 62 L89 118 L77 118 L54 80 L54 118 Z" 
+          fill="#eed378" stroke="#334155" stroke-width="2"/>
+    <!-- 'U' letter interlocking -->
+    <path d="M72 62 L83 62 L83 95 C83 108, 93 118, 106 118 C119 118, 129 108, 129 95 L129 62 L140 62 L140 95 C140 115, 125 128, 106 128 C87 128, 72 115, 72 95 Z" 
+          fill="#eed378" stroke="#334155" stroke-width="2"/>
+
+    <!-- Bottom Ribbon with 1900 -->
+    <path d="M46 138 L114 138 C120 138, 122 143, 118 147 L80 156 L42 147 C38 143, 40 138, 46 138 Z" fill="#687699"/>
+    <text x="80" y="149" font-family="'Calisto MT', Georgia, serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="1">1900</text>
+    
+    <!-- Small Registered Symbol -->
+    <text x="146" y="172" font-family="Arial, sans-serif" font-size="7" fill="#64748b">®</text>
+  </svg>
+
+  <div class="header-text">
+    <div class="main-title">SOFTWARE DESIGN</div>
+    <div class="sub-title">The Architecture Decision</div>
+    <div class="course-code">CPSOFT30</div>
+  </div>
+</div>
+
+<div class="meta-info">
+  <div><strong>Course:</strong> Software Engineering — Architectural Design</div>
+  <div><strong>Grouping:</strong> Existing Capstone Teams</div>
+  <div><strong>Duration:</strong> 90–120 minutes</div>
+  <div><strong>Mode:</strong> Applied case work on the team's own capstone system</div>
+</div>
+
+<h2>1. Learning Objective</h2>
+<p>By the end of this activity, each team will have made and justified eight real architectural decisions for their own capstone project, translated one of those decisions into a working code snippet, and defended the trade-offs to peers.</p>
+<p>This directly operationalizes the 8-question framework:</p>
+
+<table class="blue-table">
+  <thead>
+    <tr>
+      <th style="width: 35px; text-align: center;">#</th>
+      <th>Decision Question</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="text-align: center; font-weight: bold;">1</td><td>Is there a generic application architecture that can act as a template?</td></tr>
+    <tr><td style="text-align: center; font-weight: bold;">2</td><td>How will the system be distributed across hardware cores/processors?</td></tr>
+    <tr><td style="text-align: center; font-weight: bold;">3</td><td>What architectural patterns or styles might be used?</td></tr>
+    <tr><td style="text-align: center; font-weight: bold;">4</td><td>What strategy will be used to control the operation of the components?</td></tr>
+    <tr><td style="text-align: center; font-weight: bold;">5</td><td>What will be the fundamental approach used to structure the system?</td></tr>
+    <tr><td style="text-align: center; font-weight: bold;">6</td><td>How will structural components be decomposed into sub-components?</td></tr>
+    <tr><td style="text-align: center; font-weight: bold;">7</td><td>What architectural organization best delivers the non-functional requirements?</td></tr>
+    <tr><td style="text-align: center; font-weight: bold;">8</td><td>How should the architecture be documented?</td></tr>
+  </tbody>
+</table>
+
+<h2>2. Activity Guide</h2>
+<p>The team will run the 8 decision question as a decision pipeline: evidence, trade-off scoring, committed decision, proof-of-concept code. The “real case” is their own capstone — they cannot use a textbook example. If a team hasn't finalized their capstone concept yet, they use their current working proposal; ambiguity is resolved by picking an assumption and stating it (same as in real practice).</p>
+
+<div class="pipeline-container">
+  <div class="pipe-box bg-orange">Evidence</div>
+  <div class="pipe-arrow">&rarr;</div>
+  <div class="pipe-box bg-green">Trade-off<br>Scoring</div>
+  <div class="pipe-arrow">&rarr;</div>
+  <div class="pipe-box bg-blue">Committed<br>Decision</div>
+  <div class="pipe-arrow">&rarr;</div>
+  <div class="pipe-box bg-purple">Proof-of-concept<br>Code</div>
+</div>
+
+<h2>3. Materials Needed</h2>
+<p>● Printed or digital Architecture Decision Canvas (Section 5 below) — one per team<br>
+● Team laptops with their capstone's actual tech stack<br>
+● Whiteboard or shared doc for the Gallery Walk</p>
+
+<h2>4. Activity Flow</h2>
+<p><strong>Phase 1 — System Framing:</strong> "E-Parada is an integrated smart parking reservation and management system connecting drivers with parking providers and admins; under peak load, the system processes concurrent slot queries, instant PayMongo checkouts, and GPS searches, while mobile clients handle QR checkpoint validations, calling, and offline pass caching."</p>
+
+<div class="page-break"></div>
+
+<!-- PAGE 2 / SECTION 5 -->
+<h2>5. Architecture Decision Canvas (fill per team)</h2>
+
+<div class="team-header-box">
+  <div><strong>TEAM:</strong> E-Parada Capstone Team</div>
+  <div><strong>CAPSTONE PROJECT:</strong> E-Parada Smart Parking Management System (<code>e_parada_mobile</code>)</div>
+</div>
+
+<!-- Box 1 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[1] GENERIC ARCHITECTURE / TEMPLATE</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Multi-Tier Client-Server Architecture with Centralized RESTful Cloud API & SaaS Gateway Integration</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">Flutter mobile app (<code>e_parada_mobile</code>) acts as the client tier communicating via JSON/HTTPS endpoints in <code>ApiConfig</code> with a centralized backend API (<code>/api/driver/*</code>, <code>/api/owner/*</code>, <code>/api/admin/*</code>) and third-party gateways (PayMongo for payments, OpenStreetMap / Google Maps for geocoding).</td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>Peer-to-Peer (P2P) Architecture.</strong> Rejected because parking slot availability, pricing schedules, and financial transactions require an authoritative single source of truth to prevent concurrency collisions (double-booking).</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Box 2 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[2] DISTRIBUTION ACROSS HARDWARE / PROCESSES</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Distributed Hybrid Processing: Client-Side Edge Execution + Central Application Server + Cloud Gateways</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">Compute is distributed between the mobile device (Flutter VM handling map rendering, QR pass generation via <code>qr_flutter</code>, camera scanning via <code>mobile_scanner</code>, local encrypted pass storage via <code>SharedPreferences</code>), backend server (scheduling, auth), and PayMongo webhooks.</td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>Pure Thin-Client / Web-Only Streaming (Server-Side Rendering).</strong> Rejected because drivers entering low-connectivity underground parking garages must retain offline access to cached QR parking passes and native hardware features (camera/GPS) without constant server roundtrips.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Box 3 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[3] ARCHITECTURAL PATTERN / STYLE</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Layered Architectural Pattern (Presentation Layer &rarr; Service / Business Logic Layer &rarr; Data / API Transport Layer)</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">Mobile app enforces strict layer separation: UI screens (<code>ReserveParkingScreen</code>, <code>MapScreen</code>, <code>VehicleGarageScreen</code>) never touch HTTP/DB directly; they delegate to isolated service classes (<code>ReservationService</code>, <code>PaymongoService</code>), which format DTOs and call <code>ApiClient</code>.</td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>Microkernel / Plugin Architecture.</strong> Rejected because parking reservation, vehicle garage, and payment workflows are tightly integrated core domains rather than independent third-party plugins; layered design yields clean separation with minimal orchestration cost.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Box 4 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[4] CONTROL STRATEGY (how components trigger/coordinate each other)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Top-Down Asynchronous Call-and-Return with Reactive Local State & Periodic Polling</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">Primary transactions (booking a slot, initiating PayMongo payment) use explicit <code>Future/async-await</code> calls from UI to Service to <code>ApiClient</code>. Status updates (payment verification, background reservation reminders) use periodic polling and reactive listeners.</td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>Pure Event-Driven Architecture (EDA) with Global WebSocket Message Bus.</strong> Rejected due to unstable mobile cellular handoffs that cause socket drops; standard REST request-reply with idempotent retry mechanisms provides superior transaction reliability.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<!-- Box 5 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[5] FUNDAMENTAL STRUCTURING APPROACH</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Feature-Driven Layered Modularity with Role-Based Domain Segregation</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">Codebase is organized into structural layers (<code>screens/</code>, <code>widgets/</code>, <code>services/</code>, <code>models/</code>, <code>config/</code>, <code>utils/</code>) segregated by user roles (Driver, Owner/Provider, Administrator).</td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>Monolithic Screen-Centric Coupling (combining UI layout, network calls, and business logic inside single <code>StatefulWidget</code> classes).</strong> Rejected because it prevents automated unit testing, duplicates authentication logic, and causes severe merge conflicts.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Box 6 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[6] DECOMPOSITION INTO SUB-COMPONENTS</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Specialized Service & Repository Decomposition with Dedicated Data Transfer Objects (DTOs)</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">Business capabilities are partitioned into isolated services: <code>ReservationService</code>, <code>PaymongoService</code>, <code>OfflineParkingPassService</code>, <code>VehicleService</code>, and <code>ApiClient</code>, each consuming structured DTO models (<code>DriverReservation</code>, <code>ReservationAvailability</code>, <code>OfflinePassData</code>).</td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>God-Object / Universal AppManager Service.</strong> Rejected because coupling authentication, mapping, WebRTC calling, and payment processing into one class causes tight coupling, memory overhead, and high regression risks.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Box 7 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[7] ARCHITECTURE FOR NON-FUNCTIONAL REQUIREMENTS (rank top 10 NFRs)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Prioritize Data Consistency, Security, and Offline Resilience over Distributed Complexity</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">1. <strong>Data Consistency</strong> (atomic slot locking) <br>2. <strong>Security</strong> (Bearer tokens, PayMongo secrets) <br>3. <strong>Offline Resilience</strong> (<code>OfflineParkingPassService</code> cached passes) <br>4. <strong>Response Time</strong> (&lt; 1.5s slot query) <br>5. <strong>Maintainability</strong> <br>6. <strong>Fault Tolerance</strong> <br>7. <strong>Portability</strong> (Android/iOS/Web) <br>8. <strong>Scalability</strong> <br>9. <strong>Usability</strong> <br>10. <strong>Testability</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>Optimistic Client-Side Booking without Pre-Reservation Locks.</strong> Rejected because physical parking spots are strictly finite; optimistic booking creates double-booking disputes.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Box 8 -->
+<table class="canvas-table">
+  <thead>
+    <tr><th colspan="2" class="canvas-header">[8] DOCUMENTATION APPROACH (e.g., UML diagram, Version Controls)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="canvas-row-title">Decision:</td>
+      <td class="canvas-row-content"><strong>Multi-View Architectural Documentation via C4 Model, Flowcharts, ADRs, & Version Control</strong></td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Evidence from our project:</td>
+      <td class="canvas-row-content">Architecture is documented using version-controlled diagrams in the repository (<code>e_parada_activity_diagram.drawio</code>, <code>e_parada_system_flowchart.drawio</code>, drawio scripts) and modular markdown specification documents.</td>
+    </tr>
+    <tr>
+      <td class="canvas-row-title">Rejected alternative:</td>
+      <td class="canvas-row-content"><strong>Informal / Tribal Knowledge Documentation.</strong> Rejected because capstone defense, role-based security audits, and multi-developer handoffs require explicit, reviewable models.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<!-- SECTION 6 & 7 -->
+<h2>6. Decision Matrix</h2>
+<p>Score each candidate 1–5 against the team's own top NFRs (pulled from Canvas Box 7). Weight = how much that NFR matters to this capstone (1–10). Use the Document Convention for easy traversal.</p>
+
+<table class="blue-table" style="font-size: 9.5pt;">
+  <thead>
+    <tr>
+      <th style="background-color: #1e3a8a;">Non-Functional Requirement</th>
+      <th style="background-color: #1e3a8a; text-align: center; width: 60px;">Weight</th>
+      <th style="background-color: #1e3a8a; text-align: center;" colspan="2">Candidate A: Layered Client-Server</th>
+      <th style="background-color: #1e3a8a; text-align: center;" colspan="2">Candidate B: Microservices / EDA</th>
+    </tr>
+    <tr style="background-color: #2563eb; color: white;">
+      <th></th>
+      <th></th>
+      <th style="text-align: center; width: 50px;">Score</th>
+      <th style="text-align: center; width: 60px;">Weighted</th>
+      <th style="text-align: center; width: 50px;">Score</th>
+      <th style="text-align: center; width: 60px;">Weighted</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Data Consistency</strong> (No double-booking)</td><td style="text-align: center;">10</td><td style="text-align: center;">5</td><td style="text-align: center; font-weight: bold;">50</td><td style="text-align: center;">3</td><td style="text-align: center;">30</td></tr>
+    <tr><td><strong>Security & Payment Safety</strong></td><td style="text-align: center;">9</td><td style="text-align: center;">5</td><td style="text-align: center; font-weight: bold;">45</td><td style="text-align: center;">4</td><td style="text-align: center;">36</td></tr>
+    <tr><td><strong>Offline Resilience & Availability</strong></td><td style="text-align: center;">8</td><td style="text-align: center;">4</td><td style="text-align: center; font-weight: bold;">32</td><td style="text-align: center;">3</td><td style="text-align: center;">24</td></tr>
+    <tr><td><strong>Response Time & Low Latency</strong></td><td style="text-align: center;">8</td><td style="text-align: center;">4</td><td style="text-align: center; font-weight: bold;">32</td><td style="text-align: center;">4</td><td style="text-align: center;">32</td></tr>
+    <tr><td><strong>Maintainability & Simplicity</strong></td><td style="text-align: center;">9</td><td style="text-align: center;">5</td><td style="text-align: center; font-weight: bold;">45</td><td style="text-align: center;">2</td><td style="text-align: center;">18</td></tr>
+    <tr><td><strong>Fault Tolerance & Error Handling</strong></td><td style="text-align: center;">7</td><td style="text-align: center;">4</td><td style="text-align: center; font-weight: bold;">28</td><td style="text-align: center;">4</td><td style="text-align: center;">28</td></tr>
+    <tr><td><strong>Development Velocity & Team Cost</strong></td><td style="text-align: center;">9</td><td style="text-align: center;">5</td><td style="text-align: center; font-weight: bold;">45</td><td style="text-align: center;">2</td><td style="text-align: center;">18</td></tr>
+    <tr><td><strong>Testability (Unit/Widget/API)</strong></td><td style="text-align: center;">8</td><td style="text-align: center;">5</td><td style="text-align: center; font-weight: bold;">40</td><td style="text-align: center;">3</td><td style="text-align: center;">24</td></tr>
+    <tr><td><strong>Scalability</strong></td><td style="text-align: center;">6</td><td style="text-align: center;">3</td><td style="text-align: center; font-weight: bold;">18</td><td style="text-align: center;">5</td><td style="text-align: center;">30</td></tr>
+    <tr><td><strong>Resource & Deployment Efficiency</strong></td><td style="text-align: center;">7</td><td style="text-align: center;">5</td><td style="text-align: center; font-weight: bold;">35</td><td style="text-align: center;">2</td><td style="text-align: center;">14</td></tr>
+    <tr style="background-color: #e0f2fe; font-weight: bold;">
+      <td colspan="2" style="text-align: right;">Weighted Total</td>
+      <td></td>
+      <td style="text-align: center; color: #1e3a8a; font-size: 11pt;">370</td>
+      <td></td>
+      <td style="text-align: center; color: #475569; font-size: 11pt;">254</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><em>Decision rule: highest weighted total wins unless the team can justify overriding it (and must write that justification on the Canvas).</em><br>
+<strong>Justification:</strong> Candidate A wins (<strong>370 vs. 254 points</strong>). Candidate A provides immediate transactional consistency to prevent double-booking, lower infrastructure complexity, and faster development velocity for the mobile capstone team.</p>
+
+<h2>7. Code Snippet (Proving the Architecture)</h2>
+<p>Below is a working Dart/Flutter code snippet demonstrating how the decision (Layered Architecture + Top-down asynchronous control strategy) is visibly enforced across E-Parada's components:</p>
+
+<div class="code-container">
+<span class="code-comment">// === Decision being demonstrated ===</span>
+<span class="code-comment">// Box 3: Layered architecture (Presentation -> Service -> ApiClient)</span>
+<span class="code-comment">// Box 4: Control strategy = top-down asynchronous invocation (Future / await)</span>
+<span class="code-comment">// Box 6: Structural decomposition = UI delegates booking logic to ReservationService</span>
+
+<span class="code-comment">// -- Presentation layer: lib/screens/reserve_parking_screen.dart --</span>
+<span class="code-kw">class</span> <span class="code-type">ReserveParkingScreenState</span> {
+  <span class="code-type">Future</span>&lt;<span class="code-kw">void</span>&gt; <span class="code-fn">onConfirmBooking</span>(<span class="code-type">int</span> spaceId, <span class="code-type">int</span> vehicleId, <span class="code-type">int</span> slotId) <span class="code-kw">async</span> {
+    <span class="code-kw">try</span> {
+      <span class="code-kw">final</span> message = <span class="code-kw">await</span> <span class="code-type">ReservationService</span>.<span class="code-fn">createReservation</span>(
+        parkingSpaceId: spaceId, vehicleId: vehicleId, parkingSlotId: slotId,
+      );
+      <span class="code-fn">showSuccessBanner</span>(message);
+    } <span class="code-kw">on</span> <span class="code-type">ApiException</span> <span class="code-kw">catch</span> (err) { <span class="code-fn">showErrorBanner</span>(err.message); }
+  }
+}
+
+<span class="code-comment">// -- Business logic layer: lib/services/reservation_service.dart --</span>
+<span class="code-kw">class</span> <span class="code-type">ReservationService</span> {
+  <span class="code-kw">static</span> <span class="code-type">Future</span>&lt;<span class="code-type">String</span>&gt; <span class="code-fn">createReservation</span>({<span class="code-kw">required</span> <span class="code-type">int</span> parkingSpaceId, <span class="code-kw">required</span> <span class="code-type">int</span> vehicleId, <span class="code-kw">required</span> <span class="code-type">int</span> parkingSlotId}) <span class="code-kw">async</span> {
+    <span class="code-kw">final</span> response = <span class="code-kw">await</span> <span class="code-type">ApiClient</span>.<span class="code-fn">postJson</span>(<span class="code-str">'driver/parking-spaces/$parkingSpaceId/reservations'</span>,
+      body: {<span class="code-str">'vehicle_id'</span>: vehicleId, <span class="code-str">'parking_slot_id'</span>: parkingSlotId},
+    );
+    <span class="code-type">ApiClient</span>.<span class="code-fn">requireStatus</span>(response, <span class="code-kw">const</span> {<span class="code-num">201</span>});
+    <span class="code-kw">return</span> <span class="code-type">ApiClient</span>.<span class="code-fn">decodeObject</span>(response)[<span class="code-str">'message'</span>] ?? <span class="code-str">'Reservation submitted.'</span>;
+  }
+}
+
+<span class="code-comment">// -- Data layer: lib/services/api_client.dart --</span>
+<span class="code-kw">class</span> <span class="code-type">ApiClient</span> {
+  <span class="code-kw">static</span> <span class="code-type">Future</span>&lt;<span class="code-type">http.Response</span>&gt; <span class="code-fn">postJson</span>(<span class="code-type">String</span> path, {<span class="code-type">Map</span>&lt;<span class="code-type">String</span>, <span class="code-type">dynamic</span>&gt;? body}) =&gt;
+      <span class="code-type">http</span>.<span class="code-fn">post</span>(<span class="code-type">ApiConfig</span>.<span class="code-fn">endpoint</span>(path), headers: {<span class="code-str">'Content-Type'</span>: <span class="code-str">'application/json'</span>}, body: <span class="code-fn">jsonEncode</span>(body));
+  <span class="code-kw">static</span> <span class="code-kw">void</span> <span class="code-fn">requireStatus</span>(<span class="code-type">http.Response</span> res, <span class="code-type">Set</span>&lt;<span class="code-type">int</span>&gt; valid) {
+    <span class="code-kw">if</span> (!valid.contains(res.statusCode)) <span class="code-kw">throw</span> <span class="code-type">ApiException</span>(<span class="code-fn">jsonDecode</span>(res.body)[<span class="code-str">'message'</span>] ?? <span class="code-str">'Request failed'</span>);
+  }
+}
+</div>
+
+<p><strong>What makes this a demonstration of the decision, not just code:</strong> the Presentation layer never touches HTTP or database queries directly (enforces Box 6 decomposition), and control flows top-down through explicit function calls rather than emitted events (proves the Box 4 choice).</p>
+
+<h2>8. Checklist (Per Team)</h2>
+<p>● Completed Architecture Decision Canvas (all 8 boxes, no blank “TBD”)<br>
+● Completed Decision Matrix with weighted scoring<br>
+● Code snippet (10–25 lines) proving the chosen pattern + control strategy, in their actual capstone stack<br>
+● Consolidated file (PDF)</p>
+
+<h2>9. Rubric (100 pts)</h2>
+<table class="blue-table" style="font-size: 8.5pt;">
+  <thead>
+    <tr>
+      <th>Criterion</th>
+      <th style="width: 45px; text-align: center;">Pts</th>
+      <th>What to look for</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Canvas — grounded in real project evidence (not generic textbook answers)</strong></td>
+      <td style="text-align: center; font-weight: bold;">30</td>
+      <td>Each decision cites an actual requirement/constraint from their capstone</td>
+    </tr>
+    <tr>
+      <td><strong>Decision Matrix — honest, weighted trade-off reasoning</strong></td>
+      <td style="text-align: center; font-weight: bold;">20</td>
+      <td>Weights reflect their actual priorities; the “losing” option is fairly represented</td>
+    </tr>
+    <tr>
+      <td><strong>Code snippet — decision is visibly enforced in the code structure</strong></td>
+      <td style="text-align: center; font-weight: bold;">30</td>
+      <td>Snippet would fail to compile/run if the architectural decision were violated</td>
+    </tr>
+    <tr>
+      <td><strong>Submission completeness</strong></td>
+      <td style="text-align: center; font-weight: bold;">20</td>
+      <td>Checklist submitted on due date</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

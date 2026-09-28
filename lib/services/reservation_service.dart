@@ -133,12 +133,17 @@ class ReservationService {
   static Future<String> submitPayment({
     required int reservationId,
     required String paymentMethod,
+    String? referenceNumber,
     UploadFileData? paymentProof,
   }) async {
+    final fields = {'payment_method': paymentMethod};
+    if (referenceNumber != null && referenceNumber.isNotEmpty) {
+      fields['reference_number'] = referenceNumber;
+    }
     final response = await ApiClient.postMultipart(
       'driver/reservations/$reservationId/payment',
       headers: await _headers(),
-      fields: {'payment_method': paymentMethod},
+      fields: fields,
       files: paymentProof == null ? null : {'payment_proof': paymentProof},
     );
     ApiClient.requireStatus(response, const {200});

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/auth_user.dart';
 import '../models/dashboard_summary.dart';
 import '../services/dashboard_service.dart';
+import '../widgets/dashboard_analytics_charts.dart';
 import '../widgets/notification_action_button.dart';
 import '../widgets/eparada_logo.dart';
 
@@ -26,7 +27,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _refresh() async {
     final request = DashboardService.fetchSummary();
-    setState(() => _future = request);
+    setState(() {
+      _future = request;
+    });
     await request;
   }
 
@@ -75,6 +78,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   itemBuilder: (context, index) =>
                       _MetricCard(metric: summary.metrics[index]),
                 ),
+                if (widget.user.isParkingOwner || widget.user.isAdmin) ...[
+                  const SizedBox(height: 20),
+                  DashboardAnalyticsCharts(
+                    summary: summary,
+                    isOwnerOrAdmin: true,
+                  ),
+                ],
                 const SizedBox(height: 20),
                 _AccessCard(user: widget.user),
               ],

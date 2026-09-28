@@ -83,7 +83,7 @@ void main() {
       'can_mark_paid': false,
     });
 
-    expect(reservation.backupReference, 'RES-12');
+    expect(reservation.backupReference, 'RES-53878523');
     expect(reservation.isPending, isTrue);
     expect(reservation.vehicleLabel, contains('ABC 1234'));
     expect(reservation.vehicleLabel, contains('Toyota Vios'));
@@ -108,7 +108,7 @@ void main() {
 
       expect(transaction.wasSuccessful, isTrue);
       expect(transaction.eventLabel, 'Entry Recorded');
-      expect(transaction.backupReference, 'RES-12');
+      expect(transaction.backupReference, 'RES-53878523');
       expect(transaction.parkingSpaceId, 8);
     },
   );

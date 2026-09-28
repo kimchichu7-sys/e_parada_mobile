@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -30,8 +32,11 @@ class _VehicleGarageScreenState extends State<VehicleGarageScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _future = _load());
-    await _future;
+    final future = _load();
+    setState(() {
+      _future = future;
+    });
+    await future;
   }
 
   Future<void> _openAddVehicle() async {
@@ -299,11 +304,8 @@ class _VehicleCard extends StatelessWidget {
                   '${vehicle.color} ${vehicle.make.isEmpty ? '' : '${vehicle.make} '}${vehicle.model}',
                 ),
                 Text(vehicle.vehicleType),
-                const SizedBox(height: 6),
-                Text(
-                  _plateScanLabel(vehicle.plateScanStatus),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                const SizedBox(height: 8),
+                _buildOcrBadge(context, vehicle.plateScanStatus),
                 if (vehicle.verificationNotes?.isNotEmpty == true) ...[
                   const SizedBox(height: 10),
                   Text(
@@ -327,21 +329,65 @@ class _VehicleCard extends StatelessWidget {
     );
   }
 
+  static Widget _buildOcrBadge(BuildContext context, String status) {
+    final (label, icon, color) = switch (status) {
+      'matched' => (
+        'OCR: Plate Matched & Validated',
+        Icons.verified_outlined,
+        Colors.green.shade700,
+      ),
+      'mismatch' => (
+        'OCR: Character Mismatch (Admin Audit)',
+        Icons.warning_amber_rounded,
+        Colors.red.shade700,
+      ),
+      'not_detected' => (
+        'OCR: Plate Not Legible',
+        Icons.blur_on_rounded,
+        Colors.orange.shade800,
+      ),
+      'unavailable' => (
+        'OCR: Unavailable (Manual Review)',
+        Icons.help_outline_rounded,
+        Colors.blueGrey.shade700,
+      ),
+      _ => (
+        'OCR: Pending Verification',
+        Icons.fact_check_outlined,
+        Colors.blue.shade700,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   static String _statusLabel(String status) {
     return switch (status) {
       'approved' => 'Approved',
       'rejected' => 'Rejected',
       _ => 'Pending review',
-    };
-  }
-
-  static String _plateScanLabel(String status) {
-    return switch (status) {
-      'matched' => 'Photo scan: plate matched',
-      'mismatch' => 'Photo scan: mismatch - admin review required',
-      'not_detected' => 'Photo scan: plate was not readable',
-      'unavailable' => 'Photo scan: OCR unavailable - manual review',
-      _ => 'Photo scan: manual review required',
     };
   }
 }
@@ -523,33 +569,64 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               },
             ),
             const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.document_scanner_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Tesseract OCR Plate Verification',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Ensure photos are clear and the license plate is directly readable. OCR extracts characters to cross-verify against Philippine LTO syntax (${RegistrationValidation.plateHint(_vehicleType)}).',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _loading
-                        ? null
-                        : () => _pickPhoto((file) => _frontPhoto = file),
-                    icon: Icon(
-                      _frontPhoto == null
-                          ? Icons.add_a_photo_outlined
-                          : Icons.check_circle_outline,
-                    ),
-                    label: Text(_frontPhoto?.name ?? 'Vehicle front'),
+                  child: _photoUploadCard(
+                    title: 'Vehicle Front',
+                    subtitle: 'Front plate visible',
+                    file: _frontPhoto,
+                    onTap: _loading ? null : () => _pickPhoto((file) => _frontPhoto = file),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _loading
-                        ? null
-                        : () => _pickPhoto((file) => _backPhoto = file),
-                    icon: Icon(
-                      _backPhoto == null
-                          ? Icons.add_a_photo_outlined
-                          : Icons.check_circle_outline,
-                    ),
-                    label: Text(_backPhoto?.name ?? 'Vehicle back'),
+                  child: _photoUploadCard(
+                    title: 'Vehicle Rear',
+                    subtitle: 'Rear plate visible',
+                    file: _backPhoto,
+                    onTap: _loading ? null : () => _pickPhoto((file) => _backPhoto = file),
                   ),
                 ),
               ],
@@ -584,6 +661,107 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               label: Text(_loading ? 'Submitting...' : 'Submit for review'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _photoUploadCard({
+    required String title,
+    required String subtitle,
+    required XFile? file,
+    required VoidCallback? onTap,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 130,
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: file != null ? Colors.green.shade600 : colors.outlineVariant,
+            width: file != null ? 1.5 : 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(11),
+          child: file == null
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_a_photo_outlined, size: 28, color: colors.primary),
+                    const SizedBox(height: 6),
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )
+              : FutureBuilder<Uint8List>(
+                  future: file.readAsBytes(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                    }
+                    if (snapshot.hasData) {
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.memory(snapshot.data!, fit: BoxFit.cover),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.6),
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.6),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 6,
+                            left: 8,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.greenAccent, size: 14),
+                                const SizedBox(width: 4),
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Positioned(
+                            bottom: 6,
+                            right: 8,
+                            child: Text(
+                              'Tap to change',
+                              style: TextStyle(color: Colors.white70, fontSize: 10),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return Center(child: Text(file.name));
+                  },
+                ),
         ),
       ),
     );

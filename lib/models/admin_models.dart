@@ -1,4 +1,5 @@
 import '../config/api_config.dart';
+import '../utils/validators.dart';
 
 class AdminUserReview {
   const AdminUserReview({
@@ -186,9 +187,9 @@ class AdminParkingSpaceReview {
 }
 
 class AdminReservationReview {
-  const AdminReservationReview({
+  AdminReservationReview({
     required this.id,
-    required this.backupReference,
+    required String backupReference,
     required this.driverName,
     required this.driverEmail,
     required this.ownerName,
@@ -202,7 +203,8 @@ class AdminReservationReview {
     required this.disputeNotes,
     required this.internalNotes,
     required this.createdAt,
-  });
+  }) : backupReference =
+            Validators.formatReservationNumber(backupReference, id: id);
 
   final int id;
   final String backupReference;
@@ -221,9 +223,11 @@ class AdminReservationReview {
   final DateTime? createdAt;
 
   factory AdminReservationReview.fromJson(Map<String, dynamic> json) {
+    final id = _integer(json['id']);
+    final rawRef = _text(json['backup_reference']);
     return AdminReservationReview(
-      id: _integer(json['id']),
-      backupReference: _text(json['backup_reference']),
+      id: id,
+      backupReference: Validators.formatReservationNumber(rawRef, id: id),
       driverName: _text(json['driver_name'], fallback: 'Unknown driver'),
       driverEmail: _text(json['driver_email']),
       ownerName: _text(json['owner_name'], fallback: 'Unknown owner'),
@@ -328,10 +332,10 @@ class AdminAuditLog {
 }
 
 class AdminQrLog {
-  const AdminQrLog({
+  AdminQrLog({
     required this.id,
     required this.reservationId,
-    required this.backupReference,
+    required String backupReference,
     required this.parkingSpaceId,
     required this.parkingSpaceName,
     required this.actorName,
@@ -341,7 +345,10 @@ class AdminQrLog {
     required this.failureReason,
     required this.identifierSuffix,
     required this.createdAt,
-  });
+  }) : backupReference = Validators.formatReservationNumber(
+          backupReference,
+          id: reservationId ?? id,
+        );
 
   final int id;
   final int? reservationId;
@@ -357,12 +364,16 @@ class AdminQrLog {
   final DateTime? createdAt;
 
   factory AdminQrLog.fromJson(Map<String, dynamic> json) {
+    final resId = json['reservation_id'] == null
+        ? 0
+        : _integer(json['reservation_id']);
     return AdminQrLog(
       id: _integer(json['id']),
-      reservationId: json['reservation_id'] == null
-          ? null
-          : _integer(json['reservation_id']),
-      backupReference: _text(json['backup_reference']),
+      reservationId: json['reservation_id'] == null ? null : resId,
+      backupReference: Validators.formatReservationNumber(
+        json['backup_reference']?.toString(),
+        id: resId,
+      ),
       parkingSpaceId: json['parking_space_id'] == null
           ? null
           : _integer(json['parking_space_id']),

@@ -24,11 +24,22 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
   String? _make;
   String? _model;
   String? _color;
+  final _customMakeController = TextEditingController();
+  final _customModelController = TextEditingController();
+  final _customColorController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _catalogFuture = VehicleService.fetchCatalog();
+  }
+
+  @override
+  void dispose() {
+    _customMakeController.dispose();
+    _customModelController.dispose();
+    _customColorController.dispose();
+    super.dispose();
   }
 
   @override
@@ -39,13 +50,27 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
         _make = null;
         _model = null;
         _color = null;
+        _customMakeController.clear();
+        _customModelController.clear();
+        _customColorController.clear();
       });
       _notify();
     }
   }
 
-  void _notify() {
-    widget.onChanged(_make ?? '', _model ?? '', _color ?? '');
+  void _notify([VehicleCatalog? catalog]) {
+    final other = catalog?.otherValue ?? 'Other / Not listed';
+    final effectiveMake = (_make == other && _customMakeController.text.trim().isNotEmpty)
+        ? _customMakeController.text.trim()
+        : (_make ?? '');
+    final effectiveModel = ((_model == other || _make == other) && _customModelController.text.trim().isNotEmpty)
+        ? _customModelController.text.trim()
+        : (_model ?? '');
+    final effectiveColor = (_color == other && _customColorController.text.trim().isNotEmpty)
+        ? _customColorController.text.trim()
+        : (_color ?? '');
+
+    widget.onChanged(effectiveMake, effectiveModel, effectiveColor);
   }
 
   String? _required(String? value) {
@@ -92,26 +117,37 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
           );
         }
 
-        final makes = snapshot.data!.makesFor(widget.vehicleType);
+        final catalog = snapshot.data!;
+        final other = catalog.otherValue;
+        final makes = catalog.makesFor(widget.vehicleType);
         final selectedMake = _firstWhereOrNull(
           makes,
           (item) => item.name == _make,
         );
-        final models = selectedMake?.models ?? const <VehicleCatalogModel>[];
+        final defaultOtherModel = VehicleCatalogModel(
+          name: other,
+          colors: [other],
+        );
+        final models = _make == other
+            ? [defaultOtherModel]
+            : (selectedMake?.models ?? const <VehicleCatalogModel>[]);
         final selectedModel = _firstWhereOrNull(
           models,
           (item) => item.name == _model,
         );
-        final colors = selectedModel?.colors ?? const <String>[];
+        final colors = (_model == other || _make == other)
+            ? [other]
+            : (selectedModel?.colors ?? const <String>[]);
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<String>(
               key: ValueKey('make-${widget.vehicleType}-${_make ?? ''}'),
               initialValue: _make,
               isExpanded: true,
               decoration: const InputDecoration(
-                labelText: 'Make',
+                labelText: 'Make / Brand',
                 prefixIcon: Icon(Icons.factory_outlined),
               ),
               items: makes
@@ -126,14 +162,37 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
                   ? (value) {
                       setState(() {
                         _make = value;
-                        _model = null;
-                        _color = null;
+                        if (_make == other) {
+                          _model = other;
+                          _color = other;
+                        } else {
+                          _model = null;
+                          _color = null;
+                        }
                       });
-                      _notify();
+                      _notify(catalog);
                     }
                   : null,
               validator: _required,
             ),
+            if (_make == other) ...[
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _customMakeController,
+                enabled: widget.enabled,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Enter Brand / Make',
+                  hintText: 'e.g. Vespa, Peugeot, Ducati',
+                  prefixIcon: Icon(Icons.edit_note_rounded),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => _notify(catalog),
+                validator: (v) => (_make == other && (v == null || v.trim().isEmpty))
+                    ? 'Enter vehicle brand/make'
+                    : null,
+              ),
+            ],
             const SizedBox(height: 14),
             DropdownButtonFormField<String>(
               key: ValueKey('model-${_make ?? ''}-${_model ?? ''}'),
@@ -155,13 +214,36 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
                   ? (value) {
                       setState(() {
                         _model = value;
-                        _color = null;
+                        if (_model == other) {
+                          _color = other;
+                        } else {
+                          _color = null;
+                        }
                       });
-                      _notify();
+                      _notify(catalog);
                     }
                   : null,
               validator: _required,
             ),
+            if (_model == other || _make == other) ...[
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _customModelController,
+                enabled: widget.enabled,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Enter Vehicle Model',
+                  hintText: 'e.g. Sprint 150, Panigale V2, 2008',
+                  prefixIcon: Icon(Icons.edit_note_rounded),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => _notify(catalog),
+                validator: (v) => ((_model == other || _make == other) &&
+                        (v == null || v.trim().isEmpty))
+                    ? 'Enter vehicle model'
+                    : null,
+              ),
+            ],
             const SizedBox(height: 14),
             DropdownButtonFormField<String>(
               key: ValueKey('color-${_model ?? ''}-${_color ?? ''}'),
@@ -182,11 +264,29 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
               onChanged: widget.enabled && _model != null
                   ? (value) {
                       setState(() => _color = value);
-                      _notify();
+                      _notify(catalog);
                     }
                   : null,
               validator: _required,
             ),
+            if (_color == other) ...[
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _customColorController,
+                enabled: widget.enabled,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Enter Custom Color',
+                  hintText: 'e.g. Matte Bronze, Pearl White, Teal',
+                  prefixIcon: Icon(Icons.edit_note_rounded),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => _notify(catalog),
+                validator: (v) => (_color == other && (v == null || v.trim().isEmpty))
+                    ? 'Enter vehicle color'
+                    : null,
+              ),
+            ],
           ],
         );
       },

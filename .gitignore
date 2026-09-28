@@ -55,3 +55,8 @@ app.*.map.json
 
 # Local Google Maps credential
 /.google_maps_api_key
+
+e_parada_web/
+scratch_*
+*.apk
+

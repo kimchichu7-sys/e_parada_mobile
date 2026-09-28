@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="app.diagrams.net" modified="2026-08-30T10:00:00.000Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Antigravity/2.0" etag="e-parada-full-flow-v1" version="21.0.0" type="device">
+  <diagram id="e_parada_architecture_flowchart" name="E-Parada System Architecture Flowchart">
+    <mxGraphModel dx="2400" dy="2000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2660" pageHeight="4480" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="hdr_title" value="&lt;b&gt;E-PARADA: CROSS-FUNCTIONAL END-TO-END SYSTEM ARCHITECTURE FLOWCHART&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size: 12px; font-weight: normal; color: #94A3B8;&quot;&gt;Flutter Mobile Client (ph.eparada.mobile) • Laravel Backend REST API &amp;amp; Sanctum • Space Provider • System Administrator • MySQL &amp;amp; Cloud Integrations&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#1E293B;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="2660" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane_phase" value="SYSTEM LIFECYCLE PHASES" style="swimlane;whiteSpace=wrap;html=1;startSize=50;fillColor=#1E293B;strokeColor=#334155;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#F8FAFC;" vertex="1" parent="1">
+          <mxGeometry x="0" y="60" width="240" height="4380" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane_driver" value="FLUTTER CLIENT: DRIVER / USER APP" style="swimlane;whiteSpace=wrap;html=1;startSize=50;fillColor=#1E3A8A;strokeColor=#3B82F6;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#F0F7FF;" vertex="1" parent="1">
+          <mxGeometry x="240" y="60" width="480" height="4380" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane_api" value="LARAVEL REST API &amp;amp; CONTROLLER ENGINE" style="swimlane;whiteSpace=wrap;html=1;startSize=50;fillColor=#312E81;strokeColor=#6366F1;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#F5F3FF;" vertex="1" parent="1">
+          <mxGeometry x="720" y="60" width="520" height="4380" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane_owner" value="PARKING SPACE PROVIDER (HOST)" style="swimlane;whiteSpace=wrap;html=1;startSize=50;fillColor=#064E3B;strokeColor=#10B981;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#ECFDF5;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="60" width="460" height="4380" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane_admin" value="SYSTEM ADMINISTRATOR CONSOLE" style="swimlane;whiteSpace=wrap;html=1;startSize=50;fillColor=#701A75;strokeColor=#D946EF;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#FDF4FF;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="60" width="460" height="4380" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane_db" value="DATABASE, HARDWARE &amp;amp; EXTERNAL SERVICES" style="swimlane;whiteSpace=wrap;html=1;startSize=50;fillColor=#1F2937;strokeColor=#4B5563;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#F9FAFB;" vertex="1" parent="1">
+          <mxGeometry x="2160" y="60" width="500" height="4380" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_banner" value="&lt;b&gt;PHASE 1&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;AUTHENTICATION,&lt;br/&gt;ONBOARDING &amp;amp;&lt;br/&gt;KYC VERIFICATION&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#1E40AF;&quot;&gt;• User &amp;amp; Provider Sign Up&lt;br/&gt;• ID Document Upload&lt;br/&gt;• Vehicle Inspection KYC&lt;br/&gt;• Sanctum Token Issuance&lt;br/&gt;• Admin Approval Workflow&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#3B82F6;fontColor=#1E40AF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="15" y="110" width="210" height="780" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_start" value="START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#22C55E;strokeColor=#16A34A;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="90" width="120" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_drv_reg" value="&lt;b&gt;Driver / User Registration&lt;/b&gt;&lt;br/&gt;Enters Name, Email, Password, Role (Driver),&lt;br/&gt;Plate Number, Vehicle Make/Color/Model,&lt;br/&gt;Consent &amp;amp; Uploads ID + Vehicle Photos" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="160" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_own_reg" value="&lt;b&gt;Provider Registration&lt;/b&gt;&lt;br/&gt;Enters Name, Email, Password, Role (Owner),&lt;br/&gt;Uploads Valid ID Front/Back &amp;amp; Permits" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;fontColor=#064E3B;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="160" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_api_reg" value="&lt;b&gt;[POST /api/register]&lt;/b&gt;&lt;br/&gt;Controller receives multipart payload.&lt;br/&gt;Validates fields, email uniqueness, file formats" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="160" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_dec_val" value="Payload &amp;amp; Files&lt;br/&gt;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#EAB308;strokeWidth=1.5;fontColor=#713F12;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="255" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_drv_err" value="&lt;b&gt;[422 Unprocessable Entity]&lt;/b&gt;&lt;br/&gt;Display validation errors on Mobile UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="260" width="340" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_db_store_user" value="&lt;b&gt;Database: Insert Users &amp;amp; Vehicles&lt;/b&gt;&lt;br/&gt;• INSERT INTO users (status: 'pending')&lt;br/&gt;• INSERT INTO vehicles (status: 'pending')&lt;br/&gt;• Store ID &amp;amp; Vehicle photos to storage/app" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="250" width="380" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_api_token" value="&lt;b&gt;Sanctum Token &amp;amp; Role Setup&lt;/b&gt;&lt;br/&gt;Generate Personal Access Token (Bearer),&lt;br/&gt;Assign initial permissions &amp;amp; quotas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="355" width="400" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_drv_store_session" value="&lt;b&gt;Save Session Locally&lt;/b&gt;&lt;br/&gt;Store auth_token, user_id, role,&lt;br/&gt;can_reserve flag to SharedPreferences" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="355" width="340" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_adm_fetch_kyc" value="&lt;b&gt;Admin Fetches Pending Verifications&lt;/b&gt;&lt;br/&gt;[GET /api/admin/users?status=pending]&lt;br/&gt;[GET /api/admin/vehicles?status=pending]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D946EF;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="445" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_adm_inspect" value="&lt;b&gt;Inspect KYC Documents &amp;amp; Photos&lt;/b&gt;&lt;br/&gt;Fetch private streams: [GET .../identity-document]&lt;br/&gt;[GET .../identity-document/back] &amp;amp; [GET .../photo]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D946EF;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="530" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_dec_adm_app" value="Admin Approve&lt;br/&gt;Account &amp;amp; Vehicle?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#F5D0FE;strokeColor=#C026D3;strokeWidth=1.5;fontColor=#701A75;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1850" y="620" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_api_reject" value="&lt;b&gt;[PATCH /api/admin/users/{id}/reject]&lt;/b&gt;&lt;br/&gt;&lt;b&gt;[PATCH /api/admin/vehicles/{id}/reject]&lt;/b&gt;&lt;br/&gt;Set verification_status='rejected' with notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="625" width="400" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_api_approve" value="&lt;b&gt;[PATCH /api/admin/users/{id}/approve]&lt;/b&gt;&lt;br/&gt;&lt;b&gt;[PATCH /api/admin/vehicles/{id}/approve]&lt;/b&gt;&lt;br/&gt;Set verification_status='approved',&lt;br/&gt;can_reserve=1, can_manage_parking_spaces=1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="715" width="400" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_db_update_kyc" value="&lt;b&gt;Database: Update KYC Status&lt;/b&gt;&lt;br/&gt;• UPDATE users SET verification_status='approved'&lt;br/&gt;• UPDATE vehicles SET status='approved'" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="715" width="380" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_drv_login" value="&lt;b&gt;User / Driver Login Flow&lt;/b&gt;&lt;br/&gt;[POST /api/login] with Email &amp;amp; Password&lt;br/&gt;Validate credentials &amp;amp; fetch latest profile [GET /me]" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="815" width="340" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1_drv_dash" value="&lt;b&gt;Navigate to Main Navigation&lt;/b&gt;&lt;br/&gt;Load Dashboard (Driver Home / Owner Hub / Admin Panel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="905" width="340" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_01" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_start" target="p1_drv_reg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_02" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_drv_reg" target="p1_api_reg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_03" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_own_reg" target="p1_api_reg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_04" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_api_reg" target="p1_dec_val">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_05" value="No (Validation Error)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;fontSize=11;fontColor=#DC2626;fontStyle=1;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p1_dec_val" target="p1_drv_err">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_06" value="Yes (Valid)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontColor=#16A34A;fontStyle=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p1_dec_val" target="p1_db_store_user">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_07" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p1_db_store_user" target="p1_api_token">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_08" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_api_token" target="p1_drv_store_session">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_09" value="Pending KYC Queue" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#6366F1;strokeWidth=1.5;fontSize=10;fontColor=#4338CA;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p1_db_store_user" target="p1_adm_fetch_kyc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_adm_fetch_kyc" target="p1_adm_inspect">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_adm_inspect" target="p1_dec_adm_app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_12" value="Reject" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;fontSize=11;fontColor=#DC2626;fontStyle=1;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p1_dec_adm_app" target="p1_api_reject">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_13" value="Approve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontColor=#16A34A;fontStyle=1;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p1_dec_adm_app" target="p1_api_approve">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p1_api_approve" target="p1_db_update_kyc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_drv_store_session" target="p1_drv_login">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p1_drv_login" target="p1_drv_dash">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_banner" value="&lt;b&gt;PHASE 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;PARKING SPACE&lt;br/&gt;LISTING &amp;amp;&lt;br/&gt;MANAGEMENT&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#5B21B6;&quot;&gt;• Space Geolocation Pinning&lt;br/&gt;• Slot Vehicle Compatibility&lt;br/&gt;• Operating Hours &amp;amp; Rules&lt;br/&gt;• Admin Spatial Review&lt;br/&gt;• Dynamic Rate Tiering&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#8B5CF6;fontColor=#5B21B6;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="15" y="1000" width="210" height="650" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_own_open" value="&lt;b&gt;Host Opens Space Management&lt;/b&gt;&lt;br/&gt;Provider selects &quot;Add New Parking Space&quot;&lt;br/&gt;or loads existing listings [GET /api/owner/parking-spaces]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="1000" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_own_form" value="&lt;b&gt;Fill Parking Space Specifications&lt;/b&gt;&lt;br/&gt;• Space Name, Address, Lat/Long GPS Coordinates&lt;br/&gt;• Total Dimensions (sqm), Total Slots Count&lt;br/&gt;• 24/7 toggle or Opening &amp;amp; Closing Times&lt;br/&gt;• Overstay Grace Period (mins), Abandoned Limit (hrs)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;fontColor=#064E3B;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="1085" width="420" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_own_slots" value="&lt;b&gt;Configure Slot Vehicle Matrix&lt;/b&gt;&lt;br/&gt;Define allowable vehicle types per individual slot:&lt;br/&gt;Motorcycle, E-Trike/E-Quad, Car, SUV/MPV, Van/Pickup" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;fontColor=#064E3B;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="1190" width="420" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_api_save" value="&lt;b&gt;[POST /api/owner/parking-spaces]&lt;/b&gt;&lt;br/&gt;Controller receives multipart payload with images[].&lt;br/&gt;Validates spatial geometry, slot limits, operating hours" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="1190" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_dec_val" value="Space Data &amp;amp;&lt;br/&gt;Slots Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#EAB308;strokeWidth=1.5;fontColor=#713F12;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="1280" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_own_err" value="&lt;b&gt;Display Space Validation Errors&lt;/b&gt;&lt;br/&gt;Highlight invalid hours, missing images, or slot mismatch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="1285" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_db_store_space" value="&lt;b&gt;Database: Insert Parking Space&lt;/b&gt;&lt;br/&gt;• INSERT INTO parking_spaces (approval_status: 'pending')&lt;br/&gt;• INSERT INTO parking_slots (vehicle_type_bitmask)&lt;br/&gt;• Store space gallery images to public storage disk" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1275" width="380" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_adm_fetch_spaces" value="&lt;b&gt;Admin Reviews Space Submission&lt;/b&gt;&lt;br/&gt;[GET /api/admin/parking-spaces?status=pending]&lt;br/&gt;Review dimensions, photos, geofence, and slots layout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D946EF;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="1385" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_adm_set_rates" value="&lt;b&gt;Admin Configures Hourly Rate Tiers&lt;/b&gt;&lt;br/&gt;Set vehicle_hourly_rates for Motorcycle, Car, SUV, Van.&lt;br/&gt;Add operational approval notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D946EF;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="1475" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_dec_adm_space" value="Admin Approve&lt;br/&gt;Parking Space?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#F5D0FE;strokeColor=#C026D3;strokeWidth=1.5;fontColor=#701A75;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1850" y="1565" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_api_review_space" value="&lt;b&gt;[PATCH /api/admin/parking-spaces/{id}/review]&lt;/b&gt;&lt;br/&gt;Set approval_status='approved' (or 'rejected'),&lt;br/&gt;attach hourly rates mapping &amp;amp; admin_notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="1570" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2_db_publish_space" value="&lt;b&gt;Database: Activate &amp;amp; Index Space&lt;/b&gt;&lt;br/&gt;UPDATE parking_spaces SET approval_status='approved',&lt;br/&gt;is_active=1, hourly_rates=json_payload&lt;br/&gt;Spatial indexing active for Driver Discovery" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1560" width="380" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_01" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p2_own_open" target="p2_own_form">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_02" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p2_own_form" target="p2_own_slots">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_03" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p2_own_slots" target="p2_api_save">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_04" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p2_api_save" target="p2_dec_val">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_05" value="No (Errors)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;fontSize=11;fontColor=#DC2626;fontStyle=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p2_dec_val" target="p2_own_err">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_06" value="Yes (Valid)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontColor=#16A34A;fontStyle=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p2_dec_val" target="p2_db_store_space">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_07" value="Pending Space Review" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#6366F1;strokeWidth=1.5;fontSize=10;fontColor=#4338CA;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p2_db_store_space" target="p2_adm_fetch_spaces">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_08" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p2_adm_fetch_spaces" target="p2_adm_set_rates">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_09" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p2_adm_set_rates" target="p2_dec_adm_space">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p2_dec_adm_space" target="p2_api_review_space">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p2_api_review_space" target="p2_db_publish_space">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_banner" value="&lt;b&gt;PHASE 3&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;SEARCH, DISCOVERY&lt;br/&gt;&amp;amp; REAL-TIME&lt;br/&gt;RESERVATION&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#065F46;&quot;&gt;• Interactive Google Map&lt;br/&gt;• Spatial Search &amp;amp; Filtering&lt;br/&gt;• Real-Time Slot Conflict Check&lt;br/&gt;• Reservation Lock &amp;amp; QR Pass&lt;br/&gt;• Provider Booking Acceptance&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#10B981;fontColor=#065F46;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="15" y="1730" width="210" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_drv_map" value="&lt;b&gt;Driver Opens Interactive Map Screen&lt;/b&gt;&lt;br/&gt;Enables GPS location, sets vehicle type filter,&lt;br/&gt;specifies intended reservation date/time window" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="1730" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_ext_maps" value="&lt;b&gt;Google Maps Platform&lt;/b&gt;&lt;br/&gt;• Places API &amp;amp; Geocoding&lt;br/&gt;• Dynamic Vector Map SDK&lt;br/&gt;• Distance Matrix calculation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#64748B;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1730" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_api_search" value="&lt;b&gt;[GET /api/parking-spaces]&lt;/b&gt;&lt;br/&gt;Query active, approved spaces within bounding box / radius.&lt;br/&gt;Eager load slot capacities, hourly rates &amp;amp; average ratings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="1730" width="400" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_drv_render_pins" value="&lt;b&gt;Interactive Map UI Rendering&lt;/b&gt;&lt;br/&gt;Displays custom parking pins, rate badges, clustering,&lt;br/&gt;and facility overview bottom sheets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="1815" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_drv_select_space" value="&lt;b&gt;Select Space &amp;amp; View Details&lt;/b&gt;&lt;br/&gt;Driver clicks space -&gt; Inspects photos, amenities,&lt;br/&gt;allowed vehicle types, rules, and host ratings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="1900" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_drv_check_avail" value="&lt;b&gt;Check Slot Real-Time Availability&lt;/b&gt;&lt;br/&gt;Driver selects Vehicle from Garage, Start/End Date &amp;amp; Time&lt;br/&gt;[GET /api/driver/parking-spaces/{id}/availability]" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="1985" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_api_calc_avail" value="&lt;b&gt;Availability Engine Conflict Check&lt;/b&gt;&lt;br/&gt;Check operating hours, existing overlapping reservations,&lt;br/&gt;matching slot vehicle compatibility, compute price quote" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="1985" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_drv_submit_res" value="&lt;b&gt;Submit Slot Reservation&lt;/b&gt;&lt;br/&gt;[POST /api/driver/parking-spaces/{id}/reservations]&lt;br/&gt;Pass vehicle_id, parking_slot_id, schedule range" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="2075" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_dec_slot_ok" value="Slot Available &amp;amp;&lt;br/&gt;No Schedule Conflict?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#EAB308;strokeWidth=1.5;fontColor=#713F12;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="2070" width="160" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_drv_res_err" value="&lt;b&gt;[422 Slot Unavailable / Conflict]&lt;/b&gt;&lt;br/&gt;Alert driver: Slot just booked or time window invalid.&lt;br/&gt;Prompt alternative slot or schedule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="2165" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_db_create_res" value="&lt;b&gt;Database: Create Reservation Record&lt;/b&gt;&lt;br/&gt;• INSERT INTO reservations (status: 'pending')&lt;br/&gt;• Generate unique secure QR Token &amp;amp; Reference Code&lt;br/&gt;• Calculate estimated total parking fee" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="2065" width="380" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_db_notify_own" value="&lt;b&gt;Database: Dispatch Notification&lt;/b&gt;&lt;br/&gt;• INSERT INTO mobile_notifications&lt;br/&gt;• Dispatch FCM / In-App push alert to Host" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="2170" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_own_review_res" value="&lt;b&gt;Host Reviews Incoming Booking&lt;/b&gt;&lt;br/&gt;Provider opens Owner Reservations Screen&lt;br/&gt;[GET /api/owner/reservations?status=pending]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="2170" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_dec_own_accept" value="Host Accept&lt;br/&gt;Reservation?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#A7F3D0;strokeColor=#10B981;strokeWidth=1.5;fontColor=#064E3B;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="2260" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_api_reject_res" value="&lt;b&gt;[PATCH /api/owner/reservations/{id}/reject]&lt;/b&gt;&lt;br/&gt;Set status='rejected' with owner_response_notes.&lt;br/&gt;Release slot lock &amp;amp; notify Driver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="2265" width="400" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_api_approve_res" value="&lt;b&gt;[PATCH /api/owner/reservations/{id}/approve]&lt;/b&gt;&lt;br/&gt;Set status='confirmed', activate reservation QR token,&lt;br/&gt;notify Driver with confirmed schedule pass" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="2355" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_db_confirm_res" value="&lt;b&gt;Database: Update Reservation Status&lt;/b&gt;&lt;br/&gt;UPDATE reservations SET status='confirmed'" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="2355" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3_drv_confirmed" value="&lt;b&gt;Booking Confirmed &amp;amp; QR Pass Issued&lt;/b&gt;&lt;br/&gt;Driver receives Confirmation Alert &amp;amp; Dynamic QR Pass&lt;br/&gt;Reservation listed in Driver Active Schedule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="2390" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_01" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_drv_map" target="p3_api_search">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_02" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#6366F1;strokeWidth=1.5;fontSize=10;fontColor=#4338CA;" edge="1" parent="1" source="p3_api_search" target="p3_ext_maps">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_03" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_api_search" target="p3_drv_render_pins">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_04" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_drv_render_pins" target="p3_drv_select_space">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_05" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_drv_select_space" target="p3_drv_check_avail">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_06" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_drv_check_avail" target="p3_api_calc_avail">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_07" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_api_calc_avail" target="p3_drv_submit_res">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_08" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_drv_submit_res" target="p3_dec_slot_ok">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_09" value="Conflict" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;fontSize=11;fontColor=#DC2626;fontStyle=1;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p3_dec_slot_ok" target="p3_drv_res_err">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_10" value="Available" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontColor=#16A34A;fontStyle=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p3_dec_slot_ok" target="p3_db_create_res">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_db_create_res" target="p3_db_notify_own">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p3_db_notify_own" target="p3_own_review_res">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p3_own_review_res" target="p3_dec_own_accept">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_14" value="Reject" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;fontSize=11;fontColor=#DC2626;fontStyle=1;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p3_dec_own_accept" target="p3_api_reject_res">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_15" value="Approve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontColor=#16A34A;fontStyle=1;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p3_dec_own_accept" target="p3_api_approve_res">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p3_api_approve_res" target="p3_db_confirm_res">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3_17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p3_api_approve_res" target="p3_drv_confirmed">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_banner" value="&lt;b&gt;PHASE 4&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;CHECK-IN, ACTIVE&lt;br/&gt;PARKING &amp;amp;&lt;br/&gt;COMMUNICATION&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#92400E;&quot;&gt;• In-App Chat &amp;amp; Voice Call&lt;br/&gt;• QR Scanner Checkpoint&lt;br/&gt;• Real-Time Entry/Exit Logs&lt;br/&gt;• Overstay Monitoring&lt;br/&gt;• Reservation Extensions&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;fontColor=#92400E;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="15" y="2540" width="210" height="820" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_comm_drv" value="&lt;b&gt;In-App Communication (Driver)&lt;/b&gt;&lt;br/&gt;• Chat messaging [POST /conversation/messages]&lt;br/&gt;• Initiate Voice Call [POST /conversation/calls]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="2540" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_comm_api" value="&lt;b&gt;Conversation &amp;amp; WebRTC / Agora Signaling&lt;/b&gt;&lt;br/&gt;Exchange message polling / WebSocket events,&lt;br/&gt;relay RTC SDP tokens &amp;amp; ICE signals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="2540" width="400" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_comm_own" value="&lt;b&gt;In-App Communication (Host)&lt;/b&gt;&lt;br/&gt;• Reply to Driver in-app messages&lt;br/&gt;• Accept / reject incoming voice calls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="2540" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_drv_arrive" value="&lt;b&gt;Driver Arrives at Parking Space&lt;/b&gt;&lt;br/&gt;Driver opens app and presents active QR Pass on screen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="2635" width="380" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_own_scan_in" value="&lt;b&gt;Host / Guard Scans Driver QR Pass&lt;/b&gt;&lt;br/&gt;Host opens QR Scanner Screen (or manual code entry)&lt;br/&gt;[POST /api/owner/checkpoints/validate]" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;fontColor=#064E3B;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="2630" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_api_validate_chk" value="&lt;b&gt;Validate Checkpoint Credential&lt;/b&gt;&lt;br/&gt;Verify QR token authenticity, parking_space_id match,&lt;br/&gt;vehicle plate number, and arrival grace time window" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="2630" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_dec_qr_val" value="QR Token &amp;amp;&lt;br/&gt;Schedule Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#EAB308;strokeWidth=1.5;fontColor=#713F12;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="2720" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_own_chk_err" value="&lt;b&gt;Checkpoint Rejection Alert&lt;/b&gt;&lt;br/&gt;Display error: Unmatched Space, Already Used, or Invalid Pass" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="2725" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_db_log_checkin" value="&lt;b&gt;Database: Check-In Entry Transaction&lt;/b&gt;&lt;br/&gt;• UPDATE reservations SET status='checked_in'&lt;br/&gt;• INSERT INTO checkpoint_transactions (type: 'check_in', timestamp)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="2715" width="380" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_drv_active_timer" value="&lt;b&gt;Active Parking Session Monitor&lt;/b&gt;&lt;br/&gt;Driver UI displays live parking timer, space location,&lt;br/&gt;overstay countdown alert, and Request Extension button" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="2820" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_drv_req_ext" value="&lt;b&gt;Driver Requests Extension (Optional)&lt;/b&gt;&lt;br/&gt;[PATCH /api/driver/reservations/{id}/extension]&lt;br/&gt;Provide requested extension_end_time &amp;amp; reason" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="2915" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_own_eval_ext" value="&lt;b&gt;Host Evaluates Extension Request&lt;/b&gt;&lt;br/&gt;[PATCH /api/owner/reservations/{id}/extension/approve]&lt;br/&gt;or reject based on upcoming slot bookings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="2915" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_api_monitor_overstay" value="&lt;b&gt;Automated Overstay &amp;amp; Abandoned Monitor&lt;/b&gt;&lt;br/&gt;Server checks overstay_grace_minutes threshold.&lt;br/&gt;Applies overtime multiplier rates if driver exceeds schedule" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="3010" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_drv_checkout_qr" value="&lt;b&gt;Driver Prepares to Depart&lt;/b&gt;&lt;br/&gt;Driver presents Departure QR Pass to Host / Guard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="3105" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_own_scan_out" value="&lt;b&gt;Host Scans Check-Out QR Pass&lt;/b&gt;&lt;br/&gt;[POST /api/owner/checkpoints/validate]&lt;br/&gt;Trigger Check-Out Exit event validation" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;fontColor=#064E3B;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="3100" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_api_calc_bill" value="&lt;b&gt;Calculate Final Duration &amp;amp; Billing&lt;/b&gt;&lt;br/&gt;Compute exact parked duration, overtime penalty hours,&lt;br/&gt;slot fee rate, and compile total payable breakdown" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="3100" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_db_log_checkout" value="&lt;b&gt;Database: Check-Out Exit Transaction&lt;/b&gt;&lt;br/&gt;• UPDATE reservations SET status='completed'&lt;br/&gt;• INSERT INTO checkpoint_transactions (type: 'check_out')&lt;br/&gt;• INSERT INTO qr_transaction_logs (audit data)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="3090" width="380" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4_drv_bill_summary" value="&lt;b&gt;Display Payable Balance &amp;amp; Receipt&lt;/b&gt;&lt;br/&gt;Driver views total charges breakdown and payment options" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="3215" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_01" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_comm_drv" target="p4_comm_api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_02" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_comm_api" target="p4_comm_own">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_03" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_drv_arrive" target="p4_own_scan_in">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_04" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_own_scan_in" target="p4_api_validate_chk">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_05" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_api_validate_chk" target="p4_dec_qr_val">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_06" value="Invalid" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;fontSize=11;fontColor=#DC2626;fontStyle=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p4_dec_qr_val" target="p4_own_chk_err">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_07" value="Valid Pass" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontColor=#16A34A;fontStyle=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p4_dec_qr_val" target="p4_db_log_checkin">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_08" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p4_db_log_checkin" target="p4_drv_active_timer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_09" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_drv_active_timer" target="p4_drv_req_ext">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_drv_req_ext" target="p4_own_eval_ext">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_drv_active_timer" target="p4_api_monitor_overstay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_drv_active_timer" target="p4_drv_checkout_qr">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_drv_checkout_qr" target="p4_own_scan_out">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p4_own_scan_out" target="p4_api_calc_bill">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p4_api_calc_bill" target="p4_db_log_checkout">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p4_db_log_checkout" target="p4_drv_bill_summary">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_banner" value="&lt;b&gt;PHASE 5&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;b&gt;PAYMENT, REVIEWS,&lt;br/&gt;DISPUTE &amp;amp;&lt;br/&gt;AUDIT TRAIL&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;color:#9D174D;&quot;&gt;• Cash &amp;amp; E-Wallet Settlement&lt;br/&gt;• Payment Proof Verification&lt;br/&gt;• Star Rating &amp;amp; Review System&lt;br/&gt;• Dispute Resolution Console&lt;br/&gt;• End-to-End Activity Logs&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#EC4899;fontColor=#9D174D;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="15" y="3430" width="210" height="890" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_dec_pay_method" value="Select Payment&lt;br/&gt;Method?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#EAB308;strokeWidth=1.5;fontColor=#713F12;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="3430" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_drv_pay_cash" value="&lt;b&gt;Pay Cash on Facility Check-out&lt;/b&gt;&lt;br/&gt;Driver hands cash payment directly to Host / Guard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="3530" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_own_mark_paid" value="&lt;b&gt;Host Confirms Cash Received&lt;/b&gt;&lt;br/&gt;[PATCH /api/owner/reservations/{id}/mark-paid]&lt;br/&gt;Set payment_method='cash', payment_status='paid'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="3530" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_drv_pay_online" value="&lt;b&gt;GCash / Online Transfer Payment&lt;/b&gt;&lt;br/&gt;[POST /api/driver/reservations/{id}/payment]&lt;br/&gt;Driver attaches digital receipt payment_proof image" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="3530" width="220" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_own_verify_proof" value="&lt;b&gt;Host Inspects Payment Proof&lt;/b&gt;&lt;br/&gt;[GET /api/owner/reservations/{id}/payment-proof]&lt;br/&gt;View digital screenshot &amp;amp; confirm transaction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="3625" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_api_update_pay" value="&lt;b&gt;[API Controller: Confirm Payment]&lt;/b&gt;&lt;br/&gt;Verify transaction balance, update payment flags" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="3625" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_db_update_pay" value="&lt;b&gt;Database: Update Payment Status&lt;/b&gt;&lt;br/&gt;UPDATE reservations SET payment_status='paid',&lt;br/&gt;paid_at=NOW()" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="3620" width="380" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_drv_submit_feedback" value="&lt;b&gt;Driver Submits Star Rating &amp;amp; Feedback&lt;/b&gt;&lt;br/&gt;[POST /api/driver/reservations/{id}/feedback]&lt;br/&gt;Rate 1 to 5 Stars with written review comments" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="3730" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_api_save_review" value="&lt;b&gt;API Review Processor&lt;/b&gt;&lt;br/&gt;Insert feedback, compute parking space aggregate star average,&lt;br/&gt;and refresh public space score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="3730" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_db_save_review" value="&lt;b&gt;Database: Insert Feedback &amp;amp; Recalculate Rating&lt;/b&gt;&lt;br/&gt;• INSERT INTO reviews (rating, comment)&lt;br/&gt;• UPDATE parking_spaces SET rating=AVG(rating)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="3725" width="380" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_drv_file_dispute" value="&lt;b&gt;Dispute or Support Ticket (Optional)&lt;/b&gt;&lt;br/&gt;Driver or Host files issue regarding overcharges,&lt;br/&gt;damages, or reservation discrepancies" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="3835" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_adm_manage_disputes" value="&lt;b&gt;Admin Reviews Disputes &amp;amp; Support Requests&lt;/b&gt;&lt;br/&gt;[GET /api/admin/reservations?dispute_status=pending]&lt;br/&gt;[GET /api/admin/support-requests?status=open]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D946EF;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="3835" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_adm_resolve_dispute" value="&lt;b&gt;Admin Resolves Dispute Ticket&lt;/b&gt;&lt;br/&gt;[PATCH /api/admin/reservations/{id}]&lt;br/&gt;Set dispute_status='resolved', add dispute_notes &amp;amp; admin_internal_notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D946EF;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="3930" width="380" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_api_audit_trail" value="&lt;b&gt;Automated System Activity &amp;amp; Audit Engine&lt;/b&gt;&lt;br/&gt;Record all critical security, reservation status transitions,&lt;br/&gt;KYC decisions, checkpoint scans &amp;amp; payments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="4030" width="400" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_db_store_audit" value="&lt;b&gt;Database: Store Audit Logs &amp;amp; QR Logs&lt;/b&gt;&lt;br/&gt;• INSERT INTO audit_logs (user_id, action, ip, payload)&lt;br/&gt;• INSERT INTO qr_transaction_logs" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="4025" width="380" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_adm_view_analytics" value="&lt;b&gt;Admin System Activity &amp;amp; Audit Dashboard&lt;/b&gt;&lt;br/&gt;[GET /api/admin/activity]&lt;br/&gt;Monitor real-time system health, logs &amp;amp; financial metrics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D946EF;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="4125" width="380" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_drv_complete_receipt" value="&lt;b&gt;Final Completed Summary &amp;amp; Digital Receipt&lt;/b&gt;&lt;br/&gt;Driver views completed reservation history with receipt,&lt;br/&gt;vehicle slots updated, and session closed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="4220" width="380" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5_end" value="END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EF4444;strokeColor=#DC2626;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="4310" width="120" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_01" value="Cash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_dec_pay_method" target="p5_drv_pay_cash">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_02" value="GCash / E-Wallet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_dec_pay_method" target="p5_drv_pay_online">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_03" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_drv_pay_cash" target="p5_own_mark_paid">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_04" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_drv_pay_online" target="p5_own_verify_proof">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_05" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_own_mark_paid" target="p5_api_update_pay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_06" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_own_verify_proof" target="p5_api_update_pay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_07" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_api_update_pay" target="p5_db_update_pay">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_08" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_db_update_pay" target="p5_drv_submit_feedback">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_09" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_drv_submit_feedback" target="p5_api_save_review">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_api_save_review" target="p5_db_save_review">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_drv_submit_feedback" target="p5_drv_file_dispute">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_drv_file_dispute" target="p5_adm_manage_disputes">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_adm_manage_disputes" target="p5_adm_resolve_dispute">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_adm_resolve_dispute" target="p5_api_audit_trail">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_api_audit_trail" target="p5_db_store_audit">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_16" value="Audit Stream" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#6366F1;strokeWidth=1.5;fontSize=10;fontColor=#4338CA;" edge="1" parent="1" source="p5_db_store_audit" target="p5_adm_view_analytics">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_api_audit_trail" target="p5_drv_complete_receipt">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5_18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_drv_complete_receipt" target="p5_end">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

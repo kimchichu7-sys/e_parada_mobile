@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "638013306964",
+    "project_id": "e-parada-a6399",
+    "storage_bucket": "e-parada-a6399.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638013306964:android:18d2c221a37663b3d8d5c1",
+        "android_client_info": {
+          "package_name": "ph.eparada.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcsPN-HfiSTk4elllv0Ujfgqrts7T5moo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

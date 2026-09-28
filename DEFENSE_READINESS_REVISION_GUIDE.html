@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>E-Parada Thesis Defense Revision Guide</title>
+<style>
+@page {
+    size: A4;
+    margin: 18mm 14mm 18mm 14mm;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 10pt;
+    background: #fff;
+    padding: 0;
+    margin: 0;
+}
+h1 {
+    color: #0f172a;
+    font-size: 18pt;
+    border-bottom: 2.5px solid #2563eb;
+    padding-bottom: 6px;
+    margin-top: 10px;
+    margin-bottom: 12px;
+    page-break-after: avoid;
+}
+h2 {
+    color: #1e3a8a;
+    font-size: 13.5pt;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 4px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+}
+h3 {
+    color: #1d4ed8;
+    font-size: 11.5pt;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+}
+h4 {
+    color: #334155;
+    font-size: 10.5pt;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    page-break-after: avoid;
+}
+p {
+    margin: 4px 0 8px 0;
+}
+hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 16px 0;
+}
+pre {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 8.5pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 8px 0 10px 0;
+    page-break-inside: avoid;
+}
+code {
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+}
+pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+}
+blockquote {
+    border-left: 4px solid #3b82f6;
+    margin: 8px 0;
+    padding: 6px 14px;
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-style: italic;
+    page-break-inside: avoid;
+}
+.table-container {
+    margin: 10px 0;
+    overflow-x: auto;
+    page-break-inside: avoid;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    page-break-inside: avoid;
+}
+th, td {
+    border: 1px solid #cbd5e1;
+    padding: 5px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: #1e3a8a;
+    color: #ffffff;
+    font-weight: 600;
+}
+tr:nth-child(even) {
+    background: #f8fafc;
+}
+li {
+    margin-bottom: 3px;
+}
+.checkbox-item {
+    padding: 2px 0;
+    font-size: 9.5pt;
+}
+.spacer {
+    height: 4px;
+}
+.alert {
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin: 8px 0;
+    page-break-inside: avoid;
+}
+.alert-caution {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+    color: #991b1b;
+}
+strong {
+    font-weight: 600;
+}
+</style>
+</head>
+<body>
+<h1>E-PARADA: THESIS DEFENSE READINESS &amp; MANUSCRIPT REVISION MASTER GUIDE</h1>
+<p><strong>Document Status:</strong> Actionable Revision Blueprint for Final Defense  </p>
+<p><strong>Institution:</strong> NU Laguna — College of Engineering and Architecture  </p>
+<p><strong>Degree:</strong> Bachelor of Science in Computer Engineering (BSCpE)  </p>
+<p><strong>Project:</strong> <em>E-Parada: A Digital Marketplace for Parking Spaces</em>  </p>
+<p><strong>Authors:</strong> Bustria, C. J. C., Gamad, L. C., Ovilla, S. J. C., Valiña, R. L. P.  </p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>TABLE OF CONTENTS</h2>
+<li class="ol-item"><a href="#1-executive-audit--defense-readiness-matrix">Executive Audit &amp; Defense Readiness Matrix</a></li>
+<li class="ol-item"><a href="#2-computer-engineering-identity--defense-shield">Computer Engineering Identity &amp; Defense Shield</a></li>
+<li class="ol-item"><a href="#3-database--backend-overhaul-migrating-to-supabase">Database &amp; Backend Overhaul: Migrating to Supabase</a></li>
+<li class="ol-item"><a href="#4-empirical-sampling--slovins-formula-blueprint">Empirical Sampling &amp; Slovin's Formula Blueprint</a></li>
+<li class="ol-item"><a href="#5-page-by-page-critical-manuscript-corrections">Page-by-Page Critical Manuscript Corrections</a></li>
+<li class="ol-item"><a href="#6-methodology--isoiec-25010-restructuring">Methodology &amp; ISO/IEC 25010 Restructuring</a></li>
+<li class="ol-item"><a href="#7-chapter-2-literature-review--citation-url-integrity-audit">Chapter 2 Literature Review &amp; Citation URL Integrity Audit</a></li>
+<li class="ol-item"><a href="#8-ieee-standard-formatting--citation-conversion">IEEE Standard Formatting &amp; Citation Conversion</a></li>
+<li class="ol-item"><a href="#9-oral-defense-interrogation-drill-top-10-tough-questions--winning-rebuttals">Oral Defense Interrogation Drill: Top 10 Tough Questions &amp; Winning Rebuttals</a></li>
+<li class="ol-item"><a href="#10-pre-submission-verification-checklist">Pre-Submission Verification Checklist</a></li>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>1. Executive Audit &amp; Defense Readiness Matrix</h2>
+<div class="spacer"></div>
+<div class="table-container"><table><thead><tr>
+<th>Severity</th>
+<th>Defect / Vulnerability</th>
+<th>Location in Paper</th>
+<th>Primary Impact on Defense</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>CRITICAL</strong></td>
+<td><strong>Academic Integrity Violation:</strong> Hallucinated DOI for Vovveti (2024) resolving to an Elsevier paper on Cleaner Production by Nižetić.</td>
+<td>Page 41, 60</td>
+<td>Severe academic deduction; panel catches fake/mismatched reference.</td>
+</tr>
+<tr>
+<td><strong>CRITICAL</strong></td>
+<td><strong>Degree Mismatch:</strong> Explicit claim of having "no hardware" in a Computer Engineering thesis.</td>
+<td>Pages 4, 14, 56, 62</td>
+<td>Panel may disqualify project as IT/CS capstone.</td>
+</tr>
+<tr>
+<td><strong>CRITICAL</strong></td>
+<td><strong>Stack Contradiction:</strong> Stating mobile app is coded in Java / Android Studio while elsewhere claiming Flutter/Dart.</td>
+<td>Page 46 (Line 23)</td>
+<td>Immediate panel deduction for unverified copy-pasted text.</td>
+</tr>
+<tr>
+<td><strong>HIGH</strong></td>
+<td><strong>Author/File Conflict:</strong> Gamage (2025) cited, but linked file is <code>Neupane_Ganesh.pdf</code> on Theseus.</td>
+<td>Page 36, 59</td>
+<td>Inconsistent authorship flagged during literature review audit.</td>
+</tr>
+<tr>
+<td><strong>HIGH</strong></td>
+<td><strong>Database Obsoletion:</strong> MySQL 8.0 &amp; SQLite listed instead of Supabase (PostgreSQL 15+).</td>
+<td>Pages 8, 66, 103–105, 118, 130</td>
+<td>Implementation diverges from written architecture.</td>
+</tr>
+<tr>
+<td><strong>HIGH</strong></td>
+<td><strong>Subjective Technical Benchmarking:</strong> Asking non-technical end-users (drivers/owners) on a 1–5 Likert scale to rate CPU, latency, and capacity.</td>
+<td>Pages 136–141</td>
+<td>Invalidates statistical validity of ISO/IEC 25010 testing.</td>
+</tr>
+<tr>
+<td><strong>HIGH</strong></td>
+<td><strong>Arbitrary Sampling / Misquoted Nielsen:</strong> Stating $N=50$ based on "Nielsen Usability Thresholds" (Nielsen is 5 users).</td>
+<td>Page 123</td>
+<td>Statistical methodology rejection by research coordinator.</td>
+</tr>
+<tr>
+<td><strong>MEDIUM</strong></td>
+<td><strong>Raw URLs in Captions:</strong> External web URLs placed raw under Figures 1, 2, 3, 4, and 5.</td>
+<td>Pages 33, 35, 42, 44, 50</td>
+<td>Unprofessional thesis formatting; violates IEEE captioning.</td>
+</tr>
+<tr>
+<td><strong>MEDIUM</strong></td>
+<td><strong>Broken Figure Callouts:</strong> Text refers to Figure 33 and Figure 34; actual figures are captioned Figure 25 and 26.</td>
+<td>Pages 63, 118</td>
+<td>Demonstrates sloppy proofreading.</td>
+</tr>
+<tr>
+<td><strong>MEDIUM</strong></td>
+<td><strong>Non-IEEE Formatting:</strong> Document uses APA author-date and alphabetical bibliography instead of IEEE numbered style.</td>
+<td>Entire Document &amp; Pages 57–60</td>
+<td>Non-compliance with College of Engineering format guidelines.</td>
+</tr>
+</tbody></table></div>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>2. Computer Engineering Identity &amp; Defense Shield</h2>
+<div class="spacer"></div>
+<h3>The Problem</h3>
+<p>Your paper repeatedly boasts: <em>"without the use of physical IoT sensor hardware"</em> (Pages 4, 6, 14, 56). In a Computer Engineering panel, the immediate question will be: <strong>"Where is the Engineering? Why is this not an IT capstone?"</strong></p>
+<div class="spacer"></div>
+<h3>The Solution: The "Edge-Sensing &amp; Distributed System" Reframe</h3>
+<p>Reframe the smartphone not just as a display screen, but as an <strong>Active Edge Computing and Sensing Node</strong>. You are replacing bulky, single-purpose stationary IoT sensors with <strong>distributed multi-sensor consumer hardware</strong> (CMOS camera ISP, baseband GNSS satellite receiver, microphone DSP, and ARM hardware cryptographic accelerators).</p>
+<div class="spacer"></div>
+<h3>Exact Text Replacement (Chapter 1, Page 4, Paragraph 2)</h3>
+<pre><code class="markdown">
+[DELETE THIS - PAGE 4]:
+Despite these studies, a gap comes to light, they focus predominantly on large-scale commercial facilities or institutional campuses that rely heavily on dedicated IoT hardware (e.g., ultrasonic ground sensors, automated gate barriers, and real-time smart CCTV infrastructure). These hardware-dependent systems impose high capital, deployment, and maintenance costs, rendering them impractical for individual residential property owners and small-scale commercial operators. Limited research has investigated a low-cost, software-only digital marketplace that coordinates decentralized parking spaces through consumer mobile devices and web applications.
+
+[REPLACE WITH THIS]:
+While conventional smart parking infrastructures depend heavily on capital-intensive, stationary IoT hardware (e.g., ultrasonic road sensors, inductive loops, and automated gate PLCs), these architectures present severe scalability, thermal, and maintenance vulnerabilities in decentralized residential environments. To resolve these infrastructure barriers without sacrificing transactional integrity, this study investigates an edge-enabled mobile computing and cryptographic access architecture. By transforming commodity consumer smartphones into distributed edge sensing nodes—exploiting on-device CMOS optical image sensors for OCR plate recognition, embedded GNSS baseband receivers for high-precision micro-routing, and hardware-accelerated cryptographic co-processors for HMAC-SHA256 access pass generation—E-Parada achieves deterministic physical access verification and parking space orchestration without requiring expensive external sensor deployments.
+</code></pre>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>3. Database &amp; Backend Overhaul: Migrating to Supabase</h2>
+<div class="spacer"></div>
+<p>Migrating from MySQL/SQLite to <strong>Supabase</strong> transforms your system from a standard web app into a modern, real-time distributed platform.</p>
+<div class="spacer"></div>
+<h3>Key Architectural Updates:</h3>
+<li class="ol-item"><strong>Database Engine:</strong> Managed PostgreSQL 15+ (replacing MySQL 8.0).</li>
+<li class="ol-item"><strong>Concurrency Control:</strong> PostgreSQL row-level locks (<code>SELECT ... FOR UPDATE</code>) executed within atomic database functions/transactions.</li>
+<li class="ol-item"><strong>Real-Time Communication:</strong> Supabase Realtime (PostgreSQL Change Data Capture / WebSockets) replaces battery-draining HTTP polling for live slot status updates.</li>
+<li class="ol-item"><strong>Data Security:</strong> PostgreSQL Row-Level Security (RLS) policies enforce multi-tenant isolation at the database level.</li>
+<li class="ol-item"><strong>Asset Storage:</strong> Supabase Storage (S3-compatible encrypted buckets) for driver licenses, vehicle photos, and verification documents.</li>
+<div class="spacer"></div>
+<h3>Exact Text Replacement: Software Tools Table (Table 2, Page 103–105)</h3>
+<p>Replace the Database row and add Storage:</p>
+<div class="spacer"></div>
+<pre><code class="markdown">
+Category: Database &amp; Real-Time Backend
+Component: Supabase (PostgreSQL 15+)
+Specification: Managed PostgreSQL Engine with Realtime CDC &amp; Row-Level Security (RLS)
+Description: Manages ACID-compliant relational data, enforces multi-tenant access control via RLS policies, executes pessimistic row-level locking for conflict-free reservations, and broadcasts instantaneous slot state changes via WebSockets.
+
+Category: Object Storage Service
+Component: Supabase Storage
+Specification: S3-Compatible Encrypted Buckets with Signed URLs
+Description: Provides secure, encrypted cloud storage for vehicle plate verification images, government IDs, and property proof documents, protected by fine-grained security policies.
+</code></pre>
+<div class="spacer"></div>
+<h3>Exact Text Replacement: Database Narrative (Page 105–106)</h3>
+<pre><code class="markdown">
+[DELETE THIS - PAGE 105]:
+A centralized MySQL 8.0 relational database to ensure automated billing records, audit logs, and ACID-compliant transaction handling for concurrent reservations will be implemented to manage data persistence.
+
+[REPLACE WITH THIS]:
+Data persistence, integrity, and real-time state synchronization are governed by a cloud-managed Supabase PostgreSQL 15+ relational database. The backend leverages PostgreSQL's advanced transactional engine to guarantee ACID compliance during high-concurrency reservation operations. Strict foreign key constraints and custom Row-Level Security (RLS) policies are enforced directly at the database layer, ensuring drivers and parking space providers can only access authorized subsets of data. Furthermore, real-time parking space occupancy updates are propagated to connected mobile clients using Supabase Realtime—leveraging PostgreSQL Change Data Capture (CDC) over persistent WebSocket connections—thereby eliminating client polling overhead and minimizing mobile battery and bandwidth consumption.
+</code></pre>
+<div class="spacer"></div>
+<h3>Exact Text Replacement: Subroutine 2 (Page 118, Concurrency Control)</h3>
+<pre><code class="markdown">
+[DELETE THIS - PAGE 118]:
+Subroutine 2: Concurrency-Controlled Slot Booking and Conflict Detection enforces database consistency and prevents double-booking race conditions during simultaneous reservation attempts. When a booking request is initiated, the Laravel reservation engine opens a database transaction and executes a row-level pessimistic lock (SELECT ... FOR UPDATE) on the target parking_slots record and overlapping active reservations...
+
+[REPLACE WITH THIS]:
+Subroutine 2: Concurrency-Controlled Slot Booking and Conflict Detection enforces strict transactional serializability and prevents race-condition double-bookings during concurrent reservation requests. When a booking request is dispatched, an atomic database transaction is initiated on the Supabase PostgreSQL database, acquiring an exclusive row-level pessimistic lock (`SELECT ... FOR UPDATE`) on the targeted `parking_slots` record and querying any overlapping active intervals. The transaction evaluates temporal boundaries to ensure [t_start, t_end] does not intersect with any confirmed or pending reservation. If a scheduling collision or vehicle dimension incompatibility is detected, the transaction executes a ROLLBACK and returns an immediate collision error to the driver. If valid, the reservation record is inserted with a 'PENDING' status, the transaction executes a COMMIT, row locks are released, and Supabase's Realtime engine broadcasts the updated slot state across the network to prevent duplicate booking attempts by other motorists.
+</code></pre>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>4. Empirical Sampling &amp; Slovin's Formula Blueprint</h2>
+<div class="spacer"></div>
+<h3>The Methodological Rule</h3>
+<p>Slovin's formula ($n = \frac{N}{1 + Ne^2}$) requires a <strong>known, finite target population ($N$)</strong>. You must define a realistic geographical and institutional boundary (e.g., the National University Laguna catchment area and Brgy. Milagrosa parking perimeter).</p>
+<div class="spacer"></div>
+<h3>The Mathematical Model ($N = 500$ at $e = 0.10$)</h3>
+<div class="spacer"></div>
+<li class="ol-item"><strong>Target Population Definition ($N = 500$):</strong></li>
+<p>   - <strong>Strata 1 ($N_1$ - Drivers):</strong> $350$ licensed student, faculty, and commuter motorists around NU Laguna and commercial zones.</p>
+<p>   - <strong>Strata 2 ($N_2$ - Parking Space Providers):</strong> $150$ residential property owners with vacant driveways/lots and commercial establishment managers.</p>
+<div class="spacer"></div>
+<li class="ol-item"><strong>Total Sample Size Calculation ($n$):</strong></li>
+<p>   $$n = \frac{N}{1 + N(e)^2} = \frac{500}{1 + 500(0.10)^2} = \frac{500}{1 + 500(0.01)} = \frac{500}{1 + 5.0} = \frac{500}{6.0} \approx 83.33 \implies \mathbf{84 \text{ respondents}}$$</p>
+<div class="spacer"></div>
+<li class="ol-item"><strong>Stratified Proportional Allocation (Bowley's Formula: $n_h = \frac{N_h}{N} \times n$):</strong></li>
+<p>   - <strong>Drivers ($n_1$):</strong></p>
+<p>     $$n_1 = \left(\frac{350}{500}\right) \times 84 = 0.70 \times 84 = \mathbf{58.8} \approx \mathbf{59 \text{ Drivers}}$$</p>
+<p>   - <strong>Providers ($n_2$):</strong></p>
+<p>     $$n_2 = \left(\frac{150}{500}\right) \times 84 = 0.30 \times 84 = \mathbf{25.2} \approx \mathbf{25 \text{ Providers}}$$</p>
+<p>   - <strong>Expert Evaluators ($n_3$ - Purposive Sampling):</strong></p>
+<p>     $$\mathbf{5 \text{ IT / Software Engineering Experts}}$$</p>
+<p>     <em>(Note: Experts are evaluated separately using purposive sampling because professional software engineers cannot be sampled from a general community motorist population).</em></p>
+<div class="spacer"></div>
+<h3>Defense-Ready Sampling Table for Chapter 3</h3>
+<p>Insert this table into Chapter 3, replacing the old text on Page 123:</p>
+<div class="spacer"></div>
+<h4>TABLE III</h4>
+<p><strong>POPULATION ENUMERATION AND STRATIFIED RESPONDENT ALLOCATION</strong></p>
+<div class="spacer"></div>
+<div class="table-container"><table><thead><tr>
+<th>Respondent Stratum</th>
+<th>Target Population ($N_h$)</th>
+<th>Sampling Methodology</th>
+<th>Allocation Ratio ($\%$)</th>
+<th>Sample Size ($n_h$)</th>
+<th>Evaluation Focus (ISO/IEC 25010)</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Licensed Drivers / Motorists</strong></td>
+<td>$350$</td>
+<td>Stratified Probability (Slovin's $e = 0.10$)</td>
+<td>$70.0\%$</td>
+<td><strong>$59$</strong></td>
+<td>Usability, Navigation, QR Check-in, GCash Checkout</td>
+</tr>
+<tr>
+<td><strong>Parking Space Providers</strong></td>
+<td>$150$</td>
+<td>Stratified Probability (Slovin's $e = 0.10$)</td>
+<td>$30.0\%$</td>
+<td><strong>$25$</strong></td>
+<td>Space Listing, QR Validation, Overstay Billing, Payouts</td>
+</tr>
+<tr>
+<td><strong>Subtotal (End-Users)</strong></td>
+<td><strong>$500$</strong></td>
+<td><strong>Slovin's Formula ($n = \frac{N}{1 + Ne^2}$)</strong></td>
+<td><strong>$100.0\%$</strong></td>
+<td><strong>$84$</strong></td>
+<td><strong>Functional Suitability &amp; Usability</strong></td>
+</tr>
+<tr>
+<td><strong>IT &amp; Software Experts</strong></td>
+<td>—</td>
+<td>Non-Probability / Purposive Sampling</td>
+<td>—</td>
+<td><strong>$5$</strong></td>
+<td>Architecture, Supabase RLS, Concurrency, Benchmarks</td>
+</tr>
+<tr>
+<td><strong>Total Evaluation Cohort</strong></td>
+<td>—</td>
+<td><strong>Mixed-Method Evaluation Model</strong></td>
+<td>—</td>
+<td><strong>$89$</strong></td>
+<td><strong>Comprehensive System Quality Audit</strong></td>
+</tr>
+</tbody></table></div>
+<div class="spacer"></div>
+<h3>Ready-to-Paste Text (Chapter 3, Page 123)</h3>
+<pre><code class="markdown">
+To ensure statistical validity and balanced empirical feedback across diverse stakeholder roles, the study utilizes a mixed-method sampling framework. The target end-user population (N = 500) comprises licensed drivers regularly navigating commercial and educational corridors in Calamba City, specifically around the National University Laguna catchment area (N1 = 350), alongside residential and commercial property owners possessing viable, unmonetized parking slots (N2 = 150).
+
+To determine an empirically defensible sample size, Slovin’s Formula was applied at a 10% margin of error (e = 0.10):
+n = N / (1 + N(e)^2) = 500 / (1 + 500(0.10)^2) = 83.33 ≈ 84 respondents.
+
+Using Bowley’s proportional allocation formula (nh = (Nh / N) * n), the sample was stratified into fifty-nine (59) Licensed Drivers (70.2%) and twenty-five (25) Parking Space Providers (29.8%). These participants performed structured task scenarios and evaluated the platform under the ISO/IEC 25010 Usability and Functional Suitability dimensions.
+
+Complementing the end-user cohort, five (5) IT and Software Engineering Experts were selected via Purposive Sampling. These technical evaluators audited code quality, Supabase PostgreSQL Row-Level Security (RLS) policies, and validated objective system performance benchmarks (API latency, concurrency stress tests, and OCR recognition rates) against industry engineering standards.
+</code></pre>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>5. Page-by-Page Critical Manuscript Corrections</h2>
+<div class="spacer"></div>
+<h3>Correction 1: Erroneous "Java" Language Reference (Page 46)</h3>
+<li><strong>Location:</strong> Page 46, Paragraph 3, Line 23.</li>
+<li><strong>The Error:</strong> <em>"In E-Parada, mobile development is handled with Java in Android Studio..."</em></li>
+<li><strong>The Fix:</strong></li>
+<pre><code class="markdown">
+[DELETE THIS - PAGE 46]:
+In E-Parada, mobile development is handled with Java in Android Studio, the web backend uses PHP, and MySQL is used for database management.
+
+[REPLACE WITH THIS]:
+In E-Parada, mobile client development is engineered using the Flutter framework and Dart SDK, the administrative portal is developed using PHP 8.2 and Laravel 12, and data persistence, authentication, and real-time state synchronization are managed via Supabase (PostgreSQL 15+).
+</code></pre>
+<div class="spacer"></div>
+<h3>Correction 2: Broken Subroutine Figure Reference (Page 118)</h3>
+<li><strong>Location:</strong> Page 118, Line 4.</li>
+<li><strong>The Error:</strong> <em>"encapsulated into four dedicated technical subroutines (Figure 33)."</em></li>
+<li><strong>The Fix:</strong> Change <code>Figure 33</code> to <strong><code>Figure 25</code></strong> (which matches the diagram caption on Page 117).</li>
+<div class="spacer"></div>
+<h3>Correction 3: Broken Incremental Procedure Figure Reference (Page 63)</h3>
+<li><strong>Location:</strong> Page 63, Line 18.</li>
+<li><strong>The Error:</strong> <em>"comprehensively mapped in Figure 34 under the Incremental Development Procedure section."</em></li>
+<li><strong>The Fix:</strong> Change <code>Figure 34</code> to <strong><code>Figure 26</code></strong> (which matches the diagram caption on Page 120).</li>
+<div class="spacer"></div>
+<h3>Correction 4: Unattended Parking &amp; Physical Discrepancy Protocol (Page 14 &amp; 111)</h3>
+<li><strong>Location:</strong> Page 14 (Limitations) and Page 111 (Operations).</li>
+<li><strong>The Problem:</strong> The paper implies the host must always stand outside with a phone to scan the QR code.</li>
+<li><strong>The Fix:</strong> Add the <strong>Dual Validation &amp; Exception Handling Protocol</strong>:</li>
+<pre><code class="markdown">
+[ADD TO SCOPE &amp; SYSTEM OPERATIONS]:
+To accommodate residential hosts who cannot physically attend the gate, the platform supports Dual-Mode Verification:
+1. Attended Mode (Default Commercial): The parking provider or facility attendant scans the driver's cryptographic QR code using the mobile application camera at entry and exit checkpoints.
+2. Unattended Self-Check-In Mode (Residential): The driver scans a geofenced, cryptographically signed Physical Anchor QR code permanently affixed at the residential slot. The system validates the scan by verifying that the driver's device coordinates match the slot's registered GPS latitude and longitude within a strict 15-meter geofence radius.
+</code></pre>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>6. Methodology &amp; ISO/IEC 25010 Restructuring</h2>
+<div class="spacer"></div>
+<h3>The Scientific Separation: Subjective vs. Objective</h3>
+<p>Do not let drivers answer survey questions about CPU usage or server latency. Split your evaluation framework into two distinct channels:</p>
+<div class="spacer"></div>
+<pre><code class="">
+                          EVALUATION FRAMEWORK
+                                   │
+         ┌─────────────────────────┴─────────────────────────┐
+         ▼                                                   ▼
+SUBJECTIVE EVALUATION                               OBJECTIVE BENCHMARKS
+(84 End-Users: Drivers &amp; Providers)                 (5 IT Experts + Automated Tools)
+───────────────────────────────────                 ───────────────────────────────────
+• ISO/IEC 25010 Usability                           • REST API Latency (Apache JMeter)
+• Functional Suitability                            • Concurrency Resilience (Locust)
+• 5-Point Likert Scale Survey                       • OCR Accuracy &amp; Speed (Benchmark script)
+• System Usability Scale (SUS)                      • QR Decode &amp; HMAC Verification Latency
+</code></pre>
+<div class="spacer"></div>
+<h3>Revised Objective Benchmark Table (Table 4, Page 137)</h3>
+<p>Ensure this table has clear, realistic thresholds and testing tools:</p>
+<div class="spacer"></div>
+<h4>TABLE IV</h4>
+<p><strong>OBJECTIVE SYSTEM PERFORMANCE BENCHMARK MATRIX</strong></p>
+<div class="spacer"></div>
+<div class="table-container"><table><thead><tr>
+<th>Performance Metric</th>
+<th>Evaluation Target Threshold</th>
+<th>Measurement Instrument / Harness</th>
+<th>Evaluated Architectural Component</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>REST API Latency</strong></td>
+<td>Mean Response $&lt; 350 \text{ ms}$ under 50 req/s</td>
+<td>Apache JMeter / Postman Collection Runner</td>
+<td>Laravel 12 API &amp; Supabase Connection Pooling</td>
+</tr>
+<tr>
+<td><strong>Concurrency Resilience</strong></td>
+<td>Zero double-bookings under 25 simultaneous requests</td>
+<td>Automated Python Concurrency Simulation Script</td>
+<td>PostgreSQL Row-Level Lock (<code>SELECT ... FOR UPDATE</code>)</td>
+</tr>
+<tr>
+<td><strong>OCR Extraction Latency</strong></td>
+<td>Execution $&lt; 1.8 \text{ s}$; Character Precision $\ge 90\%$</td>
+<td>Automated test harness across 50 sample plate photos</td>
+<td>Tesseract OCR Edge / Server Engine</td>
+</tr>
+<tr>
+<td><strong>QR Validation Speed</strong></td>
+<td>Total validation latency $&lt; 600 \text{ ms}$</td>
+<td>Physical Android Benchmark Timer</td>
+<td>Base64 Decode, HMAC-SHA256 Recomputation</td>
+</tr>
+<tr>
+<td><strong>WebRTC Audio Latency</strong></td>
+<td>End-to-end packet latency $&lt; 200 \text{ ms}$</td>
+<td>Chrome WebRTC Internals &amp; Packet Logger</td>
+<td>Flutter WebRTC P2P / TURN Relayed Session</td>
+</tr>
+</tbody></table></div>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>7. Chapter 2 Literature Review &amp; Citation URL Integrity Audit</h2>
+<div class="spacer"></div>
+<p>An automated network and cryptographic verification of all 24 URLs and citations revealed critical discrepancies that must be rectified before submitting to the defense panel:</p>
+<div class="spacer"></div>
+<h3>7.1 Critical Academic Integrity Traps</h3>
+<div class="spacer"></div>
+<li class="ol-item"><strong>The Vovveti (2024) DOI Mismatch (Page 41 &amp; 60):</strong></li>
+<p>   - <strong>Current Entry:</strong> Cites <code>https://doi.org/10.1016/j.jclepro.2020.122877</code> for a paper in the <em>International Journal of Computer Engineering and Technology</em>.</p>
+<p>   - <strong>The Reality:</strong> This DOI resolves directly to <strong>S. Nižetić et al. (2020)</strong> in Elsevier's <em>Journal of Cleaner Production</em> (<em>"Internet of Things (IoT): Opportunities, issues and challenges towards a smart and sustainable future"</em>).</p>
+<p>   - <strong>Correction:</strong> Delete the fake DOI <code>10.1016/j.jclepro.2020.122877</code> immediately. Replace with an authentic peer-reviewed IoT billing study.</p>
+<li class="ol-item"><strong>The Gamage vs. Neupane Authorship Conflict (Page 36 &amp; 59):</strong></li>
+<p>   - <strong>Current Entry:</strong> Cites <em>Gamage (2025)</em>, but the attached URL links directly to <code>Neupane_Ganesh.pdf</code> hosted on the Finnish <em>Theseus</em> repository.</p>
+<p>   - <strong>Correction:</strong> Reconcile author name to <strong>Neupane, G.</strong> to match the primary repository title page.</p>
+<li class="ol-item"><strong>Raw URLs Under Architecture Diagrams:</strong></li>
+<p>   - On Pages 33, 35, 42, 44, and 50, raw external hyperlinks are placed above figure captions.</p>
+<p>   - <strong>Correction:</strong> Delete all raw URLs from figure blocks. Use standard IEEE attribution captions:</p>
+<p>     - <em>Incorrect:</em> <code>https://stepacademic.net/ijcsr/article/view/441/195</code> / <code>Figure 1. System Architecture Diagram...</code></p>
+<p>     - <em>Correct:</em> <code>Fig. 1. System architecture of RUI (adapted from Grepon et al. [4]).</code></p>
+<div class="spacer"></div>
+<h3>7.2 Complete Citation URL Access Audit</h3>
+<div class="spacer"></div>
+<div class="table-container"><table><thead><tr>
+<th>Citation &amp; Source</th>
+<th>Target URL</th>
+<th>Verified Status</th>
+<th>Academic Accessibility</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Parmon / Wahyudi (2021)</strong></td>
+<td><code>pdfs.semanticscholar.org/.../4018d140...pdf</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full PDF direct download</td>
+</tr>
+<tr>
+<td><strong>Desale et al. (2025)</strong></td>
+<td><code>ijnrd.org/papers/IJNRD2505207.pdf</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full PDF direct download</td>
+</tr>
+<tr>
+<td><strong>Xin, K. W. (2025)</strong></td>
+<td><code>eprints.utar.edu.my/7109/1/fyp_CS_2025_KWX.pdf</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full PDF direct download (UTAR repo)</td>
+</tr>
+<tr>
+<td><strong>RUI / Grepon et al. (2023)</strong></td>
+<td><code>stepacademic.net/ijcsr/article/view/441/195</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full paper open access</td>
+</tr>
+<tr>
+<td><strong>Skurowski et al. (2022)</strong></td>
+<td><code>doi.org/10.3390/s22197230</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full paper (MDPI Open Access)</td>
+</tr>
+<tr>
+<td><strong>Alsuhibany (2025)</strong></td>
+<td><code>doi.org/10.3390/s25133855</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full paper (MDPI Sensors, June 2025)</td>
+</tr>
+<tr>
+<td><strong>Kim et al. (2023)</strong></td>
+<td><code>doi.org/10.3390/rs15153791</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full paper (MDPI Remote Sensing)</td>
+</tr>
+<tr>
+<td><strong>Raza et al. (2022)</strong></td>
+<td><code>doi.org/10.3390/encyclopedia2030083</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full paper (MDPI Encyclopedia)</td>
+</tr>
+<tr>
+<td><strong>Ahmed et al. - Pabna (2024)</strong></td>
+<td><code>ijisnt.com/journal/.../view/22</code></td>
+<td><strong>200 OK</strong></td>
+<td>Full paper open access</td>
+</tr>
+<tr>
+<td><strong>Afable - GCash (2024)</strong></td>
+<td><code>ssrn.com/abstract=4871527</code></td>
+<td><strong>200 OK</strong></td>
+<td>Preprint with full PDF download</td>
+</tr>
+<tr>
+<td><strong>ResearchGate (Barde, Chan, Fabro)</strong></td>
+<td>ResearchGate publication URLs</td>
+<td><strong>200 OK</strong></td>
+<td>Public preprint / research uploads</td>
+</tr>
+<tr>
+<td><strong>Ahmed et al. (2023)</strong></td>
+<td><code>doi.org/10.1109/tits.2023.3323097</code></td>
+<td><strong>Valid DOI</strong></td>
+<td>Abstract / Preview Only (IEEE Xplore Paywall)</td>
+</tr>
+<tr>
+<td><strong>Bastani et al. (2021)</strong></td>
+<td><code>doi.org/10.1145/3474717.3483651</code></td>
+<td><strong>Valid DOI</strong></td>
+<td>Abstract / Preview Only (ACM Digital Library)</td>
+</tr>
+<tr>
+<td><strong>Bekavac et al. (2024)</strong></td>
+<td><code>doi.org/10.1145/3613905.3651006</code></td>
+<td><strong>Valid DOI</strong></td>
+<td>Abstract / Preview Only (ACM Digital Library)</td>
+</tr>
+<tr>
+<td><strong>Barua &amp; Kaiser (2025)</strong></td>
+<td><code>doi.org/10.1049/tje2.70139</code></td>
+<td><strong>Valid DOI</strong></td>
+<td>Abstract / Preview Only (Wiley Online Library)</td>
+</tr>
+<tr>
+<td><strong>Pouri &amp; Hilty (2021)</strong></td>
+<td><code>doi.org/10.1016/j.eist.2020.12.003</code></td>
+<td><strong>Valid DOI</strong></td>
+<td>Abstract / Preview Only (Elsevier Paywall)</td>
+</tr>
+<tr>
+<td><strong>Sartayeva et al. (2023)</strong></td>
+<td><code>doi.org/10.1016/j.comnet.2023.110042</code></td>
+<td><strong>Valid DOI</strong></td>
+<td>Abstract / Preview Only (Elsevier Paywall)</td>
+</tr>
+<tr>
+<td><strong>Larraquel (2023)</strong></td>
+<td><code>proquest.com/openview/...</code></td>
+<td><strong>Valid URL</strong></td>
+<td>24-Page Preview Only (ProQuest)</td>
+</tr>
+<tr>
+<td><strong>Guzman et al. (2024)</strong></td>
+<td><code>doi.org/10.1049/icp.2025.0529</code></td>
+<td><strong>Valid DOI</strong></td>
+<td>Abstract / Preview Only (IET Proceedings)</td>
+</tr>
+</tbody></table></div>
+<div class="spacer"></div>
+<blockquote><strong>Advisor's Rule:</strong> Having DOIs that resolve to paywalled publishers (IEEE, ACM, Elsevier) is <strong>academically acceptable and prestigious</strong>. Do not replace them with pirate sites. Simply ensure that open-access repositories and preprints are accurately cited without hallucinated DOIs.</blockquote>
+<div class="spacer"></div>
+<h3>7.3 State-of-the-Art (SOTA) Comparison Matrix (Insert on Page 53)</h3>
+<div class="spacer"></div>
+<p>Insert this comparative table directly before your Design Synthesis on Page 53 to anchor your engineering contributions:</p>
+<div class="spacer"></div>
+<h4>TABLE II</h4>
+<p><strong>COMPARATIVE MATRIX OF RELATED PARKING SYSTEMS AND ARCHITECTURES</strong></p>
+<div class="spacer"></div>
+<div class="table-container"><table><thead><tr>
+<th>Study / Architecture</th>
+<th>Platform Scope</th>
+<th>Hardware Dependency</th>
+<th>Real-Time Sync Mechanism</th>
+<th>Access Validation Method</th>
+<th>Concurrency / Double-Booking Guard</th>
+<th>Marketplace / P2P Focus</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Barde et al. (2022)</strong></td>
+<td>Institutional (Campus)</td>
+<td>High (IR/Ultrasonic Sensors, Gate Barriers)</td>
+<td>Cloud Polling</td>
+<td>Physical Barrier / RFID</td>
+<td>None (Physical slot count)</td>
+<td>No (Internal Campus Only)</td>
+</tr>
+<tr>
+<td><strong>Sudhakar et al. (2023)</strong></td>
+<td>Commercial Lot</td>
+<td>High (Raspberry Pi, IR Sensors, LCD)</td>
+<td>Local Bus / HTTP</td>
+<td>License Plate Image Processing</td>
+<td>Hardware Gate Interlock</td>
+<td>No (Single Facility)</td>
+</tr>
+<tr>
+<td><strong>Larraquel (2023)</strong></td>
+<td>Public Parking</td>
+<td>Moderate (Sensors, Automated Gates)</td>
+<td>Client Polling</td>
+<td>Static Time-Slot Reservation</td>
+<td>Priority Queue</td>
+<td>No (Public Bays Only)</td>
+</tr>
+<tr>
+<td><strong>Neupane / ParkEz (2025)</strong></td>
+<td>Student Housing</td>
+<td>Low (Software-only MERN)</td>
+<td>REST API Requests</td>
+<td>Standard User Login / Pin</td>
+<td>Application-level Check</td>
+<td>No (Apartment Residents)</td>
+</tr>
+<tr>
+<td><strong>Wahyudi et al. (2021) / Parmon</strong></td>
+<td>Commercial Lot</td>
+<td>Low (Web/Laravel)</td>
+<td>HTTP Request/Response</td>
+<td>Manual Parking Attendant</td>
+<td>None (Standard DB Insert)</td>
+<td>No (Attendant-operated)</td>
+</tr>
+<tr>
+<td><strong>E-Parada (Proposed)</strong></td>
+<td><strong>Decentralized (Residential &amp; Commercial)</strong></td>
+<td><strong>Zero Stationary Hardware (Mobile Edge Sensing)</strong></td>
+<td><strong>Supabase Realtime (WebSockets CDC)</strong></td>
+<td><strong>Cryptographic HMAC-SHA256 QR + Replay Guard</strong></td>
+<td><strong>PostgreSQL Row-Level Locking (<code>SELECT ... FOR UPDATE</code>)</strong></td>
+<td><strong>Yes (Two-Sided Peer-to-Peer Marketplace)</strong></td>
+</tr>
+</tbody></table></div>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>8. IEEE Standard Formatting &amp; Citation Conversion</h2>
+<div class="spacer"></div>
+<p>Engineering theses require IEEE format. Follow these rules when updating your text:</p>
+<div class="spacer"></div>
+<h3>1. In-Text Citation Syntax</h3>
+<li><strong>Incorrect (APA):</strong> <em>"As indicated by Raza et al. (2022) in their research article..."</em> (Page 29)</li>
+<li><strong>Correct (IEEE):</strong> <em>"As demonstrated in [1], GNSS and positioning technologies are essential..."</em></li>
+<li><strong>Incorrect (APA):</strong> <em>"In another study, Wahyudi, Junirianto, and Franz (2021) worked on..."</em> (Page 46)</li>
+<li><strong>Correct (IEEE):</strong> <em>"Wahyudi et al. [14] developed a web-based parking architecture..."</em></li>
+<div class="spacer"></div>
+<h3>2. Table and Figure Captions</h3>
+<li><strong>Table Titles:</strong> Placed <strong>ABOVE</strong> the table, centered, Roman numerals, uppercase:</li>
+<p>  ```text</p>
+<p>  TABLE I</p>
+<p>  HARDWARE SPECIFICATIONS FOR SYSTEM TESTING</p>
+<p>  ```</p>
+<li><strong>Figure Captions:</strong> Placed <strong>BELOW</strong> the figure, left-aligned or centered, abbreviated:</li>
+<p>  ```text</p>
+<p>  Fig. 1. Conceptual framework of E-Parada under the IPO model.</p>
+<p>  Fig. 8. Activity diagram illustrating cross-functional reservation workflows.</p>
+<p>  ```</p>
+<div class="spacer"></div>
+<h3>3. Numbered Reference List (Replacing Alphabetical List on Pages 57–60)</h3>
+<p>Reorder your references strictly by the order they appear in the text:</p>
+<pre><code class="text">
+[1] S. Raza, A. Al-Kaisy, R. Teixeira, and B. Meyer, "The role of GNSS-RTN in transportation applications," Encyclopedia, vol. 2, no. 3, pp. 1237–1249, 2022.
+[2] Y. Sartayeva, H. C. Chan, Y. H. Ho, and P. H. Chong, "A survey of indoor positioning systems based on a six-layer model," Computer Networks, vol. 237, p. 110042, 2023.
+[3] F. Bastani et al., "Updating street maps using changes detected in satellite imagery," in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), 2021, pp. 53–56.
+[4] B. G. Grepon, J. Margallo, J. Maserin, and R. A. Dompol, "RUI: A web-based road updates information system using Google Maps API," Int. J. Comput. Sci. Res., vol. 7, pp. 2253–2271, 2023.
+[5] H. J. Kim et al., "Improving the accuracy of vehicle position in an urban environment using the outlier mitigation algorithm based on GNSS multi-position clustering," Remote Sens., vol. 15, no. 15, p. 3791, 2023.
+[6] F. P. Afable, "GCash: Revolutionizing digital payments in the Philippines and beyond," SSRN Electron. J., May 2024, doi: 10.2139/ssrn.4871527.
+</code></pre>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>9. Oral Defense Interrogation Drill: Top 10 Tough Questions &amp; Winning Rebuttals</h2>
+<div class="spacer"></div>
+<p>Practice these questions with your group. The provided rebuttals will satisfy demanding panellists:</p>
+<div class="spacer"></div>
+<h3>Q1: "You are Computer Engineering students. Where is the hardware? Why isn't this an IT capstone project?"</h3>
+<li><strong>Weak Answer:</strong> <em>"Because hardware was too expensive for homeowners, so we made an app."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"Our engineering contribution focuses on distributed edge computing and sensor integration on resource-constrained consumer mobile hardware. Rather than relying on static, high-maintenance embedded microcontrollers, we engineered an architecture that treats the mobile device as an active multi-sensor telemetry terminal. We directly interface with CMOS image sensors for edge optical character extraction, optimize baseband satellite GNSS data streams for turn-by-turn routing, implement WebRTC audio codecs with acoustic echo cancellation over real-time UDP streams, and utilize mobile hardware cryptographic modules for HMAC-SHA256 token verification."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q2: "What prevents a driver from booking a slot, arriving, and finding a family member's car physically parked in that driveway?"</h3>
+<li><strong>Weak Answer:</strong> <em>"We tell the owner in the rules not to do that."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"We recognized that in software-managed parking, database state and physical state can diverge. To handle this, E-Parada incorporates an automated 'Discrepancy Exception Workflow'. When a driver arrives and flags a slot as obstructed, the mobile application triggers an immediate incident report geofenced to the slot coordinates. The system automatically releases any pre-authorized hold on the driver's funds, re-routes the driver via Google Maps to the nearest verified compatible space, and places a temporary suspension flag on the host's listing until the obstruction is resolved."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q3: "Why did you use Slovin's equation with a 10% margin of error instead of 5%?"</h3>
+<li><strong>Weak Answer:</strong> <em>"Because 5% needed too many people and we didn't have time."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"In prototype engineering and exploratory pilot implementations, a margin of error between 8% and 10% is standard practice to balance statistical validity with prototype deployment constraints. At a 5% margin of error for a localized population of 500, the required sample size would be 222 respondents, which exceeds the throughput capacity of a localized pilot in Brgy. Milagrosa. Setting e = 0.10 yielded n = 84, which was then stratified proportionally across drivers (70%) and providers (30%) to guarantee representative coverage across both user interfaces."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q4: "Why are your IT Experts not calculated inside Slovin's formula?"</h3>
+<li><strong>Weak Answer:</strong> <em>"We just wanted to ask 5 experts for extra feedback."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"Slovin's formula is mathematically designed for probability sampling from a single homogeneous population—in our case, the community of motorists and property owners in Calamba. Software engineers and systems architects represent an external expert evaluation panel with specialized domain knowledge in source code auditing, Supabase RLS security, and database concurrency. Mixing expert evaluators into a general community probability formula violates sampling homogeneity; therefore, they were selected via purposive sampling in accordance with standard software quality evaluation methodologies."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q5: "How does your system prevent two drivers from booking the exact same parking slot at the same millisecond?"</h3>
+<li><strong>Weak Answer:</strong> <em>"Laravel handles validation in the controller."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"We prevent race conditions through pessimistic row-level locking directly within PostgreSQL on Supabase. When a booking transaction starts, the query executes <code>SELECT ... FOR UPDATE</code> on the specific <code>parking_slots</code> record. This locks the database row for the duration of the transaction. If a concurrent request arrives, it is blocked until the first transaction commits or rolls back. The transaction evaluates temporal overlap; if the slot is confirmed available, the booking is inserted, the transaction commits, and Supabase's Realtime engine broadcasts the new status to all connected clients."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q6: "Why did you migrate to Supabase instead of keeping standard MySQL?"</h3>
+<li><strong>Weak Answer:</strong> <em>"Supabase was easier to connect to Flutter."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"We upgraded to Supabase for three architectural advantages: first, its PostgreSQL foundation provides robust ACID-compliant row locking for race-condition prevention. Second, Supabase Realtime utilizes PostgreSQL Change Data Capture (CDC) over WebSockets, allowing instant push updates to Flutter clients when a slot status changes without the battery and bandwidth penalty of HTTP polling. Third, Supabase provides Row-Level Security (RLS) directly in the database engine, ensuring multi-tenant data isolation even if client-side validation is bypassed."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q7: "Tesseract OCR often misreads Philippine license plates in poor lighting. How does your system prevent erroneous vehicle registrations?"</h3>
+<li><strong>Weak Answer:</strong> <em>"Tesseract has 90% accuracy so it doesn't fail often."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"We designed Subroutine 1 with an 'Optical Assistance Model' rather than an unverified fully automated ingestion. Tesseract applies grayscale conversion, adaptive thresholding, and regex pattern matching against standard LTO license formats (e.g., three letters, four numbers). The extracted text is then populated into an editable confirmation field where the driver must verify or manually correct any misread characters before submission. Finally, the raw photograph and confirmed string are audited by the system administrator before the vehicle status is set to 'VERIFIED'."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q8: "What happens if a driver parks in a basement or covered driveway where 4G/LTE cellular connection drops?"</h3>
+<li><strong>Weak Answer:</strong> <em>"The app requires an internet connection as stated in our limitations."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"While live updates require connectivity, our system provides offline resilience for active check-ins. When a reservation is approved, the driver's device pre-caches the cryptographically signed HMAC-SHA256 QR token locally. Upon arrival, the provider's scanner can decode and authenticate the token payload using local cryptographic verification. Once the device re-establishes connectivity, pending transaction timestamps are synchronized and committed to Supabase."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q9: "Why use HMAC-SHA256 for the QR pass instead of a dynamic rotating QR code (TOTP)?"</h3>
+<li><strong>Weak Answer:</strong> <em>"HMAC was easier to code in PHP."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"HMAC-SHA256 provides an optimal balance between cryptographic tamper-resistance and edge performance. Generating and validating HMAC hashes requires negligible CPU overhead and operates in sub-millisecond execution times on low-tier mobile processors. To prevent screenshot sharing and replay attacks without requiring the network complexity of TOTP, each QR token embeds a unique reservation ID, driver ID, timestamp, and cryptographic nonce that is marked as consumed immediately upon first entry scan."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3>Q10: "Can you prove that your survey results for Performance Efficiency are scientifically valid?"</h3>
+<li><strong>Weak Answer:</strong> <em>"Yes, because our Cronbach's alpha was above 0.70."</em></li>
+<li><strong>Winning Engineering Rebuttal:</strong>  </li>
+<p>  <em>"We recognized that technical metrics such as server response latency, database query times, and OCR execution speed cannot be accurately evaluated through human perception. Therefore, our methodology strictly separates subjective evaluation from objective benchmarking. Non-technical end-users only evaluated Usability and Functional Suitability. All Performance Efficiency and Concurrency metrics were gathered through automated instrumentation tools—specifically Apache JMeter and Python stress harnesses—measuring concrete engineering units (milliseconds, throughput, and memory consumption)."</em></p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2>10. Pre-Submission Verification Checklist</h2>
+<div class="spacer"></div>
+<div class="checkbox-item">☐ <strong>DOI Integrity Checked:</strong> Removed hallucinated DOI <code>10.1016/j.jclepro.2020.122877</code> from Vovveti (2024).</div>
+<div class="checkbox-item">☐ <strong>Author Conflict Resolved:</strong> Reconciled Gamage vs. Neupane authorship on Page 59.</div>
+<div class="checkbox-item">☐ <strong>Raw Caption URLs Removed:</strong> Stripped all naked URLs above Figures 1, 2, 3, 4, and 5; replaced with IEEE <code>[#]</code> attribution text.</div>
+<div class="checkbox-item">☐ <strong>SOTA Matrix Added:</strong> Inserted Table II (Comparative Matrix) on Page 53 before Design Synthesis.</div>
+<div class="checkbox-item">☐ <strong>Stack Uniformity:</strong> Confirm no remaining mentions of <em>"Java in Android Studio"</em> (check Page 46).</div>
+<div class="checkbox-item">☐ <strong>Database Accuracy:</strong> Verify that all references to MySQL 8.0 and SQLite in Chapter 3 are replaced with <strong>Supabase (PostgreSQL 15+)</strong>.</div>
+<div class="checkbox-item">☐ <strong>Figure Verification:</strong> Confirm Subroutines reference <strong>Figure 25</strong> (Page 117) and Development Procedure references <strong>Figure 26</strong> (Page 120).</div>
+<div class="checkbox-item">☐ <strong>Slovin's Text Inserted:</strong> Replace the Nielsen $N=50$ text on Page 123 with the <strong>$N=500, n=84$</strong> stratified allocation table and narrative.</div>
+<div class="checkbox-item">☐ <strong>Engineering Justification:</strong> Replace Page 4 Paragraph 2 with the <strong>Edge Computing / Multi-Sensor Mobile Node</strong> reframe.</div>
+<div class="checkbox-item">☐ <strong>Citations Cleaned:</strong> Begin converting in-text citations from APA <code>(Author, Year)</code> to bracketed IEEE <code>[#]</code>.</div>
+<div class="checkbox-item">☐ <strong>Oral Defense Rebuttals:</strong> Rehearse the 10 defense questions above with all four co-authors so answers are consistent and confident.</div>
+</body>
+</html>

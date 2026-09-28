@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../config/api_config.dart';
 import '../services/auth_service.dart';
+import '../services/push_notification_handler.dart';
+import '../widgets/server_connection_dialog.dart';
 import 'main_navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -33,6 +36,9 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
+      // Register device FCM push token with backend
+      PushNotificationHandler.syncCurrentToken();
+
       if (!mounted) return;
 
       Navigator.pushAndRemoveUntil(
@@ -44,6 +50,13 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) setState(() => _errorMessage = error.toString());
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _openServerSettings() async {
+    final changed = await ServerConnectionDialog.show(context);
+    if (changed == true && mounted) {
+      setState(() => _errorMessage = null);
     }
   }
 
@@ -59,7 +72,16 @@ class _LoginScreenState extends State<LoginScreen> {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Log in')),
+      appBar: AppBar(
+        title: const Text('Log in'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.dns_outlined),
+            tooltip: 'Server Connection',
+            onPressed: _openServerSettings,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -139,9 +161,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: colors.errorContainer,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          _errorMessage!,
-                          style: TextStyle(color: colors.onErrorContainer),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _errorMessage!,
+                              style: TextStyle(color: colors.onErrorContainer),
+                            ),
+                            const SizedBox(height: 8),
+                            InkWell(
+                              onTap: _openServerSettings,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.settings_suggest_rounded,
+                                    size: 16,
+                                    color: colors.primary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Change Server Address (${ApiConfig.baseUrl})',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: colors.primary,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

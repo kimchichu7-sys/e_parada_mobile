@@ -88,6 +88,20 @@ class ApiClient {
     );
   }
 
+  static Future<http.Response> deleteJson(
+    String path, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) {
+    return _send(
+      () => http.delete(
+        ApiConfig.endpoint(path),
+        headers: _headers(headers, json: true),
+        body: jsonEncode(body ?? <String, dynamic>{}),
+      ),
+    );
+  }
+
   static Future<http.Response> postMultipart(
     String path, {
     Map<String, String>? headers,
@@ -151,8 +165,22 @@ class ApiClient {
       return;
     }
 
-    final body = decodeObject(response);
-    throw ApiException(_messageFrom(body), statusCode: response.statusCode);
+    Map<String, dynamic> body;
+
+    try {
+      body = decodeObject(response);
+    } on ApiException {
+      throw ApiException(
+        _messageForStatus(response.statusCode),
+        statusCode: response.statusCode,
+      );
+    }
+
+    final serverMessage = _messageFrom(body);
+    throw ApiException(
+      serverMessage ?? _messageForStatus(response.statusCode),
+      statusCode: response.statusCode,
+    );
   }
 
   static Map<String, String> _headers(
@@ -190,7 +218,7 @@ class ApiClient {
     }
   }
 
-  static String _messageFrom(Map<String, dynamic> body) {
+  static String? _messageFrom(Map<String, dynamic> body) {
     final errors = body['errors'];
 
     if (errors is Map) {
@@ -205,6 +233,24 @@ class ApiClient {
       }
     }
 
-    return body['message']?.toString() ?? 'The request could not be completed.';
+    final message = body['message']?.toString().trim();
+    return message == null || message.isEmpty ? null : message;
+  }
+
+  static String _messageForStatus(int statusCode) {
+    return switch (statusCode) {
+      400 => 'The request was not accepted. Please check the information and try again.',
+      401 => 'Your email or password is incorrect.',
+      403 => 'This account is not allowed to perform that action yet.',
+      404 => 'The requested E-Parada API endpoint was not found. Check the backend address.',
+      408 => 'The request timed out. Please try again.',
+      419 => 'Your session has expired. Please log in again.',
+      422 => 'Please check the submitted information and try again.',
+      429 => 'Too many attempts. Wait one minute before trying again.',
+      500 => 'The E-Parada server encountered an error. Please try again shortly.',
+      502 || 503 || 504 =>
+        'The E-Parada backend is temporarily unavailable. Check that Laravel and the backend tunnel are running.',
+      _ => 'The request failed with server status $statusCode.',
+    };
   }
 }

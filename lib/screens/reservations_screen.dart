@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../models/driver_reservation.dart';
 import '../services/api_client.dart';
+import '../services/offline_parking_pass_service.dart';
 import '../services/reservation_service.dart';
+import '../utils/validators.dart';
+import '../widgets/digital_receipt_dialog.dart';
+import '../widgets/extend_parking_dialog.dart';
+import '../widgets/live_overstay_tracker_card.dart';
+import '../widgets/offline_parking_pass_dialog.dart';
 import '../widgets/reservation_action_dialogs.dart';
 import '../widgets/reservation_credential_dialog.dart';
+import '../widgets/security_gate_pass_dialog.dart';
+import 'map_screen.dart';
 import 'reservation_conversation_screen.dart';
 
 class ReservationsScreen extends StatefulWidget {
@@ -16,24 +23,61 @@ class ReservationsScreen extends StatefulWidget {
 }
 
 class _ReservationsScreenState extends State<ReservationsScreen> {
-  late Future<List<DriverReservation>> _future;
+  List<DriverReservation>? _reservations;
+  bool _loading = true;
+  String? _errorMessage;
   bool _acting = false;
 
   @override
   void initState() {
     super.initState();
-    _future = ReservationService.fetchReservations();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+    try {
+      final items = await ReservationService.fetchReservations();
+      await OfflineParkingPassService.cacheReservations(items);
+      if (!mounted) return;
+      setState(() {
+        _reservations = items;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = error.toString();
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _refresh() async {
-    final future = ReservationService.fetchReservations();
-    setState(() => _future = future);
-    await future;
+    try {
+      final items = await ReservationService.fetchReservations();
+      await OfflineParkingPassService.cacheReservations(items);
+      if (!mounted) return;
+      setState(() {
+        _reservations = items;
+        _errorMessage = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = error.toString();
+      });
+    }
   }
 
   Future<void> _perform(Future<String> Function() action) async {
     if (_acting) return;
-    setState(() => _acting = true);
+    setState(() {
+      _acting = true;
+    });
     try {
       final message = await action();
       if (!mounted) return;
@@ -58,16 +102,24 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _acting = false);
+      if (mounted) {
+        setState(() {
+          _acting = false;
+        });
+      }
     }
   }
 
   Future<void> _cancel(DriverReservation reservation) async {
     final controller = TextEditingController();
+    final ref = Validators.formatReservationNumber(
+      reservation.backupReference,
+      id: reservation.id,
+    );
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Cancel ${reservation.backupReference}?'),
+        title: Text('Cancel $ref?'),
         content: TextField(
           controller: controller,
           maxLength: 1000,
@@ -145,152 +197,21 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   }
 
   Future<void> _extend(DriverReservation reservation) async {
-    DateTime date = DateTime.tryParse(reservation.endDate) ?? DateTime.now();
-    final currentParts = reservation.endTime.split(':');
-    TimeOfDay time = TimeOfDay(
-      hour: int.tryParse(currentParts.isNotEmpty ? currentParts[0] : '') ?? 0,
-      minute: int.tryParse(currentParts.length > 1 ? currentParts[1] : '') ?? 0,
-    );
-    final reasonController = TextEditingController();
-
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text('Extend ${reservation.backupReference}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today_outlined),
-                title: const Text('New end date'),
-                subtitle: Text(_date(date)),
-                onTap: () async {
-                  final selected = await showDatePicker(
-                    context: context,
-                    initialDate: date,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                  );
-                  if (selected != null) setDialogState(() => date = selected);
-                },
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.more_time_outlined),
-                title: const Text('New end time'),
-                subtitle: Text(time.format(context)),
-                onTap: () async {
-                  final selected = await showTimePicker(
-                    context: context,
-                    initialTime: time,
-                  );
-                  if (selected != null) setDialogState(() => time = selected);
-                },
-              ),
-              TextField(
-                controller: reasonController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Optional reason',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Back'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Send request'),
-            ),
-          ],
-        ),
-      ),
-    );
-    final reason = reasonController.text.trim();
-    reasonController.dispose();
-    if (accepted != true) return;
-
-    await _perform(
-      () => ReservationService.requestExtension(
-        reservationId: reservation.id,
-        endDate: _date(date),
-        endTime: _time(time),
-        reason: reason,
-      ),
-    );
+    final refreshed = await ExtendParkingDialog.show(context, reservation);
+    if (refreshed == true) {
+      await _refresh();
+    }
   }
 
   Future<void> _pay(DriverReservation reservation) async {
-    String method = 'gcash';
-    XFile? proof;
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text('Pay ${reservation.backupReference}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: method,
-                decoration: const InputDecoration(
-                  labelText: 'Payment method',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'gcash', child: Text('GCash')),
-                  DropdownMenuItem(value: 'cash', child: Text('Cash')),
-                ],
-                onChanged: (value) =>
-                    setDialogState(() => method = value ?? 'gcash'),
-              ),
-              if (method == 'gcash') ...[
-                const SizedBox(height: 14),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final selected = await ImagePicker().pickImage(
-                      source: ImageSource.gallery,
-                      imageQuality: 85,
-                    );
-                    if (selected != null) {
-                      setDialogState(() => proof = selected);
-                    }
-                  },
-                  icon: const Icon(Icons.add_photo_alternate_outlined),
-                  label: Text(
-                    proof == null ? 'Choose proof image' : proof!.name,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Back'),
-            ),
-            FilledButton(
-              onPressed: method == 'gcash' && proof == null
-                  ? null
-                  : () => Navigator.pop(context, true),
-              child: const Text('Submit payment'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (accepted != true) return;
-    final file = proof;
+    final selection = await showBillingPaymentDialog(context, reservation);
+    if (selection == null) return;
+    final file = selection.proof;
     await _perform(
       () async => ReservationService.submitPayment(
         reservationId: reservation.id,
-        paymentMethod: method,
+        paymentMethod: selection.method,
+        referenceNumber: selection.gcashReference,
         paymentProof: file == null
             ? null
             : UploadFileData(
@@ -299,6 +220,32 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
               ),
       ),
     );
+
+    if (mounted) {
+      final shouldRate = await showDialog<bool>(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('Payment Recorded'),
+          content: Text(
+            'Your payment for ${reservation.parkingSpaceName} has been submitted.\n\nWould you like to rate and review this parking space now?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: const Text('Maybe Later'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogCtx, true),
+              child: const Text('Rate Parking Space'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldRate == true && mounted) {
+        await _feedback(reservation);
+      }
+    }
   }
 
   Future<void> _showCredential(DriverReservation reservation) {
@@ -316,59 +263,52 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       appBar: AppBar(title: const Text('My Reservations')),
       body: Stack(
         children: [
-          FutureBuilder<List<DriverReservation>>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return _Message(
-                  message: snapshot.error.toString(),
-                  onRetry: _refresh,
-                );
-              }
-              final reservations = snapshot.data ?? const <DriverReservation>[];
-              if (reservations.isEmpty) {
-                return _Message(
-                  message: 'No reservations yet.',
-                  onRetry: _refresh,
-                );
-              }
-
-              return RefreshIndicator(
-                onRefresh: _refresh,
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: reservations.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final reservation = reservations[index];
-                    return _ReservationCard(
-                      reservation: reservation,
-                      disabled: _acting,
-                      onCredential: () => _showCredential(reservation),
-                      onReschedule: () => _reschedule(reservation),
-                      onFeedback: () => _feedback(reservation),
-                      onCancel: () => _cancel(reservation),
-                      onExtend: () => _extend(reservation),
-                      onPay: () => _pay(reservation),
-                      onContact: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => ReservationConversationScreen(
-                            reservationId: reservation.id,
-                            otherPartyName: reservation.ownerName,
-                          ),
+          if (_loading && _reservations == null)
+            const Center(child: CircularProgressIndicator())
+          else if (_errorMessage != null && _reservations == null)
+            _Message(
+              message: _errorMessage!,
+              onRetry: _fetch,
+            )
+          else if (_reservations == null || _reservations!.isEmpty)
+            _Message(
+              message: 'No reservations yet.',
+              onRetry: _fetch,
+            )
+          else
+            RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                itemCount: _reservations!.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final reservation = _reservations![index];
+                  return _ReservationCard(
+                    reservation: reservation,
+                    disabled: _acting,
+                    onCredential: () => _showCredential(reservation),
+                    onReschedule: () => _reschedule(reservation),
+                    onFeedback: () => _feedback(reservation),
+                    onCancel: () => _cancel(reservation),
+                    onExtend: () => _extend(reservation),
+                    onPay: () => _pay(reservation),
+                    onReceipt: () =>
+                        DigitalReceiptDialog.showForDriver(context, reservation),
+                    onContact: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ReservationConversationScreen(
+                          reservationId: reservation.id,
+                          otherPartyName: reservation.ownerName,
                         ),
                       ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
+                    ),
+                  );
+                },
+              ),
+            ),
           if (_acting)
             const Positioned.fill(
               child: ColoredBox(
@@ -380,12 +320,6 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       ),
     );
   }
-
-  static String _date(DateTime value) =>
-      '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
-
-  static String _time(TimeOfDay value) =>
-      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
 }
 
 class _ReservationCard extends StatelessWidget {
@@ -398,6 +332,7 @@ class _ReservationCard extends StatelessWidget {
     required this.onCancel,
     required this.onExtend,
     required this.onPay,
+    required this.onReceipt,
     required this.onContact,
   });
 
@@ -409,6 +344,7 @@ class _ReservationCard extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onExtend;
   final VoidCallback onPay;
+  final VoidCallback onReceipt;
   final VoidCallback onContact;
 
   @override
@@ -434,7 +370,9 @@ class _ReservationCard extends StatelessWidget {
                 Chip(label: Text(_title(reservation.status))),
               ],
             ),
-            Text('${reservation.backupReference} | ${reservation.slotLabel}'),
+            Text(
+              '${Validators.formatReservationNumber(reservation.backupReference, id: reservation.id)} | ${reservation.slotLabel}',
+            ),
             const Divider(height: 26),
             ReservationProgressTracker(
               status: reservation.status,
@@ -442,6 +380,14 @@ class _ReservationCard extends StatelessWidget {
               timeIn: reservation.timeIn,
               timeOut: reservation.timeOut,
             ),
+            if (reservation.status == 'approved' ||
+                (reservation.timeIn != null && reservation.timeOut == null)) ...[
+              const SizedBox(height: 10),
+              LiveOverstayTrackerCard(
+                reservation: reservation,
+                onExtensionRequested: onExtend,
+              ),
+            ],
             const SizedBox(height: 14),
             _line(Icons.schedule_outlined, reservation.scheduleLabel),
             _line(
@@ -479,6 +425,55 @@ class _ReservationCard extends StatelessWidget {
                     icon: const Icon(Icons.qr_code_2),
                     label: const Text('Entry code'),
                   ),
+                if ((reservation.status == 'approved' &&
+                        reservation.hasCredential) ||
+                    (reservation.timeIn != null && reservation.timeOut == null))
+                  OutlinedButton.icon(
+                    onPressed: disabled
+                        ? null
+                        : () {
+                            OfflineParkingPassDialog.show(
+                              context,
+                              OfflinePassData.fromDriverReservation(
+                                reservation,
+                              ),
+                            );
+                          },
+                    icon: const Icon(Icons.cloud_off_rounded),
+                    label: const Text('Offline Pass'),
+                  ),
+                if ((reservation.status == 'approved' &&
+                        reservation.hasCredential) ||
+                    (reservation.timeIn != null && reservation.timeOut == null))
+                  OutlinedButton.icon(
+                    onPressed: disabled
+                        ? null
+                        : () => SecurityGatePassDialog.show(
+                              context,
+                              reservation: reservation,
+                            ),
+                    icon: const Icon(Icons.shield_outlined),
+                    label: const Text('Gate Pass'),
+                  ),
+                if ((reservation.status == 'approved') ||
+                    (reservation.timeIn != null && reservation.timeOut == null))
+                  OutlinedButton.icon(
+                    onPressed: disabled
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MapScreen(
+                                  focusedParkingSpaceId: reservation.parkingSpaceId,
+                                  startNavigationMode: true,
+                                ),
+                              ),
+                            );
+                          },
+                    icon: const Icon(Icons.directions_rounded),
+                    label: const Text('Directions'),
+                  ),
                 if (reservation.canReschedule)
                   OutlinedButton.icon(
                     onPressed: disabled ? null : onReschedule,
@@ -503,6 +498,13 @@ class _ReservationCard extends StatelessWidget {
                     onPressed: disabled ? null : onPay,
                     icon: const Icon(Icons.payment_outlined),
                     label: const Text('Pay'),
+                  ),
+                if (reservation.status == 'completed' ||
+                    reservation.paymentStatus == 'paid')
+                  FilledButton.tonalIcon(
+                    onPressed: disabled ? null : onReceipt,
+                    icon: const Icon(Icons.receipt_long_rounded),
+                    label: const Text('View E-Receipt'),
                   ),
                 if (reservation.status == 'approved' ||
                     reservation.status == 'completed')

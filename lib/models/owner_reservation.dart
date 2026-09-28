@@ -1,7 +1,9 @@
+import '../utils/validators.dart';
+
 class OwnerReservation {
-  const OwnerReservation({
+  OwnerReservation({
     required this.id,
-    required this.backupReference,
+    required String backupReference,
     required this.driverName,
     required this.plateNumber,
     required this.vehicleType,
@@ -30,7 +32,8 @@ class OwnerReservation {
     required this.extensionReason,
     required this.extensionOwnerNotes,
     required this.hasPendingExtension,
-  });
+  }) : backupReference =
+            Validators.formatReservationNumber(backupReference, id: id);
 
   final int id;
   final String backupReference;
@@ -89,9 +92,13 @@ class OwnerReservation {
     final parkingSpace = _map(json['parking_space']);
     final extension = _map(json['extension']);
 
+    final id = _integer(json['id']);
+    final rawRef = json['backup_reference']?.toString();
+    final ref = Validators.formatReservationNumber(rawRef, id: id);
+
     return OwnerReservation(
-      id: _integer(json['id']),
-      backupReference: json['backup_reference']?.toString() ?? '',
+      id: id,
+      backupReference: ref,
       driverName: driver['name']?.toString() ?? 'Driver',
       plateNumber: vehicle['plate_number']?.toString() ?? '',
       vehicleType: vehicle['vehicle_type']?.toString() ?? '',

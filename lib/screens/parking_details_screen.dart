@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/auth_user.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../services/favorites_service.dart';
+import '../widgets/app_network_image.dart';
+import '../widgets/image_preview_dialog.dart';
 import '../widgets/vehicle_chip.dart';
+import 'interactive_map_screen.dart';
 import 'profile_screen.dart';
 import 'reserve_parking_screen.dart';
 
@@ -49,21 +52,15 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
   Future<void> _openDirections() async {
     if (!_hasCoordinates) return;
 
-    final directionsUri = Uri.https('www.google.com', '/maps/dir/', {
-      'api': '1',
-      'destination': '${widget.latitude},${widget.longitude}',
-      'travelmode': 'driving',
-    });
-    final opened = await launchUrl(
-      directionsUri,
-      mode: LaunchMode.externalApplication,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MapScreen(
+          focusedParkingSpaceId: widget.parkingSpaceId,
+          startNavigationMode: true,
+        ),
+      ),
     );
-
-    if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Google Maps could not be opened.')),
-      );
-    }
   }
 
   Future<void> _startReservation() async {
@@ -174,11 +171,46 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
         normalizedStatus == 'available' || normalizedStatus == 'open';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Parking Details')),
+      appBar: AppBar(
+        title: const Text('Parking Details'),
+        actions: [
+          ValueListenableBuilder<Set<int>>(
+            valueListenable: FavoritesService.favoritesNotifier,
+            builder: (context, favIds, _) {
+              final isFav = favIds.contains(widget.parkingSpaceId);
+              return IconButton(
+                tooltip: isFav ? 'Remove from Saved' : 'Save to Favorites',
+                icon: Icon(
+                  isFav ? Icons.star_rounded : Icons.star_outline_rounded,
+                  color: isFav ? Colors.amber : null,
+                  size: 26,
+                ),
+                onPressed: () {
+                  FavoritesService.toggleFavorite(widget.parkingSpaceId);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isFav
+                            ? '${widget.parkingName} removed from Saved.'
+                            : '⭐️ ${widget.parkingName} saved to Favorites.',
+                      ),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _ParkingHeroImage(imageUrl: widget.imageUrl),
+          _ParkingHeroImage(
+            imageUrl: widget.imageUrl,
+            title: widget.parkingName,
+          ),
           const SizedBox(height: 20),
           Text(
             widget.parkingName,
@@ -302,9 +334,13 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
 }
 
 class _ParkingHeroImage extends StatelessWidget {
-  const _ParkingHeroImage({required this.imageUrl});
+  const _ParkingHeroImage({
+    required this.imageUrl,
+    this.title = 'Parking Space Photo',
+  });
 
   final String? imageUrl;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -319,26 +355,65 @@ class _ParkingHeroImage extends StatelessWidget {
       ),
     );
 
+    final hasImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
+
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: imageUrl == null || imageUrl!.isEmpty
-            ? fallback
-            : Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => fallback,
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return ColoredBox(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (!hasImage)
+              fallback
+            else
+              InkWell(
+                onTap: () => ImagePreviewDialog.show(
+                  context,
+                  imageUrl: imageUrl!,
+                  title: title,
+                ),
+                child: AppNetworkImage(
+                  imageUrl: imageUrl!,
+                  fit: BoxFit.cover,
+                  fallbackWidget: fallback,
+                  loadingWidget: ColoredBox(
                     color: Theme.of(
                       context,
                     ).colorScheme.surfaceContainerHighest,
                     child: const Center(child: CircularProgressIndicator()),
-                  );
-                },
+                  ),
+                ),
               ),
+            if (hasImage)
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.zoom_in, color: Colors.white, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'Tap to Zoom',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

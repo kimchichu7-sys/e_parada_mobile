@@ -89,6 +89,35 @@ class AuthService {
     await clearSession();
   }
 
+  static Future<void> deleteAccount({String? password}) async {
+    final token = await requireToken();
+
+    final body = (password != null && password.isNotEmpty)
+        ? {'password': password}
+        : null;
+
+    try {
+      final response = await ApiClient.deleteJson(
+        'account',
+        headers: bearerHeaders(token),
+        body: body,
+      );
+
+      if (response.statusCode == 404 || response.statusCode == 405) {
+        final fallback = await ApiClient.postJson(
+          'account/delete',
+          headers: bearerHeaders(token),
+          body: body,
+        );
+        ApiClient.requireStatus(fallback, const {200, 204});
+      } else {
+        ApiClient.requireStatus(response, const {200, 204});
+      }
+    } finally {
+      await clearSession();
+    }
+  }
+
   static Future<AuthUser?> fetchMe() async {
     final token = await authToken();
 

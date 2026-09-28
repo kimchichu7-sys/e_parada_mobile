@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_theme.dart';
 import '../models/auth_user.dart';
 import '../services/auth_service.dart';
+import '../widgets/app_feedback_dialog.dart';
+import '../widgets/delete_account_dialog.dart';
+import '../widgets/paymongo_settings_dialog.dart';
+import 'incident_report_screen.dart';
 import 'vehicle_garage_screen.dart';
 import 'support_screen.dart';
 import 'welcome_screen.dart';
@@ -24,7 +29,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _refresh() async {
     final request = AuthService.fetchMe();
-    setState(() => _future = request);
+    setState(() {
+      _future = request;
+    });
     await request;
   }
 
@@ -174,6 +181,140 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
                 const SizedBox(height: 20),
                 Card(
+                  child: ValueListenableBuilder<ThemeMode>(
+                    valueListenable: AppTheme.themeNotifier,
+                    builder: (context, currentMode, _) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              currentMode == ThemeMode.dark
+                                  ? Icons.dark_mode_rounded
+                                  : (currentMode == ThemeMode.light
+                                      ? Icons.light_mode_rounded
+                                      : Icons.brightness_auto_rounded),
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Appearance',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  Text(
+                                    currentMode == ThemeMode.dark
+                                        ? 'Dark Mode'
+                                        : (currentMode == ThemeMode.light
+                                            ? 'Light Mode'
+                                            : 'System Default'),
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SegmentedButton<ThemeMode>(
+                              showSelectedIcon: false,
+                              style: const ButtonStyle(
+                                visualDensity: VisualDensity.compact,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              segments: const [
+                                ButtonSegment(
+                                  value: ThemeMode.light,
+                                  icon: Icon(Icons.light_mode_outlined, size: 16),
+                                  tooltip: 'Light Mode',
+                                ),
+                                ButtonSegment(
+                                  value: ThemeMode.dark,
+                                  icon: Icon(Icons.dark_mode_outlined, size: 16),
+                                  tooltip: 'Dark Mode',
+                                ),
+                                ButtonSegment(
+                                  value: ThemeMode.system,
+                                  icon: Icon(Icons.brightness_auto_outlined, size: 16),
+                                  tooltip: 'System Default',
+                                ),
+                              ],
+                              selected: {currentMode},
+                              onSelectionChanged: (selected) {
+                                if (selected.isNotEmpty) {
+                                  AppTheme.setThemeMode(selected.first);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(
+                      Icons.account_balance_wallet_outlined,
+                      color: Color(0xFF005CE6),
+                    ),
+                    title: const Text(
+                      'GCash Payment Gateway',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    subtitle: const Text(
+                      'Configure PayMongo API keys, Sandbox/Live modes, and test connection',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => PaymongoSettingsDialog.show(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.report_problem_outlined),
+                    title: const Text(
+                      'Submit Incident Report',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    subtitle: const Text(
+                      'Report property damage, spatial mismatch, overcharging, or bugs',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const IncidentReportScreen(),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.rate_review_outlined),
+                    title: const Text(
+                      'Rate E-Parada App',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    subtitle: const Text(
+                      'Share your feedback and rating to improve platform experience',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => AppFeedbackDialog.show(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
                   child: ListTile(
                     leading: const Icon(Icons.help_outline_rounded),
                     title: const Text(
@@ -187,6 +328,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SupportScreen()),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.error.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.delete_forever_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(
+                      'Delete Account',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Permanently remove your account and all associated personal data',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => DeleteAccountDialog.show(
+                      context,
+                      userEmail: user.email,
                     ),
                   ),
                 ),

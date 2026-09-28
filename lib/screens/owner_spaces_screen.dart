@@ -23,7 +23,9 @@ class _OwnerSpacesScreenState extends State<OwnerSpacesScreen> {
 
   Future<void> _refresh() async {
     final request = OwnerOperationsService.fetchSpaces();
-    setState(() => _future = request);
+    setState(() {
+      _future = request;
+    });
     await request;
   }
 

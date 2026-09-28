@@ -47,7 +47,7 @@ class _ReservationConversationScreenState
   void _startRefreshTimer() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(
-      const Duration(seconds: 2),
+      const Duration(seconds: 4),
       (_) => unawaited(_refresh()),
     );
   }
@@ -94,12 +94,13 @@ class _ReservationConversationScreenState
         _loading = false;
         _error = null;
       });
-      unawaited(ConversationService.markRead(widget.reservationId));
-      if (conversation.messages.isNotEmpty || initial) _scrollToBottom();
 
-      final activeCall = await ConversationService.activeCall(
-        widget.reservationId,
-      );
+      if (conversation.messages.isNotEmpty || initial) {
+        unawaited(ConversationService.markRead(widget.reservationId));
+        _scrollToBottom();
+      }
+
+      final activeCall = conversation.activeCall;
       if (activeCall?.isIncoming == true &&
           activeCall!.status == 'ringing' &&
           _shownIncomingCallId != activeCall.id &&
@@ -226,18 +227,59 @@ class _ReservationConversationScreenState
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: conversation?.canCall == true ? _startCall : null,
-            tooltip: 'Audio call',
-            icon: const Icon(Icons.call_outlined),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            child: Material(
+              color: Colors.green.shade600,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  if (conversation != null && !conversation.canCall) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Audio calling is available for active and confirmed reservations.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  _startCall();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.phone_in_talk_rounded,
+                        color: Colors.white,
+                        size: 17,
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        'Call',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(child: _buildBody()),
-            if (!_loading && _error == null) _buildComposer(),
+            _buildComposer(),
           ],
         ),
       ),
@@ -245,6 +287,7 @@ class _ReservationConversationScreenState
   }
 
   Widget _buildBody() {
+    final conversation = _conversation;
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return Center(
@@ -284,6 +327,26 @@ class _ReservationConversationScreenState
                 'Messages stay inside E-Parada and are visible only to this reservation\'s driver and parking provider.',
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 16),
+              FilledButton.tonalIcon(
+                onPressed: () {
+                  if (conversation != null && !conversation.canCall) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Audio calling is available for active and confirmed reservations.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  _startCall();
+                },
+                icon: const Icon(Icons.phone_in_talk_rounded),
+                label: Text(
+                  'Audio Call ${conversation?.otherPartyName ?? widget.otherPartyName}',
+                ),
+              ),
             ],
           ),
         ),
@@ -303,41 +366,88 @@ class _ReservationConversationScreenState
     );
   }
 
+  static const List<String> _quickReplies = [
+    "🚗 I've arrived at the gate",
+    "📍 Which bay should I park in?",
+    "⏳ Running 10 mins late",
+    "🔑 Please share gate / intercom code",
+    "🅿️ Vehicle parked safely",
+  ];
+
   Widget _buildComposer() {
+    final colors = Theme.of(context).colorScheme;
     return Material(
       elevation: 8,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _messageController,
-                minLines: 1,
-                maxLines: 5,
-                maxLength: 2000,
-                decoration: const InputDecoration(
-                  hintText: 'Message',
-                  counterText: '',
-                  border: OutlineInputBorder(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
+            child: Row(
+              children: _quickReplies.map((reply) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ActionChip(
+                    label: Text(
+                      reply,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    backgroundColor:
+                        colors.surfaceContainerHighest.withValues(alpha: 0.7),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    onPressed: () {
+                      _messageController.text = reply;
+                      _messageController.selection = TextSelection.fromPosition(
+                        TextPosition(offset: reply.length),
+                      );
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    minLines: 1,
+                    maxLines: 5,
+                    maxLength: 2000,
+                    decoration: const InputDecoration(
+                      hintText: 'Message...',
+                      counterText: '',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onSubmitted: (_) => _send(),
+                  ),
                 ),
-                onSubmitted: (_) => _send(),
-              ),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  onPressed: _sending ? null : _send,
+                  tooltip: 'Send message',
+                  icon: _sending
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send_rounded),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed: _sending ? null : _send,
-              tooltip: 'Send message',
-              icon: _sending
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

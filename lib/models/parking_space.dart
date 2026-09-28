@@ -15,6 +15,10 @@ class ParkingSpace {
     required this.latitude,
     required this.longitude,
     required this.imageUrl,
+    this.imageUrls = const [],
+    this.maxHeight,
+    this.length,
+    this.width,
   });
 
   final int id;
@@ -30,10 +34,99 @@ class ParkingSpace {
   final double? latitude;
   final double? longitude;
   final String? imageUrl;
+  final List<String> imageUrls;
+  final double? maxHeight;
+  final double? length;
+  final double? width;
 
   bool get isAvailable => isOpenNow;
 
+  String get clearanceSummary {
+    if (maxHeight == null) return '';
+    return 'Max Height Clearance: ${maxHeight!.toStringAsFixed(1)}m';
+  }
+
   factory ParkingSpace.fromJson(Map<String, dynamic> json) {
+    final urls = <String>[];
+
+    String? extractUrl(dynamic val) {
+      if (val == null) return null;
+      if (val is String) {
+        final trimmed = val.trim();
+        return trimmed.isNotEmpty ? trimmed : null;
+      }
+      if (val is Map) {
+        final candidate = val['url'] ??
+            val['path'] ??
+            val['image_url'] ??
+            val['photo_url'] ??
+            val['file_path'] ??
+            val['picture_url'] ??
+            val['thumbnail_url'];
+        if (candidate != null) {
+          final trimmed = candidate.toString().trim();
+          return trimmed.isNotEmpty ? trimmed : null;
+        }
+      }
+      return null;
+    }
+
+    void addCandidate(dynamic val) {
+      final raw = extractUrl(val);
+      if (raw != null) {
+        final resolved = ApiConfig.resolveMediaUrl(raw);
+        if (resolved != null && resolved.isNotEmpty && !urls.contains(resolved)) {
+          urls.add(resolved);
+        }
+      }
+    }
+
+    final listKeys = [
+      'image_urls',
+      'images',
+      'photos',
+      'photo_urls',
+      'pictures',
+      'parking_images',
+      'space_images',
+      'space_photos',
+      'media',
+      'attachments',
+    ];
+
+    for (final key in listKeys) {
+      if (json[key] is List) {
+        for (final item in json[key] as List) {
+          addCandidate(item);
+        }
+      }
+    }
+
+    final singleKeys = [
+      'image_url',
+      'photo_url',
+      'photo',
+      'image',
+      'picture',
+      'parking_image',
+      'thumbnail',
+      'thumbnail_url',
+      'cover_image',
+      'space_image',
+      'space_photo',
+      'file_path',
+      'path',
+      'url',
+    ];
+
+    for (final key in singleKeys) {
+      if (json[key] != null) {
+        addCandidate(json[key]);
+      }
+    }
+
+    final primaryImage = urls.isNotEmpty ? urls.first : null;
+
     return ParkingSpace(
       id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['space_name']?.toString() ?? '',
@@ -50,7 +143,11 @@ class ParkingSpace {
           .toList(growable: false),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      imageUrl: ApiConfig.resolveMediaUrl(json['image_url']?.toString()),
+      imageUrl: primaryImage,
+      imageUrls: urls,
+      maxHeight: (json['max_height'] as num?)?.toDouble() ?? (json['height_clearance'] as num?)?.toDouble(),
+      length: (json['length'] as num?)?.toDouble() ?? (json['slot_length'] as num?)?.toDouble(),
+      width: (json['width'] as num?)?.toDouble() ?? (json['slot_width'] as num?)?.toDouble(),
     );
   }
 }

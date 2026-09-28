@@ -1,25 +1,51 @@
 class RegistrationValidation {
   static const motorcycleType = 'Motorcycle/E-bicycle';
 
+  static const blockedEmailDomains = <String>{
+    'mailinator.com',
+    'guerrillamail.com',
+    '10minutemail.com',
+    'tempmail.com',
+    'temp-mail.org',
+    'yopmail.com',
+  };
+
   static String? name(String? value) {
     final name = value?.trim() ?? '';
-    if (name.length < 2) return 'Enter your real name.';
-    if (!RegExp(r"^[A-Za-zÀ-ÖØ-öø-ÿÑñ .'-]+$").hasMatch(name)) {
-      return 'Use letters, spaces, apostrophes, periods, or hyphens only.';
+    if (name.length < 2 ||
+        !RegExp(r"[A-Za-zÀ-ÖØ-öø-ÿÑñ]").hasMatch(name) ||
+        !RegExp(r"^[A-Za-zÀ-ÖØ-öø-ÿÑñ .'-]+$").hasMatch(name)) {
+      return 'Enter your real name using letters, spaces, apostrophes, periods, or hyphens only.';
     }
     return null;
   }
 
   static String? email(String? value) {
     final email = value?.trim().toLowerCase() ?? '';
-    final valid = RegExp(
-      r"^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$",
-      caseSensitive: false,
-    ).hasMatch(email);
-
-    if (!valid || email.contains('..')) {
-      return 'Enter a complete email such as name@gmail.com.';
+    if (email.isEmpty) {
+      return 'Enter a complete email address such as name@gmail.com.';
     }
+
+    final parts = email.split('@');
+    if (parts.length != 2) {
+      return 'Enter a real email address with a valid domain, such as name@gmail.com.';
+    }
+
+    final localPart = parts[0];
+    final domain = parts[1];
+
+    if (localPart.length < 2 ||
+        localPart.contains('..') ||
+        !RegExp(r"^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+$").hasMatch(localPart) ||
+        !RegExp(r"^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$")
+            .hasMatch(domain)) {
+      return 'Enter a real email address with a valid domain, such as name@gmail.com.';
+    }
+
+    if (blockedEmailDomains.contains(domain)) {
+      return 'Temporary or disposable email addresses are not allowed.';
+    }
+
     return null;
   }
 

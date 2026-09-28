@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/owner_reservation.dart';
 import '../services/owner_operations_service.dart';
+import '../utils/validators.dart';
+import '../widgets/digital_receipt_dialog.dart';
 import '../widgets/reservation_credential_dialog.dart';
 import 'reservation_conversation_screen.dart';
 
@@ -16,35 +18,68 @@ class OwnerReservationsScreen extends StatefulWidget {
 class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
   String _status = '';
   bool _acting = false;
-  late Future<List<OwnerReservation>> _future;
+  List<OwnerReservation>? _reservations;
+  bool _loading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _future = OwnerOperationsService.fetchReservations();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+    try {
+      final items = await OwnerOperationsService.fetchReservations(
+        status: _status.isEmpty ? null : _status,
+      );
+      if (!mounted) return;
+      setState(() {
+        _reservations = items;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = error.toString();
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _refresh() async {
-    final request = OwnerOperationsService.fetchReservations(
-      status: _status.isEmpty ? null : _status,
-    );
-    setState(() => _future = request);
-    await request;
+    try {
+      final items = await OwnerOperationsService.fetchReservations(
+        status: _status.isEmpty ? null : _status,
+      );
+      if (!mounted) return;
+      setState(() {
+        _reservations = items;
+        _errorMessage = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = error.toString();
+      });
+    }
   }
 
   void _setStatus(String status) {
     if (_status == status) return;
-    setState(() {
-      _status = status;
-      _future = OwnerOperationsService.fetchReservations(
-        status: status.isEmpty ? null : status,
-      );
-    });
+    _status = status;
+    _fetch();
   }
 
   Future<void> _perform(Future<String> Function() action) async {
     if (_acting) return;
-    setState(() => _acting = true);
+    setState(() {
+      _acting = true;
+    });
 
     try {
       final message = await action();
@@ -62,7 +97,11 @@ class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _acting = false);
+      if (mounted) {
+        setState(() {
+          _acting = false;
+        });
+      }
     }
   }
 
@@ -301,62 +340,56 @@ class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
       ),
       body: Stack(
         children: [
-          FutureBuilder<List<OwnerReservation>>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return _ReservationMessage(
-                  message: snapshot.error.toString(),
-                  onRetry: _refresh,
-                );
-              }
-
-              final reservations = snapshot.data ?? const <OwnerReservation>[];
-              if (reservations.isEmpty) {
-                return _ReservationMessage(
-                  message:
-                      'No ${_status.isEmpty ? '' : '$_status '}reservations found.',
-                  onRetry: _refresh,
-                );
-              }
-
-              return RefreshIndicator(
-                onRefresh: _refresh,
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: reservations.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) => _ReservationCard(
-                    reservation: reservations[index],
-                    disabled: _acting,
-                    onApprove: () => _approve(reservations[index]),
-                    onReject: () => _reject(reservations[index]),
-                    onCancel: () => _cancel(reservations[index]),
-                    onMarkPaid: () => _markPaid(reservations[index]),
-                    onApproveExtension: () =>
-                        _approveExtension(reservations[index]),
-                    onRejectExtension: () =>
-                        _rejectExtension(reservations[index]),
-                    onViewPaymentProof: () =>
-                        _viewPaymentProof(reservations[index]),
-                    onContact: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => ReservationConversationScreen(
-                          reservationId: reservations[index].id,
-                          otherPartyName: reservations[index].driverName,
-                        ),
+          if (_loading && _reservations == null)
+            const Center(child: CircularProgressIndicator())
+          else if (_errorMessage != null && _reservations == null)
+            _ReservationMessage(
+              message: _errorMessage!,
+              onRetry: _fetch,
+            )
+          else if (_reservations == null || _reservations!.isEmpty)
+            _ReservationMessage(
+              message:
+                  'No ${_status.isEmpty ? '' : '$_status '}reservations found.',
+              onRetry: _fetch,
+            )
+          else
+            RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                itemCount: _reservations!.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) => _ReservationCard(
+                  reservation: _reservations![index],
+                  disabled: _acting,
+                  onApprove: () => _approve(_reservations![index]),
+                  onReject: () => _reject(_reservations![index]),
+                  onCancel: () => _cancel(_reservations![index]),
+                  onMarkPaid: () => _markPaid(_reservations![index]),
+                  onApproveExtension: () =>
+                      _approveExtension(_reservations![index]),
+                  onRejectExtension: () =>
+                      _rejectExtension(_reservations![index]),
+                  onViewPaymentProof: () =>
+                      _viewPaymentProof(_reservations![index]),
+                  onReceipt: () => DigitalReceiptDialog.showForOwner(
+                    context,
+                    _reservations![index],
+                  ),
+                  onContact: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ReservationConversationScreen(
+                        reservationId: _reservations![index].id,
+                        otherPartyName: _reservations![index].driverName,
                       ),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            ),
           if (_acting)
             const Positioned.fill(
               child: ColoredBox(
@@ -407,6 +440,7 @@ class _ReservationCard extends StatelessWidget {
     required this.onApproveExtension,
     required this.onRejectExtension,
     required this.onViewPaymentProof,
+    required this.onReceipt,
     required this.onContact,
   });
 
@@ -419,6 +453,7 @@ class _ReservationCard extends StatelessWidget {
   final VoidCallback onApproveExtension;
   final VoidCallback onRejectExtension;
   final VoidCallback onViewPaymentProof;
+  final VoidCallback onReceipt;
   final VoidCallback onContact;
 
   @override
@@ -446,7 +481,7 @@ class _ReservationCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${reservation.backupReference} | ${reservation.slotLabel}',
+                        '${Validators.formatReservationNumber(reservation.backupReference, id: reservation.id)} | ${reservation.slotLabel}',
                         style: TextStyle(color: colors.onSurfaceVariant),
                       ),
                     ],
@@ -539,6 +574,13 @@ class _ReservationCard extends StatelessWidget {
                       onPressed: disabled ? null : onViewPaymentProof,
                       icon: const Icon(Icons.receipt_long_outlined),
                       label: const Text('View proof'),
+                    ),
+                  if (reservation.status == 'completed' ||
+                      reservation.paymentStatus == 'paid')
+                    FilledButton.tonalIcon(
+                      onPressed: disabled ? null : onReceipt,
+                      icon: const Icon(Icons.receipt_long_rounded),
+                      label: const Text('View E-Receipt'),
                     ),
                   if (reservation.status != 'rejected' &&
                       reservation.status != 'cancelled')

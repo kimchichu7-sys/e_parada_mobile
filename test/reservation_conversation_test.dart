@@ -1,5 +1,7 @@
 import 'package:e_parada_mobile/models/reservation_call.dart';
 import 'package:e_parada_mobile/models/reservation_conversation.dart';
+import 'package:e_parada_mobile/screens/reservation_conversation_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -28,7 +30,7 @@ void main() {
       ],
     });
 
-    expect(conversation.reference, 'RES-25');
+    expect(conversation.reference, 'RES-75517348');
     expect(conversation.otherPartyName, 'Parking Provider');
     expect(conversation.canCall, isTrue);
     expect(conversation.messages, hasLength(1));
@@ -56,5 +58,34 @@ void main() {
     expect(ringing.isIncoming, isTrue);
     expect(ringing.isActive, isTrue);
     expect(ended.isActive, isFalse);
+  });
+
+  testWidgets('ReservationConversationScreen renders quick action chips', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ReservationConversationScreen(
+          reservationId: 25,
+          otherPartyName: 'Parking Owner Juan',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Check that quick chips are available
+    expect(find.text("🚗 I've arrived at the gate"), findsOneWidget);
+    expect(find.text("📍 Which bay should I park in?"), findsOneWidget);
+    expect(find.text("⏳ Running 10 mins late"), findsOneWidget);
+
+    // Tap quick chip
+    await tester.tap(find.text("🚗 I've arrived at the gate"));
+    await tester.pump();
+
+    expect(find.text("🚗 I've arrived at the gate"), findsWidgets);
+
+    // Verify AppBar Call button and empty state call button
+    expect(find.text('Call'), findsOneWidget);
+    expect(find.byIcon(Icons.phone_in_talk_rounded), findsWidgets);
   });
 }

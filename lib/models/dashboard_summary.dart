@@ -10,10 +10,18 @@ class DashboardMetric {
   final int value;
 
   factory DashboardMetric.fromJson(Map<String, dynamic> json) {
+    final rawVal = json['value'];
+    int parsedVal = 0;
+    if (rawVal is num) {
+      parsedVal = rawVal.toInt();
+    } else if (rawVal != null) {
+      parsedVal = int.tryParse(rawVal.toString().replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    }
+
     return DashboardMetric(
       key: json['key']?.toString() ?? '',
       label: json['label']?.toString() ?? '',
-      value: (json['value'] as num?)?.toInt() ?? 0,
+      value: parsedVal,
     );
   }
 }

@@ -33,7 +33,7 @@ void main() {
       },
     });
 
-    expect(reservation.backupReference, 'RES-42');
+    expect(reservation.backupReference, 'RES-13814273');
     expect(reservation.hasCredential, true);
     expect(reservation.slotLabel, 'Slot 3');
     expect(reservation.plateNumber, 'ABC 1234');

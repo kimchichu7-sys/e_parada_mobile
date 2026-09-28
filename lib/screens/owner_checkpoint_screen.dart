@@ -46,7 +46,9 @@ class _OwnerCheckpointScreenState extends State<OwnerCheckpointScreen> {
 
   Future<void> _refresh() async {
     final request = _load();
-    setState(() => _future = request);
+    setState(() {
+      _future = request;
+    });
     await request;
   }
 
@@ -77,28 +79,122 @@ class _OwnerCheckpointScreenState extends State<OwnerCheckpointScreen> {
           );
         }
       });
+      final isEntry = result.eventType == 'entry_recorded';
+      final res = result.reservation;
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           icon: Icon(
-            result.eventType == 'entry_recorded'
-                ? Icons.login_rounded
-                : Icons.logout_rounded,
+            isEntry ? Icons.login_rounded : Icons.logout_rounded,
+            color: isEntry ? Colors.green : Colors.deepOrange,
+            size: 32,
           ),
-          title: Text(result.message),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                result.reservation.backupReference,
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 6),
-              Text(result.reservation.driverName),
-              Text(result.reservation.vehicleLabel),
-              Text(result.reservation.parkingSpaceName),
-            ],
+          title: Text(
+            isEntry
+                ? 'Entry Verified (Time-In)'
+                : 'Exit Verified & Billing (Time-Out)',
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  res.backupReference,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('Driver: ${res.driverName}'),
+                Text('Vehicle: ${res.vehicleLabel}'),
+                Text('Space: ${res.parkingSpaceName} (${res.slotLabel})'),
+                const Divider(height: 20),
+                if (isEntry) ...[
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.green,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Time-in recorded. Slot status set to "Occupied".',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  const Text(
+                    'Automated Billing Summary',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  if (res.timeIn != null && res.timeOut != null) ...[
+                    Text(
+                      'Session Duration: ${res.timeOut!.difference(res.timeIn!).inHours}h ${(res.timeOut!.difference(res.timeIn!).inMinutes % 60).toString().padLeft(2, '0')}m',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                  const Text(
+                    'Grace Period: -15 mins applied',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total Parking Fee:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'PHP ${(res.totalAmount ?? 0.0).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: Color(0xFF4F46E5),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Payment Status: ${res.paymentStatus.toUpperCase()} (${res.paymentMethod})',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: res.paymentStatus == 'paid'
+                          ? Colors.green.shade800
+                          : Colors.deepOrange,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
           actions: [
             FilledButton(

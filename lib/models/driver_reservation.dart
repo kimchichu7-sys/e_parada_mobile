@@ -1,7 +1,10 @@
+import '../utils/validators.dart';
+
 class DriverReservation {
-  const DriverReservation({
+  DriverReservation({
     required this.id,
-    required this.backupReference,
+    this.parkingSpaceId,
+    required String backupReference,
     required this.qrCode,
     required this.parkingSpaceName,
     required this.parkingSpaceAddress,
@@ -37,9 +40,11 @@ class DriverReservation {
     required this.canExtend,
     required this.canSubmitPayment,
     required this.canSubmitFeedback,
-  });
+  }) : backupReference =
+            Validators.formatReservationNumber(backupReference, id: id);
 
   final int id;
+  final int? parkingSpaceId;
   final String backupReference;
   final String qrCode;
   final String parkingSpaceName;
@@ -80,6 +85,27 @@ class DriverReservation {
   String get scheduleLabel =>
       '$reservationDate $startTime to $endDate $endTime';
 
+  DateTime? get scheduledStartDateTime {
+    if (reservationDate.isEmpty || startTime.isEmpty) return null;
+    final parsedDate = DateTime.tryParse(reservationDate);
+    if (parsedDate == null) return null;
+    final parts = startTime.split(':');
+    final hour = int.tryParse(parts.isNotEmpty ? parts[0] : '0') ?? 0;
+    final minute = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+    return DateTime(parsedDate.year, parsedDate.month, parsedDate.day, hour, minute);
+  }
+
+  DateTime? get scheduledEndDateTime {
+    final dateStr = endDate.isNotEmpty ? endDate : reservationDate;
+    if (dateStr.isEmpty || endTime.isEmpty) return null;
+    final parsedDate = DateTime.tryParse(dateStr);
+    if (parsedDate == null) return null;
+    final parts = endTime.split(':');
+    final hour = int.tryParse(parts.isNotEmpty ? parts[0] : '0') ?? 0;
+    final minute = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+    return DateTime(parsedDate.year, parsedDate.month, parsedDate.day, hour, minute);
+  }
+
   bool get hasCredential => qrCode.isNotEmpty || backupReference.isNotEmpty;
   bool get extensionPending => extensionStatus == 'pending';
 
@@ -95,20 +121,38 @@ class DriverReservation {
     final overstay = _map(json['overstay']);
     final actions = _map(json['actions']);
 
+    final id = _integer(json['id']);
+    final rawRef = json['backup_reference']?.toString();
+    final ref = Validators.formatReservationNumber(rawRef, id: id);
+
     return DriverReservation(
-      id: _integer(json['id']),
-      backupReference: json['backup_reference']?.toString() ?? '',
+      id: id,
+      parkingSpaceId: _integer(parkingSpace['id'] ?? json['parking_space_id']) > 0
+          ? _integer(parkingSpace['id'] ?? json['parking_space_id'])
+          : null,
+      backupReference: ref,
       qrCode: json['qr_code']?.toString() ?? '',
-      parkingSpaceName: parkingSpace['name']?.toString() ?? 'Parking space',
-      parkingSpaceAddress: parkingSpace['address']?.toString() ?? '',
+      parkingSpaceName: parkingSpace['name']?.toString() ??
+          json['parking_space_name']?.toString() ??
+          'Parking space',
+      parkingSpaceAddress: parkingSpace['address']?.toString() ??
+          json['parking_space_address']?.toString() ??
+          '',
       ownerName:
           owner['name']?.toString() ??
           parkingSpace['owner_name']?.toString() ??
+          json['owner_name']?.toString() ??
           'Parking provider',
-      slotLabel: slot['label']?.toString() ?? 'Unassigned slot',
-      vehicleId: _integer(vehicle['id']),
-      plateNumber: vehicle['plate_number']?.toString() ?? '',
-      vehicleType: vehicle['vehicle_type']?.toString() ?? '',
+      slotLabel: slot['label']?.toString() ??
+          json['slot_label']?.toString() ??
+          'Unassigned slot',
+      vehicleId: _integer(vehicle['id'] ?? json['vehicle_id']),
+      plateNumber: vehicle['plate_number']?.toString() ??
+          json['plate_number']?.toString() ??
+          '',
+      vehicleType: vehicle['vehicle_type']?.toString() ??
+          json['vehicle_type']?.toString() ??
+          '',
       reservationDate: json['reservation_date']?.toString() ?? '',
       endDate: json['end_date']?.toString() ?? '',
       startTime: json['start_time']?.toString() ?? '',

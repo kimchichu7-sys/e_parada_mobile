@@ -1,8 +1,10 @@
+import '../utils/validators.dart';
+
 class CheckpointTransaction {
-  const CheckpointTransaction({
+  CheckpointTransaction({
     required this.id,
     required this.reservationId,
-    required this.backupReference,
+    required String backupReference,
     required this.parkingSpaceId,
     required this.parkingSpaceName,
     required this.driverName,
@@ -12,7 +14,12 @@ class CheckpointTransaction {
     required this.failureReason,
     required this.identifierSuffix,
     required this.createdAt,
-  });
+  }) : backupReference = backupReference.trim().isEmpty
+            ? ''
+            : Validators.formatReservationNumber(
+                backupReference,
+                id: reservationId ?? id,
+              );
 
   final int id;
   final int? reservationId;
@@ -37,10 +44,16 @@ class CheckpointTransaction {
       .join(' ');
 
   factory CheckpointTransaction.fromJson(Map<String, dynamic> json) {
+    final resId = _nullableInteger(json['reservation_id']);
+    final txnId = _integer(json['id']);
+    final rawRef = json['backup_reference']?.toString();
+
     return CheckpointTransaction(
-      id: _integer(json['id']),
-      reservationId: _nullableInteger(json['reservation_id']),
-      backupReference: json['backup_reference']?.toString() ?? '',
+      id: txnId,
+      reservationId: resId,
+      backupReference: rawRef == null || rawRef.trim().isEmpty
+          ? ''
+          : Validators.formatReservationNumber(rawRef, id: resId ?? txnId),
       parkingSpaceId: _nullableInteger(json['parking_space_id']),
       parkingSpaceName: json['parking_space_name']?.toString() ?? '',
       driverName: json['driver_name']?.toString() ?? '',

@@ -61,6 +61,34 @@ class NotificationService {
     return _message(response, 'Notifications cleared.');
   }
 
+  static Future<String> registerDeviceToken(
+    String token, {
+    String platform = 'android',
+    String? deviceName,
+  }) async {
+    final response = await ApiClient.postJson(
+      'device-token',
+      headers: await _headers(),
+      body: {
+        'token': token,
+        'platform': platform,
+        if (deviceName != null) 'device_name': deviceName,
+      },
+    );
+    ApiClient.requireStatus(response, const {200});
+    return _message(response, 'Device token registered successfully.');
+  }
+
+  static Future<String> deleteDeviceToken(String token) async {
+    final response = await ApiClient.deleteJson(
+      'device-token',
+      headers: await _headers(),
+      body: {'token': token},
+    );
+    ApiClient.requireStatus(response, const {200});
+    return _message(response, 'Device token deleted.');
+  }
+
   static Future<Map<String, String>> _headers() async {
     final token = await AuthService.requireToken();
     return AuthService.bearerHeaders(token);

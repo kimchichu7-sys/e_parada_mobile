@@ -1,9 +1,11 @@
+import '../utils/validators.dart';
 import 'conversation_message.dart';
+import 'reservation_call.dart';
 
 class ReservationConversation {
-  const ReservationConversation({
+  ReservationConversation({
     required this.reservationId,
-    required this.reference,
+    required String reference,
     required this.status,
     required this.parkingSpaceName,
     required this.otherPartyId,
@@ -11,7 +13,9 @@ class ReservationConversation {
     required this.otherPartyRole,
     required this.canCall,
     required this.messages,
-  });
+    this.activeCall,
+  }) : reference =
+            Validators.formatReservationNumber(reference, id: reservationId);
 
   final int reservationId;
   final String reference;
@@ -22,6 +26,7 @@ class ReservationConversation {
   final String otherPartyRole;
   final bool canCall;
   final List<ConversationMessage> messages;
+  final ReservationCall? activeCall;
 
   factory ReservationConversation.fromJson(Map<String, dynamic> json) {
     final reservation = Map<String, dynamic>.from(json['reservation'] as Map);
@@ -29,10 +34,15 @@ class ReservationConversation {
       reservation['other_party'] as Map,
     );
     final rawMessages = json['messages'] as List? ?? const [];
+    final rawCall = json['call'];
 
+    final resId = (reservation['id'] as num).toInt();
     return ReservationConversation(
-      reservationId: (reservation['id'] as num).toInt(),
-      reference: reservation['backup_reference']?.toString() ?? '',
+      reservationId: resId,
+      reference: Validators.formatReservationNumber(
+        reservation['backup_reference']?.toString(),
+        id: resId,
+      ),
       status: reservation['status']?.toString() ?? '',
       parkingSpaceName:
           reservation['parking_space_name']?.toString() ?? 'Parking space',
@@ -40,6 +50,9 @@ class ReservationConversation {
       otherPartyName: otherParty['name']?.toString() ?? 'E-Parada user',
       otherPartyRole: otherParty['role']?.toString() ?? '',
       canCall: reservation['can_call'] == true,
+      activeCall: rawCall is Map
+          ? ReservationCall.fromJson(Map<String, dynamic>.from(rawCall))
+          : null,
       messages: rawMessages
           .whereType<Map>()
           .map(

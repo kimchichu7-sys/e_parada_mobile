@@ -33,7 +33,9 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
 
   Future<void> _refresh() async {
     final request = _load();
-    setState(() => _future = request);
+    setState(() {
+      _future = request;
+    });
     await request;
   }
 

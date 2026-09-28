@@ -5,6 +5,8 @@ import '../models/vehicle.dart';
 import '../services/api_client.dart';
 import '../services/reservation_service.dart';
 import '../services/vehicle_service.dart';
+import '../widgets/smart_occupancy_heatmap_card.dart';
+import '../widgets/visual_parking_grid.dart';
 
 class ReserveParkingScreen extends StatefulWidget {
   const ReserveParkingScreen({
@@ -186,6 +188,69 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
 
   void _showError(Object error) {
     final message = error is ApiException ? error.message : error.toString();
+    final isConflict = error is ApiException &&
+        (error.statusCode == 409 ||
+            message.toLowerCase().contains('conflict') ||
+            message.toLowerCase().contains('already booked') ||
+            message.toLowerCase().contains('collision') ||
+            message.toLowerCase().contains('overlapping'));
+
+    if (isConflict) {
+      showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          icon: Icon(
+            Icons.event_busy_rounded,
+            color: Colors.orange.shade800,
+            size: 32,
+          ),
+          title: const Text('Slot Booking Collision Detected'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.shield_outlined, color: Colors.orange, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Database concurrency locking protected against double-booking for this time slot.',
+                        style: TextStyle(fontSize: 12, color: Colors.brown),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _checkAvailability();
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Choose Another Slot'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -246,28 +311,16 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                         'No approved vehicle is available. Submit a vehicle in Profile and wait for admin approval.',
                   )
                 else ...[
-                  DropdownButtonFormField<Vehicle>(
-                    initialValue: _vehicle,
-                    decoration: const InputDecoration(
-                      labelText: 'Approved vehicle',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _vehicles
-                        .map(
-                          (vehicle) => DropdownMenuItem(
-                            value: vehicle,
-                            child: Text(
-                              '${vehicle.plateNumber} - ${vehicle.vehicleType}',
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (vehicle) {
+                  _MultiVehicleSwitcher(
+                    vehicles: _vehicles,
+                    selectedVehicle: _vehicle,
+                    onVehicleChanged: (vehicle) {
                       setState(() {
                         _vehicle = vehicle;
                         _availability = null;
                         _slot = null;
                       });
+                      _checkAvailability();
                     },
                   ),
                   const SizedBox(height: 16),
@@ -277,7 +330,9 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                     crossAxisCount: MediaQuery.sizeOf(context).width >= 600
                         ? 4
                         : 2,
-                    childAspectRatio: 2.5,
+                    childAspectRatio: MediaQuery.sizeOf(context).width >= 600
+                        ? 3.0
+                        : 2.2,
                     mainAxisSpacing: 10,
                     crossAxisSpacing: 10,
                     children: [
@@ -326,80 +381,15 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                   ],
                   if (_availability != null) ...[
                     const SizedBox(height: 20),
-                    Text(
-                      'Choose a slot',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    SmartOccupancyHeatmapCard(
+                      slots: _availability!.slots,
+                      onRefreshRequested: _checkAvailability,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_availability!.operatingHours} | '
-                      '${_availability!.hourlyRate == null ? widget.price : 'PHP ${_availability!.hourlyRate!.toStringAsFixed(2)}/hr'}',
-                    ),
-                    const SizedBox(height: 12),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _availability!.slots.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: MediaQuery.sizeOf(context).width >= 700
-                            ? 4
-                            : 2,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 1.45,
-                      ),
-                      itemBuilder: (context, index) {
-                        final slot = _availability!.slots[index];
-                        final selected = _slot?.id == slot.id;
-                        return InkWell(
-                          onTap: slot.isAvailable
-                              ? () => setState(() => _slot = slot)
-                              : null,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: selected
-                                  ? colors.primaryContainer
-                                  : slot.isAvailable
-                                  ? colors.tertiaryContainer
-                                  : colors.errorContainer,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: selected
-                                    ? colors.primary
-                                    : colors.outlineVariant,
-                                width: selected ? 2 : 1,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.local_parking),
-                                const SizedBox(height: 6),
-                                Text(
-                                  slot.label,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                Text(
-                                  selected
-                                      ? 'Selected'
-                                      : slot.isOccupied
-                                      ? 'Occupied'
-                                      : slot.supportsVehicle
-                                      ? 'Available'
-                                      : 'Not supported',
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                    const SizedBox(height: 16),
+                    VisualParkingGrid(
+                      slots: _availability!.slots,
+                      selectedSlot: _slot,
+                      onSlotSelected: (slot) => setState(() => _slot = slot),
                     ),
                     const SizedBox(height: 20),
                     FilledButton.icon(
@@ -481,3 +471,150 @@ class _MessageCard extends StatelessWidget {
     );
   }
 }
+
+class _MultiVehicleSwitcher extends StatelessWidget {
+  const _MultiVehicleSwitcher({
+    required this.vehicles,
+    required this.selectedVehicle,
+    required this.onVehicleChanged,
+  });
+
+  final List<Vehicle> vehicles;
+  final Vehicle? selectedVehicle;
+  final ValueChanged<Vehicle> onVehicleChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.directions_car_rounded, size: 18, color: colors.primary),
+                const SizedBox(width: 6),
+                const Text(
+                  'Select Vehicle for Reservation',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                ),
+              ],
+            ),
+            Text(
+              '${vehicles.length} Available',
+              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 86,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: vehicles.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final vehicle = vehicles[index];
+              final isSelected = selectedVehicle?.id == vehicle.id;
+
+              return InkWell(
+                onTap: () => onVehicleChanged(vehicle),
+                borderRadius: BorderRadius.circular(12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 220,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? colors.primaryContainer.withValues(alpha: 0.7)
+                        : colors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? colors.primary : colors.outlineVariant,
+                      width: isSelected ? 2 : 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: colors.primary.withValues(alpha: 0.15),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? colors.primary
+                              : colors.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          vehicle.vehicleType.toLowerCase().contains('motor')
+                              ? Icons.two_wheeler_rounded
+                              : Icons.directions_car_filled_rounded,
+                          color: isSelected ? colors.onPrimary : colors.primary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    vehicle.plateNumber,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 14,
+                                      letterSpacing: 0.5,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (isSelected) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.check_circle_rounded, size: 14, color: colors.primary),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${vehicle.vehicleType} • ${vehicle.make.isNotEmpty ? vehicle.make : 'Default'}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colors.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+

@@ -36,15 +36,26 @@ void main() {
   });
 
   group('identity validation', () {
-    test('requires realistic names', () {
+    test('requires realistic names matching backend rules', () {
       expect(RegistrationValidation.name('Maria Dela Cruz'), isNull);
+      expect(RegistrationValidation.name("Anne O'Neil"), isNull);
+      expect(RegistrationValidation.name('Jose P. Rizal'), isNull);
+      expect(RegistrationValidation.name('Jean-Luc Picard'), isNull);
       expect(RegistrationValidation.name('123456'), isNotNull);
+      expect(RegistrationValidation.name('A'), isNotNull);
+      expect(RegistrationValidation.name('!@#\$%^'), isNotNull);
     });
 
-    test('requires a complete email address', () {
+    test('requires a complete valid email address and blocks disposable domains', () {
       expect(RegistrationValidation.email('user@gmail.com'), isNull);
+      expect(RegistrationValidation.email('maria.cruz@outlook.ph'), isNull);
       expect(RegistrationValidation.email('user@gmail'), isNotNull);
       expect(RegistrationValidation.email('random text'), isNotNull);
+      expect(RegistrationValidation.email('user..name@gmail.com'), isNotNull);
+      expect(RegistrationValidation.email('user@mailinator.com'), isNotNull);
+      expect(RegistrationValidation.email('temp@guerrillamail.com'), isNotNull);
+      expect(RegistrationValidation.email('test@10minutemail.com'), isNotNull);
+      expect(RegistrationValidation.email('test@tempmail.com'), isNotNull);
     });
   });
 }

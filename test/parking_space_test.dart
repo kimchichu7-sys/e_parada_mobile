@@ -24,5 +24,24 @@ void main() {
     expect(space.isAvailable, true);
     expect(space.supportedVehicles, ['Car', 'SUV/MPV']);
     expect(space.operatingHours, '8:00 AM - 9:00 PM');
+    expect(space.imageUrl, isNotNull);
+    expect(space.imageUrl, contains('storage/parking-spaces/a.jpg'));
+  });
+
+  test('resolves relative, local, and nested image paths from backend', () {
+    final space = ParkingSpace.fromJson({
+      'id': 8,
+      'space_name': 'Tung Tung Sahur',
+      'address': 'KM 53 Pan-Philippine Hwy',
+      'images': [
+        {'url': 'storage/parking_spaces/tung_tung.jpg'},
+        {'path': '/storage/parking_spaces/side_view.jpg'},
+      ],
+      'photo_url': 'public/storage/parking_spaces/cover.jpg',
+    });
+
+    expect(space.imageUrls.length, greaterThanOrEqualTo(2));
+    expect(space.imageUrl, isNotNull);
+    expect(space.imageUrl, contains('storage/parking_spaces/tung_tung.jpg'));
   });
 }

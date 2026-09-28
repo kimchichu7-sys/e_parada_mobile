@@ -470,6 +470,76 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                     'Set which registered vehicle types fit in each slot.',
                     style: theme.textTheme.bodyMedium,
                   ),
+                  const SizedBox(height: 12),
+                  // Visual Layout Bay Preview
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.layers_outlined, size: 16, color: Color(0xFF38BDF8)),
+                            SizedBox(width: 6),
+                            Text(
+                              'Visual Floor Plan Preview',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 52,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _slotVehicleTypes.length,
+                            separatorBuilder: (_, _) => const SizedBox(width: 8),
+                            itemBuilder: (context, i) {
+                              return Container(
+                                width: 72,
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F172A),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Bay ${i + 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    Text(
+                                      _slotVehicleTypes[i].isNotEmpty ? _slotVehicleTypes[i].first : 'Any',
+                                      style: const TextStyle(
+                                        color: Color(0xFF94A3B8),
+                                        fontSize: 9,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   ...List.generate(_slotVehicleTypes.length, (index) {
                     final supported = _slotVehicleTypes[index];
