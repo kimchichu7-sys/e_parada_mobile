@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
@@ -63,6 +64,7 @@ class _MapScreenState extends State<MapScreen> {
   bool _openNowOnly = false;
   double? _maxHourlyRate;
   ParkingSort _sort = ParkingSort.recommended;
+  bool _isMapFullscreen = false;
 
   @override
   void initState() {
@@ -627,12 +629,19 @@ class _MapScreenState extends State<MapScreen> {
                   children: [
                     SizedBox(
                       key: _mapKey,
-                      height: 330,
+                      height: _isMapFullscreen
+                          ? (MediaQuery.of(context).size.height * 0.70)
+                          : 340,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(22),
                         child: Stack(
                           children: [
                             gmaps.GoogleMap(
+                              gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                                Factory<OneSequenceGestureRecognizer>(
+                                  () => EagerGestureRecognizer(),
+                                ),
+                              },
                               initialCameraPosition: gmaps.CameraPosition(
                                 target: gmaps.LatLng(
                                   _initialCenter(allSpaces).latitude,
@@ -661,6 +670,61 @@ class _MapScreenState extends State<MapScreen> {
                               markers: _buildGoogleMarkers(allSpaces, mappedSpaces),
                               polylines: _buildGooglePolylines(),
                             ),
+                            if (!_isNavigating)
+                              Positioned(
+                                top: 14,
+                                right: 14,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _MapControlButton(
+                                      icon: _isMapFullscreen
+                                          ? Icons.fullscreen_exit_rounded
+                                          : Icons.fullscreen_rounded,
+                                      tooltip: _isMapFullscreen
+                                          ? 'Collapse map'
+                                          : 'Expand map',
+                                      onPressed: () {
+                                        setState(() {
+                                          _isMapFullscreen = !_isMapFullscreen;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _MapControlButton(
+                                      icon: Icons.add_rounded,
+                                      tooltip: 'Zoom in',
+                                      onPressed: () {
+                                        _googleMapController?.animateCamera(
+                                          gmaps.CameraUpdate.zoomIn(),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _MapControlButton(
+                                      icon: Icons.remove_rounded,
+                                      tooltip: 'Zoom out',
+                                      onPressed: () {
+                                        _googleMapController?.animateCamera(
+                                          gmaps.CameraUpdate.zoomOut(),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _MapControlButton(
+                                      icon: Icons.my_location_rounded,
+                                      tooltip: 'Recenter',
+                                      onPressed: () {
+                                        if (_currentLocation != null) {
+                                          _moveMap(_currentLocation!, 16);
+                                        } else {
+                                          _goToCurrentLocation();
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                             if (mappedSpaces.isEmpty)
                               const Positioned(
                                 top: 12,
@@ -2159,6 +2223,43 @@ class _MapNotice extends StatelessWidget {
               child: Text('No mapped parking spaces match this search.'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MapControlButton extends StatelessWidget {
+  const _MapControlButton({
+    required this.icon,
+    required this.onPressed,
+    this.tooltip,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
+      ),
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.25),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onPressed,
+        child: Tooltip(
+          message: tooltip ?? '',
+          child: SizedBox(
+            width: 38,
+            height: 38,
+            child: Icon(icon, size: 20, color: const Color(0xFF1E293B)),
+          ),
         ),
       ),
     );
