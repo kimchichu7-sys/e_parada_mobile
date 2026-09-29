@@ -51,6 +51,9 @@ class ApiConfig {
       while (value.endsWith('/')) {
         value = value.substring(0, value.length - 1);
       }
+      if (!value.startsWith('http://') && !value.startsWith('https://')) {
+        value = 'https://$value';
+      }
       if (!value.endsWith('/api')) {
         value = '$value/api';
       }

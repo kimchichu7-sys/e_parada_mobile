@@ -126,6 +126,11 @@ class _ServerConnectionDialogState extends State<ServerConnectionDialog> {
               runSpacing: 6,
               children: [
                 ActionChip(
+                  avatar: const Icon(Icons.cloud_done, size: 14, color: Color(0xFF10B981)),
+                  label: const Text('Live Cloud (Render)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  onPressed: () => setState(() => _urlController.text = 'https://e-parada.onrender.com/api'),
+                ),
+                ActionChip(
                   avatar: const Icon(Icons.phone_android, size: 14),
                   label: const Text('Android (10.0.2.2)', style: TextStyle(fontSize: 11)),
                   onPressed: () => setState(() => _urlController.text = 'http://10.0.2.2:8000/api'),

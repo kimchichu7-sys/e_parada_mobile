@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'auth_service.dart';
 import 'notification_service.dart';
 
@@ -15,6 +16,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class PushNotificationHandler {
   static bool _isInitialized = false;
+  static final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
+  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
+    'eparada_alerts',
+    'E-Parada Alerts',
+    description: 'Notifications for parking reservations, approvals, and status alerts',
+    importance: Importance.max,
+    playSound: true,
+  );
 
   static Future<void> initialize() async {
     if (_isInitialized) return;
@@ -44,6 +55,26 @@ class PushNotificationHandler {
         name: 'PushNotificationHandler',
       );
 
+      // Initialize FlutterLocalNotifications for foreground heads-up notifications
+      const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const initSettings = InitializationSettings(android: androidInit);
+
+      await _localNotifications.initialize(
+        settings: initSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse response) {
+          developer.log(
+            'Local notification clicked: ${response.payload}',
+            name: 'PushNotificationHandler',
+          );
+        },
+      );
+
+      // Create notification channel for Android
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(_channel);
+
       // Set presentation options for foreground alerts
       await messaging.setForegroundNotificationPresentationOptions(
         alert: true,
@@ -63,12 +94,33 @@ class PushNotificationHandler {
         await _syncTokenWithBackend(token);
       }
 
-      // Handle foreground messages
+      // Handle foreground messages - show heads-up notification in phone system tray
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         developer.log(
           'Foreground message received: ${message.notification?.title}',
           name: 'PushNotificationHandler',
         );
+
+        final notification = message.notification;
+        if (notification != null) {
+          _localNotifications.show(
+            id: notification.hashCode,
+            title: notification.title ?? 'E-Parada',
+            body: notification.body ?? '',
+            notificationDetails: NotificationDetails(
+              android: AndroidNotificationDetails(
+                _channel.id,
+                _channel.name,
+                channelDescription: _channel.description,
+                importance: Importance.max,
+                priority: Priority.high,
+                icon: '@mipmap/ic_launcher',
+                playSound: true,
+              ),
+            ),
+            payload: message.data['link']?.toString() ?? '',
+          );
+        }
       });
 
       // Handle message tapped when app was in background
