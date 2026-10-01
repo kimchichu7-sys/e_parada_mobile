@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
@@ -32,6 +33,7 @@ class UploadFilePart {
 
 class ApiClient {
   static const Duration _timeout = Duration(seconds: 30);
+  static final ValueNotifier<bool> isOfflineNotifier = ValueNotifier<bool>(false);
 
   static Future<http.Response> get(
     String path, {
@@ -198,12 +200,18 @@ class ApiClient {
     Future<http.Response> Function() request,
   ) async {
     try {
-      return await request().timeout(_timeout);
+      final response = await request().timeout(_timeout);
+      if (isOfflineNotifier.value) {
+        isOfflineNotifier.value = false;
+      }
+      return response;
     } on TimeoutException {
+      isOfflineNotifier.value = true;
       throw const ApiException(
         'The E-Parada server took too long to respond. Please try again.',
       );
     } on http.ClientException {
+      isOfflineNotifier.value = true;
       throw ApiException(
         'Cannot reach the E-Parada server at ${ApiConfig.baseUrl}. '
         'Check that Laravel is running and that this device uses the correct PC IP address.',
@@ -211,6 +219,7 @@ class ApiClient {
     } on ApiException {
       rethrow;
     } catch (_) {
+      isOfflineNotifier.value = true;
       throw ApiException(
         'Cannot reach the E-Parada server at ${ApiConfig.baseUrl}. '
         'Check your network connection and try again.',

@@ -78,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Cubic(0.28, 0.85, 0.38, 1.0),
     );
 
-    // Stage 4: Anamorphic Flare & "Smart Parking. Made Local" Tagline
+    // Stage 4: Anamorphic Flare & "Find Parking. Made Local" Tagline
     _flareController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 650),
@@ -422,13 +422,13 @@ class _SplashScreenState extends State<SplashScreen>
 
                       const SizedBox(height: 10),
 
-                      // 4. "Smart Parking. Made Local" Tagline
+                      // 4. "Find Parking. Made Local" Tagline
                       SlideTransition(
                         position: _subtitleSlideAnimation,
                         child: FadeTransition(
                           opacity: _subtitleFadeAnimation,
                           child: const Text(
-                            'Smart Parking. Made Local',
+                            'Find Parking. Made Local',
                             style: TextStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,

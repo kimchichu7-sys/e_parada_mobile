@@ -408,6 +408,61 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Widget _buildQuickFilterChip({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF173B64) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF173B64) : const Color(0xFFCBD5E1),
+              width: 1.1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF173B64).withValues(alpha: 0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected ? const Color(0xFFFFDE70) : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: isSelected ? Colors.white : const Color(0xFF334155),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _estimateEta(double? distanceKm) {
     if (distanceKm == null) return 'ETA unavailable';
     if (distanceKm < 0.1) return '< 1 min drive';
@@ -573,54 +628,179 @@ class _MapScreenState extends State<MapScreen> {
               else if (!_isNavigating)
                 Container(
                   color: const Color(0xFFF8FAFC),
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: TextField(
-                    controller: _searchController,
-                    textInputAction: TextInputAction.search,
-                    onChanged: (value) => setState(() {
-                      _query = value;
-                      if (_selectedSpace != null &&
-                          !_filtered(allSpaces).contains(_selectedSpace)) {
-                        _selectedSpace = null;
-                      }
-                    }),
-                    onSubmitted: (_) => _submitSearch(allSpaces),
-                    decoration: InputDecoration(
-                      hintText: 'Search location or parking space',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (_query.isNotEmpty)
-                            IconButton(
-                              tooltip: 'Clear search',
-                              onPressed: () {
-                                _searchController.clear();
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: _searchController,
+                        textInputAction: TextInputAction.search,
+                        onChanged: (value) => setState(() {
+                          _query = value;
+                          if (_selectedSpace != null &&
+                              !_filtered(allSpaces).contains(_selectedSpace)) {
+                            _selectedSpace = null;
+                          }
+                        }),
+                        onSubmitted: (_) => _submitSearch(allSpaces),
+                        decoration: InputDecoration(
+                          hintText: 'Search location or parking space',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_query.isNotEmpty)
+                                IconButton(
+                                  tooltip: 'Clear search',
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _query = '';
+                                      _selectedSpace = null;
+                                    });
+                                  },
+                                  icon: const Icon(Icons.close_rounded),
+                                ),
+                              IconButton(
+                                tooltip: 'Filters',
+                                onPressed: () => _openFilters(allSpaces),
+                                icon: Badge(
+                                  isLabelVisible: _activeFilterCount > 0,
+                                  label: Text('$_activeFilterCount'),
+                                  child: const Icon(Icons.tune_rounded),
+                                ),
+                              ),
+                            ],
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _buildQuickFilterChip(
+                              label: 'Open Now',
+                              icon: Icons.access_time_filled_rounded,
+                              isSelected: _openNowOnly,
+                              onTap: () {
                                 setState(() {
-                                  _query = '';
-                                  _selectedSpace = null;
+                                  _openNowOnly = !_openNowOnly;
+                                  if (_selectedSpace != null &&
+                                      !_filtered(allSpaces).contains(_selectedSpace)) {
+                                    _selectedSpace = null;
+                                  }
                                 });
                               },
-                              icon: const Icon(Icons.close_rounded),
                             ),
-                          IconButton(
-                            tooltip: 'Filters',
-                            onPressed: () => _openFilters(allSpaces),
-                            icon: Badge(
-                              isLabelVisible: _activeFilterCount > 0,
-                              label: Text('$_activeFilterCount'),
-                              child: const Icon(Icons.tune_rounded),
+                            const SizedBox(width: 8),
+                            _buildQuickFilterChip(
+                              label: 'Cars',
+                              icon: Icons.directions_car_rounded,
+                              isSelected: _vehicleFilter == 'car',
+                              onTap: () {
+                                setState(() {
+                                  _vehicleFilter = _vehicleFilter == 'car' ? null : 'car';
+                                  if (_selectedSpace != null &&
+                                      !_filtered(allSpaces).contains(_selectedSpace)) {
+                                    _selectedSpace = null;
+                                  }
+                                });
+                              },
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            _buildQuickFilterChip(
+                              label: 'Motorcycles',
+                              icon: Icons.two_wheeler_rounded,
+                              isSelected: _vehicleFilter == 'motorcycle',
+                              onTap: () {
+                                setState(() {
+                                  _vehicleFilter = _vehicleFilter == 'motorcycle' ? null : 'motorcycle';
+                                  if (_selectedSpace != null &&
+                                      !_filtered(allSpaces).contains(_selectedSpace)) {
+                                    _selectedSpace = null;
+                                  }
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            _buildQuickFilterChip(
+                              label: '≤ ₱50/hr',
+                              icon: Icons.sell_rounded,
+                              isSelected: _maxHourlyRate == 50.0,
+                              onTap: () {
+                                setState(() {
+                                  _maxHourlyRate = _maxHourlyRate == 50.0 ? null : 50.0;
+                                  if (_selectedSpace != null &&
+                                      !_filtered(allSpaces).contains(_selectedSpace)) {
+                                    _selectedSpace = null;
+                                  }
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            _buildQuickFilterChip(
+                              label: 'Nearest',
+                              icon: Icons.near_me_rounded,
+                              isSelected: _sort == ParkingSort.nearest,
+                              onTap: () async {
+                                setState(() {
+                                  _sort = _sort == ParkingSort.nearest
+                                      ? ParkingSort.recommended
+                                      : ParkingSort.nearest;
+                                });
+                                if (_sort == ParkingSort.nearest && _currentLocation == null) {
+                                  await _goToCurrentLocation();
+                                }
+                              },
+                            ),
+                            if (_activeFilterCount > 0) ...[
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _vehicleFilter = null;
+                                    _openNowOnly = false;
+                                    _maxHourlyRate = null;
+                                    _sort = ParkingSort.recommended;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEE2E2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.refresh_rounded, size: 14, color: Color(0xFFEF4444)),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Reset',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFFEF4444),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               Expanded(

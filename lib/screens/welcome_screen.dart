@@ -180,7 +180,7 @@ class WelcomeScreen extends StatelessWidget {
 
                             // ── Crisp High-Contrast Hero Headline ──
                             const Text(
-                              'Smart Parking.\nMade Local.',
+                              'Find Parking.\nMade Local.',
                               style: TextStyle(
                                 fontSize: 36,
                                 height: 1.15,
