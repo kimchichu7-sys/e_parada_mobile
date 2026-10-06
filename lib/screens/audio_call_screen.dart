@@ -218,6 +218,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           'sdp': offer.sdp,
           'type': offer.type,
         });
+        unawaited(_pollSignals());
       }
 
       if (mounted) {
@@ -229,7 +230,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       }
       await _pollSignals();
       _pollTimer = Timer.periodic(
-        const Duration(milliseconds: 900),
+        const Duration(milliseconds: 350),
         (_) => unawaited(_pollSignals()),
       );
     } on Object catch (error) {
@@ -347,6 +348,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         'sdp': _localAnswer!.sdp,
         'type': _localAnswer!.type,
       });
+      unawaited(_pollSignals());
     } else if (type == 'answer') {
       await _setRemoteDescription(payload);
     } else if (type == 'ice') {
@@ -410,15 +412,22 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
   Future<void> _hangUp() async {
     if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      try {
-        await ConversationService.sendSignal(_call, 'bye', {});
-      } catch (_) {}
-      await ConversationService.endCall(_call);
-    } finally {
-      if (mounted) Navigator.of(context).pop();
-    }
+    _busy = true;
+    final callToEnd = _call;
+    _pollTimer?.cancel();
+    _pollTimer = null;
+
+    // Immediately pop the screen and clean up media for 0ms hangup latency
+    if (mounted) Navigator.of(context).pop();
+    unawaited(_releaseMedia());
+
+    // Disconnect server session in the background
+    unawaited(
+      ConversationService.sendSignal(callToEnd, 'bye', {}).catchError((_) {}),
+    );
+    unawaited(
+      ConversationService.endCall(callToEnd).catchError((_) => callToEnd),
+    );
   }
 
   Map<String, dynamic> _peerConfiguration() {

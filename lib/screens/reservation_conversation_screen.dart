@@ -47,7 +47,7 @@ class _ReservationConversationScreenState
   void _startRefreshTimer() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(
-      const Duration(milliseconds: 1500),
+      const Duration(milliseconds: 650),
       (_) => unawaited(_refresh()),
     );
   }
@@ -159,10 +159,7 @@ class _ReservationConversationScreenState
         _messages.sort((a, b) => a.id.compareTo(b.id));
       });
       _scrollToBottom();
-
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) unawaited(_refresh());
-      });
+      if (mounted) unawaited(_refresh());
     } on ApiException catch (error) {
       if (mounted) {
         setState(() {
@@ -216,11 +213,7 @@ class _ReservationConversationScreenState
     if (accepted == true && mounted) {
       await _openCall(call);
     } else {
-      try {
-        await ConversationService.rejectCall(call);
-      } catch (_) {
-        // The caller may already have ended the call.
-      }
+      unawaited(ConversationService.rejectCall(call).catchError((_) => call));
     }
   }
 
