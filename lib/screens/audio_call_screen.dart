@@ -200,6 +200,12 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
             _connected = true;
             _status = 'Connected';
           });
+          // Connection established; relax polling frequency to 800ms to reduce network & server load
+          _pollTimer?.cancel();
+          _pollTimer = Timer.periodic(
+            const Duration(milliseconds: 800),
+            (_) => unawaited(_pollSignals()),
+          );
         } else if (_connected &&
             (state == RTCIceConnectionState.RTCIceConnectionStateDisconnected ||
              state == RTCIceConnectionState.RTCIceConnectionStateFailed ||
@@ -230,7 +236,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       }
       await _pollSignals();
       _pollTimer = Timer.periodic(
-        const Duration(milliseconds: 350),
+        const Duration(milliseconds: 450),
         (_) => unawaited(_pollSignals()),
       );
     } on Object catch (error) {
