@@ -25,10 +25,18 @@ class AudioCallScreen extends StatefulWidget {
 }
 
 class _AudioCallScreenState extends State<AudioCallScreen> {
-  static const _turnUrls = String.fromEnvironment('WEBRTC_TURN_URLS');
-  static const _turnUsername = String.fromEnvironment('WEBRTC_TURN_USERNAME');
+  static const _turnUrls = String.fromEnvironment(
+    'WEBRTC_TURN_URLS',
+    defaultValue:
+        'turn:openrelay.metered.ca:80,turn:openrelay.metered.ca:443,turn:openrelay.metered.ca:443?transport=tcp',
+  );
+  static const _turnUsername = String.fromEnvironment(
+    'WEBRTC_TURN_USERNAME',
+    defaultValue: 'openrelayproject',
+  );
   static const _turnCredential = String.fromEnvironment(
     'WEBRTC_TURN_CREDENTIAL',
+    defaultValue: 'openrelayproject',
   );
 
   RTCPeerConnection? _peerConnection;
@@ -221,7 +229,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       };
 
       if (!_call.isIncoming) {
-        final offer = await _peerConnection!.createOffer();
+        final offer = await _peerConnection!.createOffer({
+          'offerToReceiveAudio': true,
+        });
         await _peerConnection!.setLocalDescription(offer);
         await ConversationService.sendSignal(_call, 'offer', {
           'sdp': offer.sdp,
@@ -356,7 +366,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
     if (type == 'offer') {
       await _setRemoteDescription(payload);
-      _localAnswer = await _peerConnection!.createAnswer();
+      _localAnswer = await _peerConnection!.createAnswer({
+        'offerToReceiveAudio': true,
+      });
       await _peerConnection!.setLocalDescription(_localAnswer!);
       await ConversationService.sendSignal(_call, 'answer', {
         'sdp': _localAnswer!.sdp,
@@ -472,6 +484,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
     return {
       'iceServers': iceServers,
+      'iceCandidatePoolSize': 10,
     };
   }
 
