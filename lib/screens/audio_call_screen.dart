@@ -35,6 +35,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   MediaStream? _localStream;
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   Timer? _pollTimer;
+  Timer? _connectionTimeoutTimer;
   late ReservationCall _call;
   final List<RTCIceCandidate> _pendingCandidates = [];
   RTCSessionDescription? _localAnswer;
@@ -144,6 +145,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           _remoteRenderer.srcObject = event.streams.first;
         }
         if (mounted && !_connected) {
+          _connectionTimeoutTimer?.cancel();
+          _connectionTimeoutTimer = null;
           setState(() {
             _connected = true;
             _status = 'Connected';
@@ -196,6 +199,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
               Helper.setSpeakerphoneOn(_speakerOn);
             } catch (_) {}
           }
+          _connectionTimeoutTimer?.cancel();
+          _connectionTimeoutTimer = null;
           setState(() {
             _connected = true;
             _status = 'Connected';
@@ -232,6 +237,13 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           _status = _call.status == 'ringing' ? 'Ringing...' : 'Connecting...';
         });
       }
+      _connectionTimeoutTimer?.cancel();
+      _connectionTimeoutTimer = Timer(const Duration(seconds: 30), () {
+        if (mounted && !_connected) {
+          unawaited(ConversationService.endCall(_call).catchError((_) => _call));
+          Navigator.of(context).pop();
+        }
+      });
       await _pollSignals();
       _pollTimer = Timer.periodic(
         const Duration(milliseconds: 450),
@@ -264,6 +276,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   }
 
   Future<void> _releaseMedia() async {
+    _connectionTimeoutTimer?.cancel();
+    _connectionTimeoutTimer = null;
     _pollTimer?.cancel();
     _pollTimer = null;
     for (final track in _localStream?.getTracks() ?? <MediaStreamTrack>[]) {
@@ -463,6 +477,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
   @override
   void dispose() {
+    _connectionTimeoutTimer?.cancel();
+    _connectionTimeoutTimer = null;
     _pollTimer?.cancel();
     for (final track in _localStream?.getTracks() ?? <MediaStreamTrack>[]) {
       track.stop();

@@ -213,6 +213,10 @@ class _ReservationConversationScreenState
     if (accepted == true && mounted) {
       await _openCall(call);
     } else {
+      unawaited(
+        ConversationService.sendSignal(call, 'bye', {'reason': 'declined'})
+            .catchError((_) {}),
+      );
       unawaited(ConversationService.rejectCall(call).catchError((_) => call));
     }
   }
