@@ -216,9 +216,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       };
 
       if (!_call.isIncoming) {
-        final offer = await _peerConnection!.createOffer({
-          'offerToReceiveAudio': 1,
-        });
+        final offer = await _peerConnection!.createOffer();
         await _peerConnection!.setLocalDescription(offer);
         await ConversationService.sendSignal(_call, 'offer', {
           'sdp': offer.sdp,
@@ -344,12 +342,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
     if (type == 'offer') {
       await _setRemoteDescription(payload);
-      _localAnswer ??= await _peerConnection!.createAnswer({
-        'offerToReceiveAudio': 1,
-      });
-      if ((await _peerConnection!.getLocalDescription()) == null) {
-        await _peerConnection!.setLocalDescription(_localAnswer!);
-      }
+      _localAnswer = await _peerConnection!.createAnswer();
+      await _peerConnection!.setLocalDescription(_localAnswer!);
       await ConversationService.sendSignal(_call, 'answer', {
         'sdp': _localAnswer!.sdp,
         'type': _localAnswer!.type,
@@ -442,17 +436,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         'urls': [
           'stun:stun.l.google.com:19302',
           'stun:stun1.l.google.com:19302',
+          'stun:stun2.l.google.com:19302',
+          'stun:stun3.l.google.com:19302',
+          'stun:stun4.l.google.com:19302',
           'stun:stun.cloudflare.com:3478',
         ],
-      },
-      {
-        'urls': [
-          'turn:openrelay.metered.ca:80',
-          'turn:openrelay.metered.ca:443',
-          'turn:openrelay.metered.ca:443?transport=tcp',
-        ],
-        'username': 'openrelayproject',
-        'credential': 'openrelayproject',
       },
     ];
     final turnUrls = _turnUrls
@@ -470,7 +458,6 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
     return {
       'iceServers': iceServers,
-      'iceCandidatePoolSize': 10,
     };
   }
 
