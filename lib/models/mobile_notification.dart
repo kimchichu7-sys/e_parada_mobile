@@ -7,6 +7,7 @@ class MobileNotification {
     required this.link,
     required this.readAt,
     required this.createdAt,
+    this.reservationId,
   });
 
   final int id;
@@ -16,16 +17,45 @@ class MobileNotification {
   final String link;
   final DateTime? readAt;
   final DateTime? createdAt;
+  final int? reservationId;
 
   bool get isUnread => readAt == null;
 
+  int? get extractedReservationId {
+    if (reservationId != null && reservationId! > 0) return reservationId;
+    final match = RegExp(r'reservations/(\d+)').firstMatch(link);
+    if (match != null) return int.tryParse(match.group(1)!);
+    final msgMatch = RegExp(r'reservation\s*#?(\d+)', caseSensitive: false).firstMatch(message);
+    if (msgMatch != null) return int.tryParse(msgMatch.group(1)!);
+    return null;
+  }
+
+  String get otherPartyDisplayName {
+    final match = RegExp(r'^(?:New message from|Incoming Call from)\s*(.+)$', caseSensitive: false).firstMatch(title);
+    if (match != null) return match.group(1)!.trim();
+    return 'Driver / Space Provider';
+  }
+
   factory MobileNotification.fromJson(Map<String, dynamic> json) {
+    final linkStr = json['link']?.toString() ?? '';
+    final dedupeStr = json['dedupe_key']?.toString() ?? '';
+    int? resId = _nullableInteger(json['reservation_id']);
+    if (resId == null && linkStr.isNotEmpty) {
+      final m = RegExp(r'reservations/(\d+)').firstMatch(linkStr);
+      if (m != null) resId = int.tryParse(m.group(1)!);
+    }
+    if (resId == null && dedupeStr.isNotEmpty) {
+      final m = RegExp(r'reservation:(?:msg|call):(\d+)').firstMatch(dedupeStr);
+      if (m != null) resId = int.tryParse(m.group(1)!);
+    }
+
     return MobileNotification(
       id: _integer(json['id']),
       title: json['title']?.toString() ?? 'E-Parada update',
       message: json['message']?.toString() ?? '',
       type: json['type']?.toString() ?? 'general',
-      link: json['link']?.toString() ?? '',
+      link: linkStr,
+      reservationId: resId,
       readAt: DateTime.tryParse(json['read_at']?.toString() ?? ''),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
     );
@@ -34,6 +64,12 @@ class MobileNotification {
   static int _integer(dynamic value) {
     if (value is int) return value;
     return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static int? _nullableInteger(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
   }
 }
 

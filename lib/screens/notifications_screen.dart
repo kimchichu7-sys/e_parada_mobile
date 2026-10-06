@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/mobile_notification.dart';
 import '../services/notification_service.dart';
+import 'reservation_conversation_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -100,23 +101,98 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  void _navigateToConversation(int reservationId, String otherPartyName) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ReservationConversationScreen(
+          reservationId: reservationId,
+          otherPartyName: otherPartyName,
+        ),
+      ),
+    );
+  }
+
   Future<void> _open(MobileNotification notification) async {
     if (notification.isUnread) {
       await _perform(() => NotificationService.markAsRead(notification.id));
       if (!mounted) return;
     }
 
+    final reservationId = notification.extractedReservationId;
+    final otherPartyName = notification.otherPartyDisplayName;
+
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         icon: Icon(_icon(notification.type)),
         title: Text(notification.title),
-        content: Text(notification.message),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(notification.message),
+            if (reservationId != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogContext).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      notification.type == 'call'
+                          ? Icons.phone_in_talk_rounded
+                          : Icons.chat_bubble_outline_rounded,
+                      size: 18,
+                      color: Theme.of(dialogContext).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        notification.type == 'call'
+                            ? 'Call / Chat connected to Reservation #$reservationId'
+                            : 'Direct chat available for Reservation #$reservationId',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(dialogContext).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
         actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
           ),
+          if (reservationId != null)
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _navigateToConversation(reservationId, otherPartyName);
+              },
+              icon: Icon(
+                notification.type == 'call'
+                    ? Icons.phone_rounded
+                    : Icons.chat_bubble_rounded,
+                size: 18,
+              ),
+              label: Text(
+                notification.type == 'call' ? 'Call / Open Chat' : 'Message Directly',
+              ),
+            )
+          else
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Done'),
+            ),
         ],
       ),
     );
@@ -246,6 +322,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
 
           final notification = _notifications[index];
+          final resId = notification.extractedReservationId;
           return _NotificationCard(
             notification: notification,
             disabled: _acting,
@@ -253,6 +330,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onDelete: () => _perform(
               () => NotificationService.deleteNotification(notification.id),
             ),
+            onReply: resId != null
+                ? () {
+                    if (notification.isUnread) {
+                      NotificationService.markAsRead(notification.id).catchError((_) => '');
+                    }
+                    _navigateToConversation(resId, notification.otherPartyDisplayName);
+                  }
+                : null,
           );
         },
       ),
@@ -261,6 +346,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   static IconData _icon(String type) {
     return switch (type) {
+      'message' => Icons.chat_bubble_outline_rounded,
+      'call' => Icons.phone_in_talk_outlined,
       'reservation' => Icons.event_note_outlined,
       'payment' => Icons.payments_outlined,
       'verification' => Icons.verified_user_outlined,
@@ -310,12 +397,14 @@ class _NotificationCard extends StatelessWidget {
     required this.disabled,
     required this.onOpen,
     required this.onDelete,
+    this.onReply,
   });
 
   final MobileNotification notification;
   final bool disabled;
   final VoidCallback onOpen;
   final VoidCallback onDelete;
+  final VoidCallback? onReply;
 
   @override
   Widget build(BuildContext context) {
@@ -373,6 +462,26 @@ class _NotificationCard extends StatelessWidget {
                       _timestamp(notification.createdAt),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    if (notification.extractedReservationId != null) ...[
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        ),
+                        onPressed: disabled ? null : onReply,
+                        icon: Icon(
+                          notification.type == 'call'
+                              ? Icons.phone_rounded
+                              : Icons.chat_bubble_outline_rounded,
+                          size: 15,
+                        ),
+                        label: Text(
+                          notification.type == 'call' ? 'Call / Chat' : 'Message Directly',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
