@@ -143,6 +143,12 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         if (event.streams.isNotEmpty) {
           _remoteRenderer.srcObject = event.streams.first;
         }
+        if (mounted && !_connected) {
+          setState(() {
+            _connected = true;
+            _status = 'Connected';
+          });
+        }
         if (!kIsWeb) {
           try {
             Helper.setSpeakerphoneOn(_speakerOn);
@@ -344,15 +350,22 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     } else if (type == 'answer') {
       await _setRemoteDescription(payload);
     } else if (type == 'ice') {
-      final candidate = RTCIceCandidate(
-        payload['candidate']?.toString(),
-        payload['sdpMid']?.toString(),
-        (payload['sdpMLineIndex'] as num?)?.toInt(),
-      );
-      if (_remoteDescriptionSet) {
-        await _peerConnection?.addCandidate(candidate);
-      } else {
-        _pendingCandidates.add(candidate);
+      final candidateStr = payload['candidate']?.toString();
+      if (candidateStr != null && candidateStr.isNotEmpty) {
+        final candidate = RTCIceCandidate(
+          candidateStr,
+          payload['sdpMid']?.toString(),
+          (payload['sdpMLineIndex'] as num?)?.toInt(),
+        );
+        if (_remoteDescriptionSet) {
+          try {
+            await _peerConnection?.addCandidate(candidate);
+          } catch (e) {
+            debugPrint('Error adding ICE candidate: $e');
+          }
+        } else {
+          _pendingCandidates.add(candidate);
+        }
       }
     }
   }
@@ -367,7 +380,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     );
     _remoteDescriptionSet = true;
     for (final candidate in _pendingCandidates) {
-      await _peerConnection?.addCandidate(candidate);
+      try {
+        await _peerConnection?.addCandidate(candidate);
+      } catch (e) {
+        debugPrint('Error adding queued candidate: $e');
+      }
     }
     _pendingCandidates.clear();
   }
@@ -413,6 +430,15 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           'stun:stun.cloudflare.com:3478',
         ],
       },
+      {
+        'urls': [
+          'turn:openrelay.metered.ca:80',
+          'turn:openrelay.metered.ca:443',
+          'turn:openrelay.metered.ca:443?transport=tcp',
+        ],
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject',
+      },
     ];
     final turnUrls = _turnUrls
         .split(',')
@@ -422,8 +448,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     if (turnUrls.isNotEmpty) {
       iceServers.add({
         'urls': turnUrls,
-        'username': _turnUsername,
-        'credential': _turnCredential,
+        'username': _turnUsername.isNotEmpty ? _turnUsername : null,
+        'credential': _turnCredential.isNotEmpty ? _turnCredential : null,
       });
     }
 
