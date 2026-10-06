@@ -26,12 +26,41 @@ class MainActivity : FlutterActivity() {
         createNotificationChannel()
     }
 
+    private fun ensureBluetoothAudioSafety() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val btGranted = ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) == PackageManager.PERMISSION_GRANTED
+
+                val manager = com.cloudwebrtc.webrtc.audio.AudioSwitchManager.instance
+                if (manager != null) {
+                    if (!btGranted) {
+                        // Avoid SecurityException on Android 12+ if BLUETOOTH_CONNECT is not granted
+                        manager.preferredDeviceList.removeAll { deviceClass ->
+                            deviceClass.name.contains("Bluetooth", ignoreCase = true)
+                        }
+                    } else {
+                        val hasBt = manager.preferredDeviceList.any { it.name.contains("Bluetooth", ignoreCase = true) }
+                        if (!hasBt) {
+                            manager.preferredDeviceList.add(0, com.twilio.audioswitch.AudioDevice.BluetoothHeadset::class.java)
+                        }
+                    }
+                }
+            }
+        } catch (_: Throwable) {
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        ensureBluetoothAudioSafety()
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, PERMISSIONS_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "checkMicrophonePermission" -> {
+                    ensureBluetoothAudioSafety()
                     val granted = ContextCompat.checkSelfPermission(
                         this,
                         Manifest.permission.RECORD_AUDIO
@@ -39,18 +68,34 @@ class MainActivity : FlutterActivity() {
                     result.success(granted)
                 }
                 "requestMicrophonePermission" -> {
-                    val granted = ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.RECORD_AUDIO
-                    ) == PackageManager.PERMISSION_GRANTED
-                    if (granted) {
+                    ensureBluetoothAudioSafety()
+                    val permissionsToRequest = mutableListOf<String>()
+
+                    if (ContextCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.RECORD_AUDIO
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        permissionsToRequest.add(Manifest.permission.RECORD_AUDIO)
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                        ContextCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.BLUETOOTH_CONNECT
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
+                    }
+
+                    if (permissionsToRequest.isEmpty()) {
                         result.success(true)
                     } else {
                         pendingPermissionResult?.success(false)
                         pendingPermissionResult = result
                         ActivityCompat.requestPermissions(
                             this,
-                            arrayOf(Manifest.permission.RECORD_AUDIO),
+                            permissionsToRequest.toTypedArray(),
                             RECORD_AUDIO_REQUEST_CODE
                         )
                     }
@@ -78,8 +123,17 @@ class MainActivity : FlutterActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        ensureBluetoothAudioSafety()
         if (requestCode == RECORD_AUDIO_REQUEST_CODE) {
-            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            val micIndex = permissions.indexOf(Manifest.permission.RECORD_AUDIO)
+            val granted = if (micIndex != -1 && micIndex < grantResults.size) {
+                grantResults[micIndex] == PackageManager.PERMISSION_GRANTED
+            } else {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.RECORD_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED
+            }
             pendingPermissionResult?.success(granted)
             pendingPermissionResult = null
         }

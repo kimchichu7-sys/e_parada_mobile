@@ -117,7 +117,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         } catch (_) {}
       }
 
-      if (!_rendererInitialized) {
+      if (kIsWeb && !_rendererInitialized) {
         await _remoteRenderer.initialize();
         _rendererInitialized = true;
       }
@@ -231,9 +231,13 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       final msg = error is ApiException
           ? error.message
           : callSetupErrorMessage(error);
+      final errorStr = error.toString().toLowerCase();
       final isPermError = msg == microphonePermissionMessage ||
-          error.toString().toLowerCase().contains('permission') ||
-          error.toString().toLowerCase().contains('mediastreamtrack');
+          errorStr.contains('permission') ||
+          errorStr.contains('mediastreamtrack') ||
+          errorStr.contains('failed to create new track') ||
+          errorStr.contains('securityexception') ||
+          errorStr.contains('bluetooth_connect');
       setState(() {
         _busy = false;
         _setupFailed = true;
@@ -459,14 +463,15 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: 1,
-                  height: 1,
-                  child: Opacity(
-                    opacity: 0.01,
-                    child: RTCVideoView(_remoteRenderer),
+                if (kIsWeb)
+                  SizedBox(
+                    width: 1,
+                    height: 1,
+                    child: Opacity(
+                      opacity: 0.01,
+                      child: RTCVideoView(_remoteRenderer),
+                    ),
                   ),
-                ),
                 CircleAvatar(
                   radius: 54,
                   backgroundColor: colors.primaryContainer,

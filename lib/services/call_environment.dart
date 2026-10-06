@@ -24,7 +24,10 @@ String callSetupErrorMessage(Object error) {
       details.contains('permissiondismissed') ||
       details.contains('permission denied by system') ||
       details.contains('mediastreamtrack initialization failed') ||
-      details.contains('getusermediafailed')) {
+      details.contains('getusermediafailed') ||
+      details.contains('failed to create new track') ||
+      details.contains('securityexception') ||
+      details.contains('bluetooth_connect')) {
     return microphonePermissionMessage;
   }
 
@@ -39,7 +42,7 @@ String callSetupErrorMessage(Object error) {
   }
 
   debugPrint('Audio call setup failed: $error');
-  return 'Unable to start the audio call. Check your microphone permission and connection, then try again.';
+  return 'Unable to start the audio call. Check your connection, then try again.';
 }
 
 bool _isLoopback(String host) {

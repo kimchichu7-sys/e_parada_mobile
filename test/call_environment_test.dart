@@ -49,5 +49,13 @@ void main() {
       callSetupErrorMessage(Exception('NotAllowedError: Permission denied')),
       contains('Allow microphone access'),
     );
+    expect(
+      callSetupErrorMessage(Exception('PlatformException(getUserMedia, Failed to create new track., null, null)')),
+      contains('Allow microphone access'),
+    );
+    expect(
+      callSetupErrorMessage(Exception('java.lang.SecurityException: Need android.permission.BLUETOOTH_CONNECT')),
+      contains('Allow microphone access'),
+    );
   });
 }
