@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    background-color: #FFFFFF;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 30px;
+    width: 1760px;
+    height: 1540px;
+    position: relative;
+  }
+  .main-header {
+    position: absolute;
+    top: 25px;
+    left: 40px;
+  }
+  .main-header h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000000;
+  }
+  .main-header p {
+    font-size: 13px;
+    color: #475569;
+    margin-top: 4px;
+  }
+  .table-card {
+    position: absolute;
+    background: #FFFFFF;
+    border: 1px solid #432098;
+    box-shadow: 2px 3px 8px rgba(0,0,0,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .table-title {
+    background-color: #432098;
+    color: #FFFFFF;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 7px 12px;
+    letter-spacing: 0.2px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 11.5px;
+  }
+  tr {
+    border-bottom: 1px solid #E2E8F0;
+    height: 23px;
+  }
+  tr:last-child {
+    border-bottom: none;
+  }
+  td {
+    padding: 2px 8px;
+    vertical-align: middle;
+  }
+  .col-name {
+    color: #0f172a;
+    width: 58%;
+  }
+  .col-type {
+    width: 42%;
+  }
+  .bold {
+    font-weight: bold;
+  }
+  .standard-type {
+    color: #334155;
+  }
+  .fixed-type {
+    color: #1E1B4B;
+    font-weight: bold;
+    background-color: #EEF2FF;
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+  /* Connector SVG overlay */
+  svg.connectors {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .edge-line {
+    stroke: #432098;
+    stroke-width: 1.5;
+    fill: none;
+  }
+  .edge-label {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 10px;
+    fill: #1E293B;
+    background: #FFFFFF;
+  }
+</style>
+</head>
+<body>
+
+<div class="main-header">
+  <h1>E-Parada Core Booking Database</h1>
+  <p>Registration, vehicle verification, parking inventory, reservations, and feedback.</p>
+</div>
+
+<!-- USERS (40, 90, 310) -->
+<div class="table-card" style="left: 40px; top: 90px; width: 310px;">
+  <div class="table-title">Users</div>
+  <table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">name</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">email</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">email_verified_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">password</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">remember_token</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">role</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">verification_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">verification_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">id_type</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">id_image_path</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">gcash_name</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">gcash_number</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">gcash_qr_image</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">plate_number</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">contact_number</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">id_image_back_path</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+
+<!-- VEHICLES (40, 680, 310) -->
+<div class="table-card" style="left: 40px; top: 680px; width: 310px;">
+  <div class="table-title">Vehicles</div>
+  <table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">plate_number</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">vehicle_type</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">color</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">model</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">photo_path</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">verification_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">verification_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">consented_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name bold">FK reviewed_by</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">reviewed_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">make</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">plate_scan_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">plate_scanned_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">photo_back_path</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+
+<!-- PARKING SPACES (450, 150, 360) -->
+<div class="table-card" style="left: 450px; top: 150px; width: 360px;">
+  <div class="table-title">Parking Spaces</div>
+  <table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">space_name</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">address</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">vehicle_types</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">dimensions_sqm</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">description</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">image_paths</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">is_available</td><td class="col-type fixed-type">: boolean</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">approval_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">hourly_rate</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">admin_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">latitude</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">longitude</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">vehicle_hourly_rates</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">total_slots</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">is_open_24_hours</td><td class="col-type fixed-type">: boolean</td></tr><tr><td class="col-name ">opening_time</td><td class="col-type standard-type">: time</td></tr><tr><td class="col-name ">closing_time</td><td class="col-type standard-type">: time</td></tr><tr><td class="col-name ">overstay_grace_minutes</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">abandoned_after_hours</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">entrance_latitude</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">entrance_longitude</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">layout_entrance_x</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">layout_entrance_z</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">layout_north_rotation</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">entrance_instructions</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+
+<!-- PARKING SLOTS (450, 1000, 360) -->
+<div class="table-card" style="left: 450px; top: 1000px; width: 360px;">
+  <div class="table-title">Parking Slots</div>
+  <table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK parking_space_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">slot_number</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">slot_label</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">vehicle_type</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">is_active</td><td class="col-type fixed-type">: boolean</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">supported_vehicle_types</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">layout_x</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">layout_z</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">layout_rotation</td><td class="col-type standard-type">: numeric</td></tr></table>
+</div>
+
+<!-- RESERVATIONS (930, 180, 365) -->
+<div class="table-card" style="left: 930px; top: 180px; width: 365px;">
+  <div class="table-title">Reservations</div>
+  <table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK parking_space_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">reservation_date</td><td class="col-type standard-type">: date</td></tr><tr><td class="col-name ">start_time</td><td class="col-type standard-type">: time</td></tr><tr><td class="col-name ">end_time</td><td class="col-type standard-type">: time</td></tr><tr><td class="col-name ">status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">vehicle_type</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">qr_code</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">time_in</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">time_out</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">total_hours</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">total_amount</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">payment_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">payment_method</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">dispute_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">dispute_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">payment_proof_path</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">payment_submitted_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">payment_verified_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">cancellation_reason</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">cancelled_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">cancelled_by</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">original_reservation_date</td><td class="col-type standard-type">: date</td></tr><tr><td class="col-name ">original_start_time</td><td class="col-type standard-type">: time</td></tr><tr><td class="col-name ">original_end_time</td><td class="col-type standard-type">: time</td></tr><tr><td class="col-name ">reschedule_reason</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">rescheduled_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">owner_response_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">admin_internal_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">end_date</td><td class="col-type standard-type">: date</td></tr><tr><td class="col-name bold">FK parking_slot_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK vehicle_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">extension_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">extension_end_date</td><td class="col-type standard-type">: date</td></tr><tr><td class="col-name ">extension_end_time</td><td class="col-type standard-type">: time</td></tr><tr><td class="col-name ">extension_reason</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">extension_owner_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">extension_requested_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">extension_responded_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">overstay_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">overstay_started_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">overstay_last_notified_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">overstay_minutes</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">overstay_amount</td><td class="col-type standard-type">: numeric</td></tr><tr><td class="col-name ">abandoned_flagged_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+
+<!-- FEEDBACK (1400, 90, 320) -->
+<div class="table-card" style="left: 1400px; top: 90px; width: 320px;">
+  <div class="table-title">Parking Space Feedback</div>
+  <table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK reservation_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK parking_space_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">rating</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">comment</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">moderation_status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">admin_notes</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">reviewed_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+
+<!-- SVG Connectors & Labels -->
+<svg class="connectors">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#432098"/>
+    </marker>
+  </defs>
+
+  <!-- 1. Users -> Parking Spaces (user_id -> id) -->
+  <path class="edge-line" d="M 350 170 L 400 170 L 400 230 L 450 230" marker-end="url(#arrow)"/>
+  <rect x="360" y="157" width="85" height="14" fill="#FFFFFF"/>
+  <text class="edge-label" x="362" y="168">user_id -&gt; id</text>
+
+  <!-- 2. Users -> Vehicles (user_id -> id, reviewed_by -> id) -->
+  <path class="edge-line" d="M 195 625 L 195 680" marker-end="url(#arrow)"/>
+  <rect x="70" y="645" width="250" height="15" fill="#FFFFFF"/>
+  <text class="edge-label" x="72" y="656">user_id-&gt; id   reviewed_by -&gt; id</text>
+
+  <!-- 3. Parking Spaces -> Parking Slots (parking_space_id -> id) -->
+  <path class="edge-line" d="M 630 945 L 630 1000" marker-end="url(#arrow)"/>
+  <rect x="560" y="965" width="140" height="15" fill="#FFFFFF"/>
+  <text class="edge-label" x="565" y="976">parking_space_id -&gt; id</text>
+
+  <!-- 4. Parking Spaces -> Reservations (parking_space_id -> id) -->
+  <path class="edge-line" d="M 810 320 L 870 320 L 870 250 L 930 250" marker-end="url(#arrow)"/>
+  <rect x="815" y="307" width="140" height="14" fill="#FFFFFF"/>
+  <text class="edge-label" x="818" y="318">parking_space_id -&gt; id</text>
+
+  <!-- 5. Parking Slots -> Reservations (parking_slot_id -> id) -->
+  <path class="edge-line" d="M 810 1080 L 870 1080 L 870 1060 L 930 1060" marker-end="url(#arrow)"/>
+  <rect x="815" y="1068" width="130" height="14" fill="#FFFFFF"/>
+  <text class="edge-label" x="818" y="1079">parking_slot_id -&gt; id</text>
+
+  <!-- 6. Vehicles -> Reservations (vehicle_id -> id) (Clean loop below Parking Slots) -->
+  <path class="edge-line" d="M 350 1120 L 400 1120 L 400 1370 L 870 1370 L 870 1100 L 930 1100" marker-end="url(#arrow)"/>
+  <rect x="580" y="1357" width="105" height="14" fill="#FFFFFF"/>
+  <text class="edge-label" x="585" y="1368">vehicle_id -&gt; id</text>
+
+  <!-- 7. Users -> Reservations (user_id -> id) (Clean loop above Parking Spaces) -->
+  <path class="edge-line" d="M 195 90 L 195 65 L 860 65 L 860 225 L 930 225" marker-end="url(#arrow)"/>
+  <rect x="520" y="57" width="90" height="14" fill="#FFFFFF"/>
+  <text class="edge-label" x="525" y="68">user_id -&gt; id</text>
+
+  <!-- 8. Reservations -> Parking Space Feedback (reservation_id -> id) -->
+  <path class="edge-line" d="M 1295 240 L 1345 240 L 1345 150 L 1400 150" marker-end="url(#arrow)"/>
+  <rect x="1300" y="227" width="130" height="14" fill="#FFFFFF"/>
+  <text class="edge-label" x="1305" y="238">reservation_id -&gt; id</text>
+
+  <!-- 9. Parking Spaces -> Parking Space Feedback (parking_space_id -> id) (Above Reservations) -->
+  <path class="edge-line" d="M 680 150 L 680 80 L 1350 80 L 1350 180 L 1400 180" marker-end="url(#arrow)"/>
+  <rect x="1000" y="72" width="140" height="14" fill="#FFFFFF"/>
+  <text class="edge-label" x="1005" y="83">parking_space_id -&gt; id</text>
+</svg>
+
+</body>
+</html>

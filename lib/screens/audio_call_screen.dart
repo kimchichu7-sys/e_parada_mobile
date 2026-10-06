@@ -8,6 +8,7 @@ import '../models/reservation_call.dart';
 import '../services/api_client.dart';
 import '../services/call_environment.dart';
 import '../services/conversation_service.dart';
+import '../services/permission_service.dart';
 
 class AudioCallScreen extends StatefulWidget {
   const AudioCallScreen({
@@ -42,9 +43,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   bool _rendererInitialized = false;
   bool _connected = false;
   bool _muted = false;
+  bool _speakerOn = true;
   bool _busy = true;
   bool _polling = false;
   bool _setupFailed = false;
+  bool _needsPermissionSettings = false;
   String _status = 'Connecting...';
 
   @override
@@ -64,6 +67,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       setState(() {
         _busy = false;
         _setupFailed = true;
+        _needsPermissionSettings = false;
         _status = preflightMessage;
       });
       return;
@@ -75,8 +79,27 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         setState(() {
           _busy = true;
           _setupFailed = false;
+          _needsPermissionSettings = false;
           _status = 'Connecting...';
         });
+      }
+
+      // Check and request microphone permission before opening media stream
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        var hasMic = await MicrophonePermissionHelper.hasPermission();
+        if (!hasMic) {
+          hasMic = await MicrophonePermissionHelper.requestPermission();
+        }
+        if (!hasMic) {
+          if (!mounted) return;
+          setState(() {
+            _busy = false;
+            _setupFailed = true;
+            _needsPermissionSettings = true;
+            _status = microphonePermissionMessage;
+          });
+          return;
+        }
       }
 
       if (_call.isIncoming && _call.status == 'ringing') {
@@ -87,6 +110,13 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         'audio': true,
         'video': false,
       });
+
+      if (!kIsWeb) {
+        try {
+          Helper.setSpeakerphoneOn(true);
+        } catch (_) {}
+      }
+
       if (!_rendererInitialized) {
         await _remoteRenderer.initialize();
         _rendererInitialized = true;
@@ -108,15 +138,29 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         );
       };
       _peerConnection!.onTrack = (event) {
-        if (event.track.kind != 'audio' || event.streams.isEmpty) return;
-        _remoteRenderer.srcObject = event.streams.first;
+        if (event.track.kind != 'audio') return;
+        event.track.enabled = true;
+        if (event.streams.isNotEmpty) {
+          _remoteRenderer.srcObject = event.streams.first;
+        }
+        if (!kIsWeb) {
+          try {
+            Helper.setSpeakerphoneOn(_speakerOn);
+          } catch (_) {}
+        }
       };
       _peerConnection!.onConnectionState = (state) {
         if (!mounted) return;
+        final isConnected =
+            state == RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+        if (isConnected && !_connected && !kIsWeb) {
+          try {
+            Helper.setSpeakerphoneOn(_speakerOn);
+          } catch (_) {}
+        }
+        final wasConnected = _connected;
         setState(() {
-          _connected =
-              state ==
-              RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+          _connected = isConnected;
           _status = switch (state) {
             RTCPeerConnectionState.RTCPeerConnectionStateConnected =>
               'Connected',
@@ -124,34 +168,45 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
               'Connection failed',
             RTCPeerConnectionState.RTCPeerConnectionStateDisconnected =>
               'Disconnected',
+            RTCPeerConnectionState.RTCPeerConnectionStateClosed =>
+              'Call ended',
             _ => _call.status == 'ringing' ? 'Ringing...' : 'Connecting...',
           };
         });
+        if (wasConnected &&
+            (state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
+             state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
+             state == RTCPeerConnectionState.RTCPeerConnectionStateClosed)) {
+          _pollTimer?.cancel();
+          if (mounted) Navigator.of(context).pop();
+        }
       };
       _peerConnection!.onIceConnectionState = (state) {
-        if (!mounted || _connected) return;
-        setState(() {
-          _status = switch (state) {
-            RTCIceConnectionState.RTCIceConnectionStateChecking =>
-              'Connecting audio...',
-            RTCIceConnectionState.RTCIceConnectionStateConnected ||
-            RTCIceConnectionState.RTCIceConnectionStateCompleted =>
-              'Connected',
-            RTCIceConnectionState.RTCIceConnectionStateFailed =>
-              'Direct connection failed. A TURN relay may be required.',
-            RTCIceConnectionState.RTCIceConnectionStateDisconnected =>
-              'Audio connection interrupted',
-            _ => _call.status == 'ringing' ? 'Ringing...' : 'Connecting...',
-          };
-          if (state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
-              state == RTCIceConnectionState.RTCIceConnectionStateCompleted) {
-            _connected = true;
+        if (!mounted) return;
+        if (state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
+            state == RTCIceConnectionState.RTCIceConnectionStateCompleted) {
+          if (!_connected && !kIsWeb) {
+            try {
+              Helper.setSpeakerphoneOn(_speakerOn);
+            } catch (_) {}
           }
-        });
+          setState(() {
+            _connected = true;
+            _status = 'Connected';
+          });
+        } else if (_connected &&
+            (state == RTCIceConnectionState.RTCIceConnectionStateDisconnected ||
+             state == RTCIceConnectionState.RTCIceConnectionStateFailed ||
+             state == RTCIceConnectionState.RTCIceConnectionStateClosed)) {
+          _pollTimer?.cancel();
+          if (mounted) Navigator.of(context).pop();
+        }
       };
 
       if (!_call.isIncoming) {
-        final offer = await _peerConnection!.createOffer();
+        final offer = await _peerConnection!.createOffer({
+          'offerToReceiveAudio': 1,
+        });
         await _peerConnection!.setLocalDescription(offer);
         await ConversationService.sendSignal(_call, 'offer', {
           'sdp': offer.sdp,
@@ -173,12 +228,17 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       );
     } on Object catch (error) {
       if (!mounted) return;
+      final msg = error is ApiException
+          ? error.message
+          : callSetupErrorMessage(error);
+      final isPermError = msg == microphonePermissionMessage ||
+          error.toString().toLowerCase().contains('permission') ||
+          error.toString().toLowerCase().contains('mediastreamtrack');
       setState(() {
         _busy = false;
         _setupFailed = true;
-        _status = error is ApiException
-            ? error.message
-            : callSetupErrorMessage(error);
+        _needsPermissionSettings = isPermError;
+        _status = msg;
       });
     }
   }
@@ -243,8 +303,6 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
       if (!_call.isActive && mounted) {
         _pollTimer?.cancel();
-        setState(() => _status = 'Call ended');
-        await Future<void>.delayed(const Duration(milliseconds: 700));
         if (mounted) Navigator.of(context).pop();
       }
     } on Object catch (error) {
@@ -257,11 +315,21 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
   Future<void> _processSignal(Map<String, dynamic> signal) async {
     final type = signal['type']?.toString();
+    if (type == 'bye') {
+      if (mounted) {
+        _pollTimer?.cancel();
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
     final payload = Map<String, dynamic>.from(signal['payload'] as Map);
 
     if (type == 'offer') {
       await _setRemoteDescription(payload);
-      _localAnswer ??= await _peerConnection!.createAnswer();
+      _localAnswer ??= await _peerConnection!.createAnswer({
+        'offerToReceiveAudio': 1,
+      });
       if ((await _peerConnection!.getLocalDescription()) == null) {
         await _peerConnection!.setLocalDescription(_localAnswer!);
       }
@@ -309,10 +377,23 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     setState(() {});
   }
 
+  void _toggleSpeaker() {
+    _speakerOn = !_speakerOn;
+    if (!kIsWeb) {
+      try {
+        Helper.setSpeakerphoneOn(_speakerOn);
+      } catch (_) {}
+    }
+    setState(() {});
+  }
+
   Future<void> _hangUp() async {
     if (_busy) return;
     setState(() => _busy = true);
     try {
+      try {
+        await ConversationService.sendSignal(_call, 'bye', {});
+      } catch (_) {}
       await ConversationService.endCall(_call);
     } finally {
       if (mounted) Navigator.of(context).pop();
@@ -325,6 +406,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         'urls': [
           'stun:stun.l.google.com:19302',
           'stun:stun1.l.google.com:19302',
+          'stun:stun.cloudflare.com:3478',
         ],
       },
     ];
@@ -377,7 +459,14 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Offstage(child: RTCVideoView(_remoteRenderer)),
+                SizedBox(
+                  width: 1,
+                  height: 1,
+                  child: Opacity(
+                    opacity: 0.01,
+                    child: RTCVideoView(_remoteRenderer),
+                  ),
+                ),
                 CircleAvatar(
                   radius: 54,
                   backgroundColor: colors.primaryContainer,
@@ -410,10 +499,23 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                 ),
                 if (_setupFailed) ...[
                   const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _busy ? null : _retrySetup,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Try again'),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 12,
+                    runSpacing: 8,
+                    children: [
+                      if (_needsPermissionSettings && !kIsWeb)
+                        OutlinedButton.icon(
+                          onPressed: MicrophonePermissionHelper.openAppSettings,
+                          icon: const Icon(Icons.settings),
+                          label: const Text('Open Settings'),
+                        ),
+                      OutlinedButton.icon(
+                        onPressed: _busy ? null : _retrySetup,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Try again'),
+                      ),
+                    ],
                   ),
                 ],
                 const SizedBox(height: 48),
@@ -425,7 +527,15 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                       tooltip: _muted ? 'Unmute' : 'Mute',
                       icon: Icon(_muted ? Icons.mic_off : Icons.mic),
                     ),
-                    const SizedBox(width: 28),
+                    if (!kIsWeb) ...[
+                      const SizedBox(width: 20),
+                      IconButton.filledTonal(
+                        onPressed: _busy ? null : _toggleSpeaker,
+                        tooltip: _speakerOn ? 'Speaker on' : 'Speaker off',
+                        icon: Icon(_speakerOn ? Icons.volume_up : Icons.volume_off),
+                      ),
+                    ],
+                    const SizedBox(width: 20),
                     IconButton.filled(
                       onPressed: _busy ? null : _hangUp,
                       tooltip: 'End call',

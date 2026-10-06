@@ -47,7 +47,7 @@ class _ReservationConversationScreenState
   void _startRefreshTimer() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(
-      const Duration(seconds: 4),
+      const Duration(milliseconds: 1500),
       (_) => unawaited(_refresh()),
     );
   }
@@ -76,7 +76,8 @@ class _ReservationConversationScreenState
     if (_refreshing) return;
     _refreshing = true;
     try {
-      final afterId = _messages.isEmpty ? 0 : _messages.last.id;
+      final validMessages = _messages.where((m) => m.id > 0).toList();
+      final afterId = validMessages.isEmpty ? 0 : validMessages.last.id;
       final conversation = await ConversationService.fetch(
         widget.reservationId,
         afterId: afterId,
@@ -123,18 +124,50 @@ class _ReservationConversationScreenState
   Future<void> _send() async {
     final text = _messageController.text.trim();
     if (text.isEmpty || _sending) return;
-    setState(() => _sending = true);
+
+    final tempId = -DateTime.now().millisecondsSinceEpoch;
+    final otherPartyId = _conversation?.otherPartyId ?? 0;
+    final mySenderId = otherPartyId == 0 ? -1 : (otherPartyId + 1);
+    final optimisticMessage = ConversationMessage(
+      id: tempId,
+      senderId: mySenderId,
+      senderName: 'You',
+      body: text,
+      createdAt: DateTime.now(),
+    );
+
+    _messageController.clear();
+    setState(() {
+      _messages.add(optimisticMessage);
+      _sending = true;
+    });
+    _scrollToBottom();
+
     try {
       final message = await ConversationService.sendMessage(
         widget.reservationId,
         text,
       );
       if (!mounted) return;
-      _messageController.clear();
-      setState(() => _messages.add(message));
+      setState(() {
+        final idx = _messages.indexWhere((m) => m.id == tempId);
+        if (idx != -1) {
+          _messages[idx] = message;
+        } else if (_messages.every((m) => m.id != message.id)) {
+          _messages.add(message);
+        }
+        _messages.sort((a, b) => a.id.compareTo(b.id));
+      });
       _scrollToBottom();
+
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) unawaited(_refresh());
+      });
     } on ApiException catch (error) {
       if (mounted) {
+        setState(() {
+          _messages.removeWhere((m) => m.id == tempId);
+        });
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(error.message)));
@@ -361,7 +394,11 @@ class _ReservationConversationScreenState
       itemBuilder: (context, index) {
         final message = _messages[index];
         final mine = message.senderId != otherPartyId;
-        return _MessageBubble(message: message, mine: mine);
+        return _MessageBubble(
+          message: message,
+          mine: mine,
+          onCallBack: _conversation?.canCall == true ? _startCall : null,
+        );
       },
     );
   }
@@ -454,13 +491,27 @@ class _ReservationConversationScreenState
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message, required this.mine});
+  const _MessageBubble({
+    required this.message,
+    required this.mine,
+    this.onCallBack,
+  });
 
   final ConversationMessage message;
   final bool mine;
+  final VoidCallback? onCallBack;
 
   @override
   Widget build(BuildContext context) {
+    if (message.isCallLog) {
+      return _CallLogBubble(
+        message: message,
+        callLog: message.callLog!,
+        mine: mine,
+        onCallBack: onCallBack,
+      );
+    }
+
     final colors = Theme.of(context).colorScheme;
     final time = message.createdAt?.toLocal();
     final timeLabel = time == null
@@ -497,6 +548,127 @@ class _MessageBubble extends StatelessWidget {
                   color: mine
                       ? colors.onPrimary.withValues(alpha: 0.72)
                       : colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CallLogBubble extends StatelessWidget {
+  const _CallLogBubble({
+    required this.message,
+    required this.callLog,
+    required this.mine,
+    this.onCallBack,
+  });
+
+  final ConversationMessage message;
+  final ConversationCallLog callLog;
+  final bool mine;
+  final VoidCallback? onCallBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final time = message.createdAt?.toLocal();
+    final timeLabel = time == null
+        ? ''
+        : '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+
+    return Align(
+      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        width: 250,
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.6),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: colors.surfaceContainerHighest,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.phone_callback_rounded,
+                    size: 22,
+                    color: colors.onSurface,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        callLog.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        callLog.durationText,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            FilledButton.tonal(
+              onPressed: onCallBack,
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                backgroundColor: colors.surfaceContainerHighest,
+                foregroundColor: colors.onSurface,
+              ),
+              child: const Text(
+                'Call back',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            if (timeLabel.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                timeLabel,
+                textAlign: TextAlign.end,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 10,
                 ),
               ),
             ],

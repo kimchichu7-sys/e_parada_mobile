@@ -62,10 +62,10 @@
         <mxCell id="s1_dec_adm" value="Approve KYC&lt;br/&gt;Account?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#F5D0FE;strokeColor=#C026D3;strokeWidth=1.5;fontColor=#701A75;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="1850" y="615" width="160" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="s1_api_reject" value="&lt;b&gt;[PATCH /admin/users/{id}/reject]&lt;/b&gt;&lt;br/&gt;verification_status='rejected', notify user" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+        <mxCell id="s1_api_reject" value="&lt;b&gt;[PATCH /admin/users/{id}/reject]&lt;/b&gt;&lt;br/&gt;Set verification_status='rejected' &amp;amp; dispatch Brevo email" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="780" y="620" width="400" height="60" as="geometry"/>
         </mxCell>
-        <mxCell id="s1_api_approve" value="&lt;b&gt;[PATCH /admin/users/{id}/approve]&lt;/b&gt;&lt;br/&gt;verification_status='approved', can_reserve=true" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+        <mxCell id="s1_api_approve" value="&lt;b&gt;[PATCH /admin/users/{id}/approve]&lt;/b&gt;&lt;br/&gt;Set verification_status='approved' &amp;amp; dispatch Brevo email" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="780" y="705" width="400" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="s1_db_update" value="&lt;b&gt;Database: Update Permissions&lt;/b&gt;&lt;br/&gt;UPDATE users SET verification_status='approved'" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
@@ -353,7 +353,7 @@
         <mxCell id="s5_own_cash_confirm" value="&lt;b&gt;Subroutine: markCashPaid()&lt;/b&gt;&lt;br/&gt;Host confirms physical receipt&lt;br/&gt;[PATCH /owner/reservations/{id}/mark-paid]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="1280" y="3055" width="380" height="65" as="geometry"/>
         </mxCell>
-        <mxCell id="s5_drv_online" value="&lt;b&gt;Subroutine: uploadPaymentProof()&lt;/b&gt;&lt;br/&gt;Attach GCash / bank transfer screenshot&lt;br/&gt;[POST /driver/reservations/{id}/payment]" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+        <mxCell id="s5_drv_online" value="&lt;b&gt;Subroutine: processEWalletPayment()&lt;/b&gt;&lt;br/&gt;PayMongo Checkout / payment proof upload&lt;br/&gt;[POST /driver/reservations/{id}/payment]" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="500" y="3055" width="210" height="65" as="geometry"/>
         </mxCell>
         <mxCell id="s5_own_view_proof" value="&lt;b&gt;Subroutine: fetchPaymentProof()&lt;/b&gt;&lt;br/&gt;Host streams image [GET .../payment-proof]&lt;br/&gt;Validates reference &amp;amp; marks verified" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
@@ -383,7 +383,7 @@
         <mxCell id="es5_02" value="Cash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="s5_dec_method" target="s5_drv_cash">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="es5_03" value="GCash / E-Wallet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="s5_dec_method" target="s5_drv_online">
+        <mxCell id="es5_03" value="PayMongo (GCash/Maya)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="s5_dec_method" target="s5_drv_online">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="es5_04" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="s5_drv_cash" target="s5_own_cash_confirm">

@@ -5,7 +5,7 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="hdr_title" value="&lt;b&gt;E-PARADA: CROSS-FUNCTIONAL END-TO-END SYSTEM ARCHITECTURE FLOWCHART&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size: 12px; font-weight: normal; color: #94A3B8;&quot;&gt;Flutter Mobile Client (ph.eparada.mobile) • Laravel Backend REST API &amp;amp; Sanctum • Space Provider • System Administrator • MySQL &amp;amp; Cloud Integrations&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#1E293B;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+        <mxCell id="hdr_title" value="&lt;b&gt;E-PARADA: CROSS-FUNCTIONAL END-TO-END SYSTEM ARCHITECTURE FLOWCHART&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size: 12px; font-weight: normal; color: #94A3B8;&quot;&gt;Flutter Mobile Client (ph.eparada.mobile) • Laravel Backend REST API &amp;amp; Sanctum • Space Provider • System Administrator • Supabase PostgreSQL, Brevo SMTP &amp;amp; Cloud Integrations&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#1E293B;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
           <mxGeometry x="0" y="0" width="2660" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="lane_phase" value="SYSTEM LIFECYCLE PHASES" style="swimlane;whiteSpace=wrap;html=1;startSize=50;fillColor=#1E293B;strokeColor=#334155;fontColor=#FFFFFF;fontStyle=1;fontSize=13;align=center;swimlaneFillColor=#F8FAFC;" vertex="1" parent="1">
@@ -50,7 +50,7 @@
         <mxCell id="p1_db_store_user" value="&lt;b&gt;Database: Insert Users &amp;amp; Vehicles&lt;/b&gt;&lt;br/&gt;• INSERT INTO users (status: 'pending')&lt;br/&gt;• INSERT INTO vehicles (status: 'pending')&lt;br/&gt;• Store ID &amp;amp; Vehicle photos to storage/app" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="2220" y="250" width="380" height="80" as="geometry"/>
         </mxCell>
-        <mxCell id="p1_api_token" value="&lt;b&gt;Sanctum Token &amp;amp; Role Setup&lt;/b&gt;&lt;br/&gt;Generate Personal Access Token (Bearer),&lt;br/&gt;Assign initial permissions &amp;amp; quotas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+        <mxCell id="p1_api_token" value="&lt;b&gt;Sanctum Token &amp;amp; Brevo Email Verification&lt;/b&gt;&lt;br/&gt;Issue Bearer Token &amp;amp; dispatch signed&lt;br/&gt;email verification link via Brevo SMTP relay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6366F1;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="780" y="355" width="400" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="p1_drv_store_session" value="&lt;b&gt;Save Session Locally&lt;/b&gt;&lt;br/&gt;Store auth_token, user_id, role,&lt;br/&gt;can_reserve flag to SharedPreferences" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
@@ -425,7 +425,7 @@
         <mxCell id="p5_own_mark_paid" value="&lt;b&gt;Host Confirms Cash Received&lt;/b&gt;&lt;br/&gt;[PATCH /api/owner/reservations/{id}/mark-paid]&lt;br/&gt;Set payment_method='cash', payment_status='paid'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="1280" y="3530" width="380" height="65" as="geometry"/>
         </mxCell>
-        <mxCell id="p5_drv_pay_online" value="&lt;b&gt;GCash / Online Transfer Payment&lt;/b&gt;&lt;br/&gt;[POST /api/driver/reservations/{id}/payment]&lt;br/&gt;Driver attaches digital receipt payment_proof image" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
+        <mxCell id="p5_drv_pay_online" value="&lt;b&gt;PayMongo / E-Wallet Payment&lt;/b&gt;&lt;br/&gt;[POST /api/driver/reservations/{id}/payment]&lt;br/&gt;Driver completes checkout (GCash/Maya) or proof upload" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;fontColor=#1E3A8A;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
           <mxGeometry x="490" y="3530" width="220" height="65" as="geometry"/>
         </mxCell>
         <mxCell id="p5_own_verify_proof" value="&lt;b&gt;Host Inspects Payment Proof&lt;/b&gt;&lt;br/&gt;[GET /api/owner/reservations/{id}/payment-proof]&lt;br/&gt;View digital screenshot &amp;amp; confirm transaction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontColor=#1E293B;fontSize=11;align=center;verticalAlign=middle;shadow=1;" vertex="1" parent="1">
@@ -473,7 +473,7 @@
         <mxCell id="e5_01" value="Cash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_dec_pay_method" target="p5_drv_pay_cash">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e5_02" value="GCash / E-Wallet" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_dec_pay_method" target="p5_drv_pay_online">
+        <mxCell id="e5_02" value="PayMongo (GCash/Maya)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="p5_dec_pay_method" target="p5_drv_pay_online">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="e5_03" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#334155;strokeWidth=1.5;fontSize=11;fontColor=#1E293B;" edge="1" parent="1" source="p5_drv_pay_cash" target="p5_own_mark_paid">

@@ -127,7 +127,7 @@ def create_drawio_flowchart():
 
     # 1. Canvas Top Header
     add_vertex('hdr_title', 
-               '<b>E-PARADA: CROSS-FUNCTIONAL END-TO-END SYSTEM ARCHITECTURE FLOWCHART</b><br/><span style="font-size: 12px; font-weight: normal; color: #94A3B8;">Flutter Mobile Client (ph.eparada.mobile) • Laravel Backend REST API &amp; Sanctum • Space Provider • System Administrator • MySQL &amp; Cloud Integrations</span>', 
+               '<b>E-PARADA: CROSS-FUNCTIONAL END-TO-END SYSTEM ARCHITECTURE FLOWCHART</b><br/><span style="font-size: 12px; font-weight: normal; color: #94A3B8;">Flutter Mobile Client (ph.eparada.mobile) • Laravel Backend REST API &amp; Sanctum • Space Provider • System Administrator • Supabase PostgreSQL, Brevo SMTP &amp; Cloud Integrations</span>', 
                title_style, 0, 0, 2660, 60)
 
     # 2. Main Swimlanes (6 Columns)
@@ -172,7 +172,7 @@ def create_drawio_flowchart():
 
     add_vertex('p1_db_store_user', '<b>Database: Insert Users &amp; Vehicles</b><br/>• INSERT INTO users (status: \'pending\')<br/>• INSERT INTO vehicles (status: \'pending\')<br/>• Store ID &amp; Vehicle photos to storage/app', db_style, 2220, 250, 380, 80)
 
-    add_vertex('p1_api_token', '<b>Sanctum Token &amp; Role Setup</b><br/>Generate Personal Access Token (Bearer),<br/>Assign initial permissions &amp; quotas', api_proc_style, 780, 355, 400, 60)
+    add_vertex('p1_api_token', '<b>Sanctum Token &amp; Brevo Email Verification</b><br/>Issue Bearer Token &amp; dispatch signed<br/>email verification link via Brevo SMTP relay', api_proc_style, 780, 355, 400, 60)
 
     add_vertex('p1_drv_store_session', '<b>Save Session Locally</b><br/>Store auth_token, user_id, role,<br/>can_reserve flag to SharedPreferences', driver_proc_style, 310, 355, 340, 60)
 
@@ -382,7 +382,7 @@ def create_drawio_flowchart():
 
     add_vertex('p5_own_mark_paid', '<b>Host Confirms Cash Received</b><br/>[PATCH /api/owner/reservations/{id}/mark-paid]<br/>Set payment_method=\'cash\', payment_status=\'paid\'', owner_proc_style, 1280, 3530, 380, 65)
 
-    add_vertex('p5_drv_pay_online', '<b>GCash / Online Transfer Payment</b><br/>[POST /api/driver/reservations/{id}/payment]<br/>Driver attaches digital receipt payment_proof image', driver_input_style, 490, 3530, 220, 65)
+    add_vertex('p5_drv_pay_online', '<b>PayMongo / E-Wallet Payment</b><br/>[POST /api/driver/reservations/{id}/payment]<br/>Driver completes checkout (GCash/Maya) or proof upload', driver_input_style, 490, 3530, 220, 65)
 
     add_vertex('p5_own_verify_proof', '<b>Host Inspects Payment Proof</b><br/>[GET /api/owner/reservations/{id}/payment-proof]<br/>View digital screenshot &amp; confirm transaction', owner_proc_style, 1280, 3625, 380, 65)
 
@@ -414,7 +414,7 @@ def create_drawio_flowchart():
 
     # Phase 5 Edges
     add_edge('e5_01', 'p5_dec_pay_method', 'p5_drv_pay_cash', edge_flow, label='Cash', exit_x=0, exit_y=0.5, entry_x=0.5, entry_y=0)
-    add_edge('e5_02', 'p5_dec_pay_method', 'p5_drv_pay_online', edge_flow, label='GCash / E-Wallet', exit_x=1, exit_y=0.5, entry_x=0.5, entry_y=0)
+    add_edge('e5_02', 'p5_dec_pay_method', 'p5_drv_pay_online', edge_flow, label='PayMongo (GCash/Maya)', exit_x=1, exit_y=0.5, entry_x=0.5, entry_y=0)
     add_edge('e5_03', 'p5_drv_pay_cash', 'p5_own_mark_paid', edge_flow)
     add_edge('e5_04', 'p5_drv_pay_online', 'p5_own_verify_proof', edge_flow)
     add_edge('e5_05', 'p5_own_mark_paid', 'p5_api_update_pay', edge_flow)

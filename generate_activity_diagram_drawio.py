@@ -169,7 +169,7 @@ def generate_planar_zero_crossing_activity_diagram():
     add_v('lane_1', 'DRIVER\n(Flutter Client)', lane_style, x_l1, y_lane, lw, lh)
     add_v('lane_2', 'SYSTEM\n(Backend API &amp; Controller)', lane_style, x_l2, y_lane, lw, lh)
     add_v('lane_3', 'PARKING SPACE PROVIDER\n(Host Hub)', lane_style, x_l3, y_lane, lw, lh)
-    add_v('lane_4', 'SYSTEM (SERVICES)\n(Checkpoint &amp; GCash Gateway)', lane_style, x_l4, y_lane, lw, lh)
+    add_v('lane_4', 'SYSTEM (SERVICES)\n(APIs, Mapping &amp; Billing)', lane_style, x_l4, y_lane, lw, lh)
     add_v('lane_5', 'SYSTEM ADMINISTRATOR\n(Console &amp; Compliance)', lane_style, x_l5, y_lane, lw, lh)
 
     # -------------------------------------------------------------------------
@@ -320,12 +320,12 @@ def generate_planar_zero_crossing_activity_diagram():
     # Payment Decision
     add_v('d_pay_dec', '', dec_style, 144, 1210, 28, 28)
     add_v('d_pay_cash', 'Cash Payment', act_style, 30, 1250, 110, 32)
-    add_v('d_pay_gcash', 'GCash Payment Intent', act_style, 160, 1250, 110, 32)
+    add_v('d_pay_gcash', 'PayMongo Payment', act_style, 160, 1250, 110, 32)
     add_v('d_pay_merge', '', dec_style, 144, 1295, 28, 28)
 
     add_e('e_d19', 'd_reserve', 'd_pay_dec', edge_style)
     add_e('e_d20', 'd_pay_dec', 'd_pay_cash', edge_label_style, label='[Cash]', exit_x=0, exit_y=0.5, entry_x=0.5, entry_y=0)
-    add_e('e_d21', 'd_pay_dec', 'd_pay_gcash', edge_label_style, label='[GCash]', exit_x=1, exit_y=0.5, entry_x=0.5, entry_y=0)
+    add_e('e_d21', 'd_pay_dec', 'd_pay_gcash', edge_label_style, label='[PayMongo (GCash/Maya)]', exit_x=1, exit_y=0.5, entry_x=0.5, entry_y=0)
     add_e('e_d22', 'd_pay_cash', 'd_pay_merge', edge_style, exit_x=0.5, exit_y=1, entry_x=0, entry_y=0.5)
     add_e('e_d23', 'd_pay_gcash', 'd_pay_merge', edge_style, exit_x=0.5, exit_y=1, entry_x=1, entry_y=0.5)
 

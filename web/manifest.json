@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#160B24",
     "theme_color": "#6D28D9",
-    "description": "Smart Parking. Made Local.",
+    "description": "Find Parking. Made Local.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

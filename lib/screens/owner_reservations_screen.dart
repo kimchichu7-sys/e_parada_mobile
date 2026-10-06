@@ -75,11 +75,16 @@ class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
     _fetch();
   }
 
-  Future<void> _perform(Future<String> Function() action) async {
+  Future<void> _perform(
+    Future<String> Function() action, {
+    VoidCallback? onOptimistic,
+  }) async {
     if (_acting) return;
     setState(() {
       _acting = true;
     });
+
+    onOptimistic?.call();
 
     try {
       final message = await action();
@@ -96,6 +101,7 @@ class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+      await _refresh();
     } finally {
       if (mounted) {
         setState(() {
@@ -117,6 +123,18 @@ class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
         reservation.id,
         notes: notes,
       ),
+      onOptimistic: () {
+        setState(() {
+          final idx =
+              _reservations?.indexWhere((r) => r.id == reservation.id) ?? -1;
+          if (idx != -1 && _reservations != null) {
+            _reservations![idx] = _reservations![idx].copyWith(
+              status: 'approved',
+              ownerNotes: notes,
+            );
+          }
+        });
+      },
     );
   }
 
@@ -133,6 +151,18 @@ class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
         reservation.id,
         notes: notes,
       ),
+      onOptimistic: () {
+        setState(() {
+          final idx =
+              _reservations?.indexWhere((r) => r.id == reservation.id) ?? -1;
+          if (idx != -1 && _reservations != null) {
+            _reservations![idx] = _reservations![idx].copyWith(
+              status: 'rejected',
+              ownerNotes: notes,
+            );
+          }
+        });
+      },
     );
   }
 

@@ -183,9 +183,9 @@ def create_subroutines_drawio():
 
     add_vertex('s1_dec_adm', 'Approve KYC<br/>Account?', admin_decision_style, 1850, 615, 160, 70)
 
-    add_vertex('s1_api_reject', '<b>[PATCH /admin/users/{id}/reject]</b><br/>verification_status=\'rejected\', notify user', api_proc_style, 780, 620, 400, 60)
+    add_vertex('s1_api_reject', '<b>[PATCH /admin/users/{id}/reject]</b><br/>Set verification_status=\'rejected\' &amp; dispatch Brevo email', api_proc_style, 780, 620, 400, 60)
 
-    add_vertex('s1_api_approve', '<b>[PATCH /admin/users/{id}/approve]</b><br/>verification_status=\'approved\', can_reserve=true', api_proc_style, 780, 705, 400, 60)
+    add_vertex('s1_api_approve', '<b>[PATCH /admin/users/{id}/approve]</b><br/>Set verification_status=\'approved\' &amp; dispatch Brevo email', api_proc_style, 780, 705, 400, 60)
 
     add_vertex('s1_db_update', '<b>Database: Update Permissions</b><br/>UPDATE users SET verification_status=\'approved\'', db_style, 2220, 705, 380, 60)
 
@@ -344,7 +344,7 @@ def create_subroutines_drawio():
 
     add_vertex('s5_own_cash_confirm', '<b>Subroutine: markCashPaid()</b><br/>Host confirms physical receipt<br/>[PATCH /owner/reservations/{id}/mark-paid]', owner_proc_style, 1280, 3055, 380, 65)
 
-    add_vertex('s5_drv_online', '<b>Subroutine: uploadPaymentProof()</b><br/>Attach GCash / bank transfer screenshot<br/>[POST /driver/reservations/{id}/payment]', driver_input_style, 500, 3055, 210, 65)
+    add_vertex('s5_drv_online', '<b>Subroutine: processEWalletPayment()</b><br/>PayMongo Checkout / payment proof upload<br/>[POST /driver/reservations/{id}/payment]', driver_input_style, 500, 3055, 210, 65)
 
     add_vertex('s5_own_view_proof', '<b>Subroutine: fetchPaymentProof()</b><br/>Host streams image [GET .../payment-proof]<br/>Validates reference &amp; marks verified', owner_proc_style, 1280, 3145, 380, 65)
 
@@ -362,7 +362,7 @@ def create_subroutines_drawio():
 
     add_edge('es5_01', 's5_start', 's5_dec_method', edge_flow)
     add_edge('es5_02', 's5_dec_method', 's5_drv_cash', edge_flow, label='Cash', exit_x=0, exit_y=0.5, entry_x=0.5, entry_y=0)
-    add_edge('es5_03', 's5_dec_method', 's5_drv_online', edge_flow, label='GCash / E-Wallet', exit_x=1, exit_y=0.5, entry_x=0.5, entry_y=0)
+    add_edge('es5_03', 's5_dec_method', 's5_drv_online', edge_flow, label='PayMongo (GCash/Maya)', exit_x=1, exit_y=0.5, entry_x=0.5, entry_y=0)
     add_edge('es5_04', 's5_drv_cash', 's5_own_cash_confirm', edge_flow)
     add_edge('es5_05', 's5_drv_online', 's5_own_view_proof', edge_flow)
     add_edge('es5_06', 's5_own_cash_confirm', 's5_api_set_paid', edge_flow)

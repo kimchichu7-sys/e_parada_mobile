@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background-color: #FFFFFF; font-family: Arial, Helvetica, sans-serif; position: relative; }
+  .table-card { position: absolute; background: #FFFFFF; border-radius: 2px; box-shadow: 2px 3px 8px rgba(0,0,0,0.08); overflow: hidden; }
+  .table-title { color: #FFFFFF; font-weight: bold; font-size: 13px; padding: 6px 10px; }
+  table { width: 100%; border-collapse: collapse; font-family: "Courier New", Courier, monospace; font-size: 11px; }
+  tr { border-bottom: 1px solid #E2E8F0; height: 23px; }
+  tr:last-child { border-bottom: none; }
+  td { padding: 2px 8px; vertical-align: middle; }
+  .col-name { color: #0f172a; width: 58%; }
+  .col-type { width: 42%; }
+  .bold { font-weight: bold; }
+  .standard-type { color: #334155; }
+  .fixed-type { color: #1E1B4B; font-weight: bold; background-color: #EEF2FF; border-radius: 3px; padding: 1px 4px; }
+  svg.connectors { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+  .edge-line { stroke-width: 1.6; fill: none; }
+  .edge-label { font-family: "Courier New", Courier, monospace; font-size: 10.5px; fill: #1E293B; }
+  .cardinality-badge { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; }
+
+  /* Legend */
+  .legend-box {
+    position: absolute;
+    right: 40px;
+    top: 90px;
+    width: 280px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 11.5px;
+    color: #1E293B;
+  }
+  .legend-title { font-weight: bold; margin-bottom: 6px; color: #0F172A; }
+  .legend-item { display: flex; align-items: center; margin-bottom: 4px; font-family: "Courier New", Courier, monospace; }
+  .legend-symbol { width: 45px; font-weight: bold; }
+
+body { width: 1560px; height: 720px; padding: 25px; }
+.main-header h1 { font-size: 22px; color: #1E3A8A; }
+.main-header p { font-size: 12px; color: #475569; margin-top: 3px; }
+.edge-line { stroke: #1D4ED8; }
+.cardinality-badge { fill: #1D4ED8; }
+.legend-symbol { color: #1D4ED8; }
+</style></head>
+<body>
+<div class="main-header" style="position: absolute; top: 25px; left: 40px;">
+  <h1>Figure 14. E-Parada Real-Time Communications & Notification Subsystem (Crow's Foot ERD)</h1>
+  <p>In-app chat, WebRTC VoIP signaling, FCM background push tokens, and in-app notifications.</p>
+</div>
+
+<div class="table-card" style="left: 40px; top: 90px; width: 260px; border: 1px solid #475569;">
+  <div class="table-title" style="background:#475569;">Users (Core Stub)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">name</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">email</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">role</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+<div class="table-card" style="left: 40px; top: 320px; width: 260px; border: 1px solid #475569;">
+  <div class="table-title" style="background:#475569;">Reservations (Core Stub)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK parking_space_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">status</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+
+<div class="table-card" style="left: 360px; top: 90px; width: 330px; border: 1px solid #4338CA;">
+  <div class="table-title" style="background:#4338CA;">User Device Tokens (FCM Push)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">token</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">token_hash</td><td class="col-type standard-type">: varchar(64)</td></tr><tr><td class="col-name ">platform</td><td class="col-type standard-type">: varchar(32)</td></tr><tr><td class="col-name ">device_name</td><td class="col-type standard-type">: varchar(128)</td></tr><tr><td class="col-name ">last_used_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+<div class="table-card" style="left: 740px; top: 90px; width: 330px; border: 1px solid #4338CA;">
+  <div class="table-title" style="background:#4338CA;">Notifications (In-App Tray)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">title</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">message</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">type</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">link</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">read_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+
+<div class="table-card" style="left: 360px; top: 380px; width: 330px; border: 1px solid #1D4ED8;">
+  <div class="table-title" style="background:#1D4ED8;">Reservation Messages (Chat)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK reservation_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK sender_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">body</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">read_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+<div class="table-card" style="left: 740px; top: 380px; width: 330px; border: 1px solid #1D4ED8;">
+  <div class="table-title" style="background:#1D4ED8;">Reservation Calls (WebRTC)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK reservation_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK caller_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK callee_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">status</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">answered_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">ended_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+<div class="table-card" style="left: 1120px; top: 380px; width: 350px; border: 1px solid #1D4ED8;">
+  <div class="table-title" style="background:#1D4ED8;">Reservation Call Signals (SDP/ICE)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK reservation_call_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK sender_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">type</td><td class="col-type standard-type">: varchar(20)</td></tr><tr><td class="col-name ">payload</td><td class="col-type standard-type">: json</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+
+<!-- Legend -->
+<div class="legend-box">
+  <div class="legend-title">Crow's Foot Cardinalities:</div>
+  <div class="legend-item"><span class="legend-symbol">||</span> Mandatory One (1)</div>
+  <div class="legend-item"><span class="legend-symbol">&gt;o</span> Optional Many (0..*)</div>
+  <div class="legend-item"><span class="legend-symbol">&gt;|</span> Mandatory Many (1..*)</div>
+</div>
+
+<svg class="connectors">
+  <defs>
+    <marker id="crows-one-b" viewBox="0 0 16 16" refX="4" refY="8" markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <line x1="4" y1="1" x2="4" y2="15" stroke="#1D4ED8" stroke-width="1.8"/>
+      <line x1="9" y1="1" x2="9" y2="15" stroke="#1D4ED8" stroke-width="1.8"/>
+    </marker>
+    <marker id="crows-zero-many-b" viewBox="0 0 24 16" refX="22" refY="8" markerWidth="16" markerHeight="12" orient="auto-start-reverse">
+      <circle cx="5" cy="8" r="3.5" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="8" stroke="#1D4ED8" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="2" stroke="#1D4ED8" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="14" stroke="#1D4ED8" stroke-width="1.8"/>
+    </marker>
+    <marker id="crows-one-many-b" viewBox="0 0 24 16" refX="22" refY="8" markerWidth="16" markerHeight="12" orient="auto-start-reverse">
+      <line x1="5" y1="1" x2="5" y2="15" stroke="#1D4ED8" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="8" stroke="#1D4ED8" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="2" stroke="#1D4ED8" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="14" stroke="#1D4ED8" stroke-width="1.8"/>
+    </marker>
+  </defs>
+
+  <!-- Users (1) -> Tokens (0..*) -->
+  <path class="edge-line" d="M 300 140 L 360 140" marker-start="url(#crows-one-b)" marker-end="url(#crows-zero-many-b)"/>
+  <rect x="305" y="128" width="50" height="13" fill="#FFF"/>
+  <text class="edge-label" x="307" y="138">user_id</text>
+  <text class="cardinality-badge" x="305" y="155">1</text>
+  <text class="cardinality-badge" x="340" y="155">0..*</text>
+
+  <!-- Users (1) -> Notifs (0..*) -->
+  <path class="edge-line" d="M 300 115 L 330 115 L 330 65 L 710 65 L 710 130 L 740 130" marker-start="url(#crows-one-b)" marker-end="url(#crows-zero-many-b)"/>
+  <rect x="490" y="58" width="80" height="13" fill="#FFF"/>
+  <text class="edge-label" x="492" y="68">user_id -&gt; id</text>
+  <text class="cardinality-badge" x="305" y="110">1</text>
+  <text class="cardinality-badge" x="715" y="125">0..*</text>
+
+  <!-- Res (1) -> Messages (0..*) -->
+  <path class="edge-line" d="M 300 370 L 360 370 L 360 410" marker-start="url(#crows-one-b)" marker-end="url(#crows-zero-many-b)"/>
+  <rect x="305" y="358" width="50" height="13" fill="#FFF"/>
+  <text class="edge-label" x="307" y="368">res_id</text>
+  <text class="cardinality-badge" x="305" y="385">1</text>
+  <text class="cardinality-badge" x="345" y="405">0..*</text>
+
+  <!-- Res (1) -> Calls (0..*) -->
+  <path class="edge-line" d="M 300 420 L 330 420 L 330 610 L 710 610 L 710 460 L 740 460" marker-start="url(#crows-one-b)" marker-end="url(#crows-zero-many-b)"/>
+  <rect x="490" y="603" width="95" height="13" fill="#FFF"/>
+  <text class="edge-label" x="492" y="613">reservation_id</text>
+  <text class="cardinality-badge" x="305" y="435">1</text>
+  <text class="cardinality-badge" x="715" y="455">0..*</text>
+
+  <!-- Calls (1) -> Signals (1..*) [IDENTIFYING STREAM] -->
+  <path class="edge-line" d="M 1070 440 L 1120 440" marker-start="url(#crows-one-b)" marker-end="url(#crows-one-many-b)"/>
+  <rect x="1072" y="428" width="45" height="13" fill="#FFF"/>
+  <text class="edge-label" x="1074" y="438">call_id</text>
+  <text class="cardinality-badge" x="1072" y="455">1</text>
+  <text class="cardinality-badge" x="1102" y="455">1..*</text>
+</svg>
+</body></html>

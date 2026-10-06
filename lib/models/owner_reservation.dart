@@ -131,6 +131,47 @@ class OwnerReservation {
     );
   }
 
+  OwnerReservation copyWith({
+    String? status,
+    String? ownerNotes,
+    String? paymentStatus,
+    bool? canCancel,
+    bool? canMarkPaid,
+  }) {
+    return OwnerReservation(
+      id: id,
+      backupReference: backupReference,
+      driverName: driverName,
+      plateNumber: plateNumber,
+      vehicleType: vehicleType,
+      vehicleColor: vehicleColor,
+      vehicleMake: vehicleMake,
+      vehicleModel: vehicleModel,
+      parkingSpaceName: parkingSpaceName,
+      slotLabel: slotLabel,
+      reservationDate: reservationDate,
+      endDate: endDate,
+      startTime: startTime,
+      endTime: endTime,
+      status: status ?? this.status,
+      ownerNotes: ownerNotes ?? this.ownerNotes,
+      totalAmount: totalAmount,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentMethod: paymentMethod,
+      hasPaymentProof: hasPaymentProof,
+      timeIn: timeIn,
+      timeOut: timeOut,
+      canCancel: canCancel ?? this.canCancel,
+      canMarkPaid: canMarkPaid ?? this.canMarkPaid,
+      extensionStatus: extensionStatus,
+      extensionEndDate: extensionEndDate,
+      extensionEndTime: extensionEndTime,
+      extensionReason: extensionReason,
+      extensionOwnerNotes: extensionOwnerNotes,
+      hasPendingExtension: hasPendingExtension,
+    );
+  }
+
   static Map<String, dynamic> _map(dynamic value) {
     if (value is Map) return Map<String, dynamic>.from(value);
     return <String, dynamic>{};

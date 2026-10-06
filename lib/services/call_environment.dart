@@ -1,19 +1,19 @@
 import 'package:flutter/foundation.dart';
 
-const _insecureCallMessage =
+const insecureCallMessage =
     'Audio calls require a secure HTTPS connection on phones. '
     'Open E-Parada using an HTTPS address, then try again.';
 
-const _microphonePermissionMessage =
+const microphonePermissionMessage =
     'Microphone access is blocked. Allow microphone access for E-Parada '
-    'in your browser settings, then try again.';
+    'in your settings, then try again.';
 
 String? callPreflightMessage({required bool isWeb, required Uri pageUri}) {
   if (!isWeb || pageUri.scheme == 'https' || _isLoopback(pageUri.host)) {
     return null;
   }
 
-  return _insecureCallMessage;
+  return insecureCallMessage;
 }
 
 String callSetupErrorMessage(Object error) {
@@ -22,8 +22,10 @@ String callSetupErrorMessage(Object error) {
   if (details.contains('notallowederror') ||
       details.contains('permission denied') ||
       details.contains('permissiondismissed') ||
-      details.contains('permission denied by system')) {
-    return _microphonePermissionMessage;
+      details.contains('permission denied by system') ||
+      details.contains('mediastreamtrack initialization failed') ||
+      details.contains('getusermediafailed')) {
+    return microphonePermissionMessage;
   }
 
   if (details.contains('notfounderror') ||

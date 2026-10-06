@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/driver_reservation.dart';
@@ -27,11 +28,31 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   bool _loading = true;
   String? _errorMessage;
   bool _acting = false;
+  Timer? _statusPollTimer;
 
   @override
   void initState() {
     super.initState();
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    _statusPollTimer?.cancel();
+    super.dispose();
+  }
+
+  void _checkPendingPoll(List<DriverReservation>? items) {
+    final hasPending = items?.any((r) => r.status.toLowerCase() == 'pending') ?? false;
+    if (hasPending && (_statusPollTimer == null || !_statusPollTimer!.isActive)) {
+      _statusPollTimer?.cancel();
+      _statusPollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+        if (mounted) _refresh();
+      });
+    } else if (!hasPending && _statusPollTimer != null) {
+      _statusPollTimer?.cancel();
+      _statusPollTimer = null;
+    }
   }
 
   Future<void> _fetch() async {
@@ -47,6 +68,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
         _reservations = items;
         _loading = false;
       });
+      _checkPendingPoll(items);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -65,6 +87,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
         _reservations = items;
         _errorMessage = null;
       });
+      _checkPendingPoll(items);
     } catch (error) {
       if (!mounted) return;
       setState(() {

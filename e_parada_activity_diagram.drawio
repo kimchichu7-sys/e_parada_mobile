@@ -8,19 +8,24 @@
         <mxCell id="hdr_title" value="E-PARADA: PLANAR UML 2.0 ACTIVITY DIAGRAM (ZERO LINE CROSSINGS)" style="text;html=1;align=center;verticalAlign=middle;fontStyle=1;fontSize=15;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="0" y="8" width="1450" height="25" as="geometry"/>
         </mxCell>
-        <mxCell id="lane_1" value="DRIVER&#10;(Flutter Client)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
+        <mxCell id="lane_1" value="DRIVER
+(Flutter Client)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
           <mxGeometry x="15" y="35" width="285" height="1780" as="geometry"/>
         </mxCell>
-        <mxCell id="lane_2" value="SYSTEM&#10;(Backend API &amp;amp; Controller)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
+        <mxCell id="lane_2" value="SYSTEM
+(Backend API &amp;amp; Controller)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
           <mxGeometry x="300" y="35" width="285" height="1780" as="geometry"/>
         </mxCell>
-        <mxCell id="lane_3" value="PARKING SPACE PROVIDER&#10;(Host Hub)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
+        <mxCell id="lane_3" value="PARKING SPACE PROVIDER
+(Host Hub)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
           <mxGeometry x="585" y="35" width="285" height="1780" as="geometry"/>
         </mxCell>
-        <mxCell id="lane_4" value="SYSTEM (SERVICES)&#10;(Checkpoint &amp;amp; GCash Gateway)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
+        <mxCell id="lane_4" value="SYSTEM (SERVICES)
+(APIs, Mapping &amp;amp; Billing)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
           <mxGeometry x="870" y="35" width="285" height="1780" as="geometry"/>
         </mxCell>
-        <mxCell id="lane_5" value="SYSTEM ADMINISTRATOR&#10;(Console &amp;amp; Compliance)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
+        <mxCell id="lane_5" value="SYSTEM ADMINISTRATOR
+(Console &amp;amp; Compliance)" style="swimlane;whiteSpace=wrap;html=1;startSize=45;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontStyle=1;fontSize=11;align=center;verticalAlign=top;swimlaneFillColor=#FFFFFF;collapsible=0;" vertex="1" parent="1">
           <mxGeometry x="1155" y="35" width="285" height="1780" as="geometry"/>
         </mxCell>
         <mxCell id="d_start" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
@@ -371,7 +376,7 @@
         <mxCell id="d_pay_cash" value="Cash Payment" style="rounded=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=9.5;align=center;verticalAlign=middle;spacing=2;" vertex="1" parent="1">
           <mxGeometry x="30" y="1250" width="110" height="32" as="geometry"/>
         </mxCell>
-        <mxCell id="d_pay_gcash" value="GCash Payment Intent" style="rounded=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=9.5;align=center;verticalAlign=middle;spacing=2;" vertex="1" parent="1">
+        <mxCell id="d_pay_gcash" value="PayMongo Payment" style="rounded=1;arcSize=22;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=9.5;align=center;verticalAlign=middle;spacing=2;" vertex="1" parent="1">
           <mxGeometry x="160" y="1250" width="110" height="32" as="geometry"/>
         </mxCell>
         <mxCell id="d_pay_merge" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=8.5;fontStyle=0;align=center;verticalAlign=middle;" vertex="1" parent="1">
@@ -383,7 +388,7 @@
         <mxCell id="e_d20" value="[Cash]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontSize=8;fontColor=#000000;fontStyle=2;endArrow=classic;endFill=1;;exitX=0;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="d_pay_dec" target="d_pay_cash">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e_d21" value="[GCash]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontSize=8;fontColor=#000000;fontStyle=2;endArrow=classic;endFill=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="d_pay_dec" target="d_pay_gcash">
+        <mxCell id="e_d21" value="[PayMongo (GCash/Maya)]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontSize=8;fontColor=#000000;fontStyle=2;endArrow=classic;endFill=1;;exitX=1;exitY=0.5;exitDx=0;exitDy=0;;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="d_pay_dec" target="d_pay_gcash">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="e_d22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontSize=8.5;fontColor=#000000;endArrow=classic;endFill=1;;exitX=0.5;exitY=1;exitDx=0;exitDy=0;;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="d_pay_cash" target="d_pay_merge">

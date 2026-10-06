@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background-color: #FFFFFF; font-family: Arial, Helvetica, sans-serif; position: relative; }
+  .table-card { position: absolute; background: #FFFFFF; border-radius: 2px; box-shadow: 2px 3px 8px rgba(0,0,0,0.08); overflow: hidden; }
+  .table-title { color: #FFFFFF; font-weight: bold; font-size: 13px; padding: 6px 10px; }
+  table { width: 100%; border-collapse: collapse; font-family: "Courier New", Courier, monospace; font-size: 11px; }
+  tr { border-bottom: 1px solid #E2E8F0; height: 23px; }
+  tr:last-child { border-bottom: none; }
+  td { padding: 2px 8px; vertical-align: middle; }
+  .col-name { color: #0f172a; width: 58%; }
+  .col-type { width: 42%; }
+  .bold { font-weight: bold; }
+  .standard-type { color: #334155; }
+  .fixed-type { color: #1E1B4B; font-weight: bold; background-color: #EEF2FF; border-radius: 3px; padding: 1px 4px; }
+  svg.connectors { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+  .edge-line { stroke-width: 1.6; fill: none; }
+  .edge-label { font-family: "Courier New", Courier, monospace; font-size: 10.5px; fill: #1E293B; }
+  .cardinality-badge { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; }
+
+  /* Legend */
+  .legend-box {
+    position: absolute;
+    right: 40px;
+    top: 90px;
+    width: 280px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 11.5px;
+    color: #1E293B;
+  }
+  .legend-title { font-weight: bold; margin-bottom: 6px; color: #0F172A; }
+  .legend-item { display: flex; align-items: center; margin-bottom: 4px; font-family: "Courier New", Courier, monospace; }
+  .legend-symbol { width: 45px; font-weight: bold; }
+
+body { width: 1560px; height: 750px; padding: 25px; }
+.main-header h1 { font-size: 22px; color: #0F766E; }
+.main-header p { font-size: 12px; color: #475569; margin-top: 3px; }
+.edge-line { stroke: #0D9488; }
+.cardinality-badge { fill: #0D9488; }
+.legend-symbol { color: #0D9488; }
+</style></head>
+<body>
+<div class="main-header" style="position: absolute; top: 25px; left: 40px;">
+  <h1>Figure 15. E-Parada Security Audit, Scanner Telemetry & Support Subsystem (Crow's Foot ERD)</h1>
+  <p>Administrative audit trail, QR entrance/exit verification telemetry, and help desk support.</p>
+</div>
+
+<div class="table-card" style="left: 40px; top: 90px; width: 250px; border: 1px solid #475569;">
+  <div class="table-title" style="background:#475569;">Users (Core Stub)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">name</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">email</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">role</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+<div class="table-card" style="left: 40px; top: 270px; width: 250px; border: 1px solid #475569;">
+  <div class="table-title" style="background:#475569;">Reservations (Core Stub)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK parking_space_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">status</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+<div class="table-card" style="left: 40px; top: 450px; width: 250px; border: 1px solid #475569;">
+  <div class="table-title" style="background:#475569;">Parking Spaces (Stub)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">space_name</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">address</td><td class="col-type standard-type">: varchar</td></tr></table>
+</div>
+
+<div class="table-card" style="left: 350px; top: 90px; width: 360px; border: 1px solid #0D9488;">
+  <div class="table-title" style="background:#0D9488;">Activity Logs (Admin Audit Trail)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK actor_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">action</td><td class="col-type standard-type">: varchar(30)</td></tr><tr><td class="col-name ">subject_type</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">subject_id</td><td class="col-type standard-type">: varchar(64)</td></tr><tr><td class="col-name ">description</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">old_values</td><td class="col-type standard-type">: json</td></tr><tr><td class="col-name ">new_values</td><td class="col-type standard-type">: json</td></tr><tr><td class="col-name ">ip_address</td><td class="col-type standard-type">: varchar(45)</td></tr><tr><td class="col-name ">user_agent</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">request_id</td><td class="col-type standard-type">: uuid</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+
+<div class="table-card" style="left: 770px; top: 90px; width: 340px; border: 1px solid #0D9488;">
+  <div class="table-title" style="background:#0D9488;">Support Requests (Help Desk)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">name</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">email</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">category</td><td class="col-type standard-type">: varchar(50)</td></tr><tr><td class="col-name ">subject</td><td class="col-type standard-type">: varchar</td></tr><tr><td class="col-name ">message</td><td class="col-type standard-type">: TEXT</td></tr><tr><td class="col-name ">status</td><td class="col-type standard-type">: varchar(30)</td></tr><tr><td class="col-name ">ip_address</td><td class="col-type standard-type">: varchar(45)</td></tr><tr><td class="col-name ">user_agent</td><td class="col-type standard-type">: varchar(500)</td></tr><tr><td class="col-name ">created_at</td><td class="col-type fixed-type">: timestamptz</td></tr><tr><td class="col-name ">updated_at</td><td class="col-type fixed-type">: timestamptz</td></tr></table>
+</div>
+
+<div class="table-card" style="left: 350px; top: 440px; width: 400px; border: 1px solid #0D9488;">
+  <div class="table-title" style="background:#0D9488;">QR Transaction Logs (Scanner Telemetry)</div><table><tr><td class="col-name bold">PK id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK reservation_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK parking_space_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name bold">FK actor_user_id</td><td class="col-type standard-type">: INTEGER</td></tr><tr><td class="col-name ">identifier_hash</td><td class="col-type standard-type">: char(64)</td></tr><tr><td class="col-name ">identifier_suffix</td><td class="col-type standard-type">: varchar(8)</td></tr><tr><td class="col-name ">lookup_method</td><td class="col-type standard-type">: varchar(30)</td></tr><tr><td class="col-name ">event_type</td><td class="col-type standard-type">: varchar(50)</td></tr><tr><td class="col-name ">was_successful</td><td class="col-type fixed-type">: boolean</td></tr><tr><td class="col-name ">failure_reason</td><td class="col-type standard-type">: varchar(255)</td></tr><tr><td class="col-name ">reservation_status_before</td><td class="col-type standard-type">: varchar(30)</td></tr><tr><td class="col-name ">...</td><td class="col-type standard-type">: 10 more fields</td></tr></table>
+</div>
+
+<!-- Legend -->
+<div class="legend-box">
+  <div class="legend-title">Crow's Foot Cardinalities:</div>
+  <div class="legend-item"><span class="legend-symbol">||</span> Mandatory One (1)</div>
+  <div class="legend-item"><span class="legend-symbol">o|</span> Optional One (0..1)</div>
+  <div class="legend-item"><span class="legend-symbol">&gt;o</span> Optional Many (0..*)</div>
+</div>
+
+<svg class="connectors">
+  <defs>
+    <marker id="crows-one-t" viewBox="0 0 16 16" refX="4" refY="8" markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <line x1="4" y1="1" x2="4" y2="15" stroke="#0D9488" stroke-width="1.8"/>
+      <line x1="9" y1="1" x2="9" y2="15" stroke="#0D9488" stroke-width="1.8"/>
+    </marker>
+    <marker id="crows-zero-one-t" viewBox="0 0 20 16" refX="16" refY="8" markerWidth="14" markerHeight="12" orient="auto-start-reverse">
+      <circle cx="5" cy="8" r="3.5" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+      <line x1="13" y1="1" x2="13" y2="15" stroke="#0D9488" stroke-width="1.8"/>
+    </marker>
+    <marker id="crows-zero-many-t" viewBox="0 0 24 16" refX="22" refY="8" markerWidth="16" markerHeight="12" orient="auto-start-reverse">
+      <circle cx="5" cy="8" r="3.5" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="8" stroke="#0D9488" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="2" stroke="#0D9488" stroke-width="1.8"/>
+      <line x1="10" y1="8" x2="22" y2="14" stroke="#0D9488" stroke-width="1.8"/>
+    </marker>
+  </defs>
+
+  <!-- Users (0..1) -> Activity (0..*) [System actions have null actor] -->
+  <path class="edge-line" d="M 290 140 L 350 140" marker-start="url(#crows-zero-one-t)" marker-end="url(#crows-zero-many-t)"/>
+  <rect x="295" y="128" width="50" height="13" fill="#FFF"/>
+  <text class="edge-label" x="297" y="138">actor_id</text>
+  <text class="cardinality-badge" x="295" y="155">0..1</text>
+  <text class="cardinality-badge" x="330" y="155">0..*</text>
+
+  <!-- Users (0..1) -> Support (0..*) [Guest tickets have null user] -->
+  <path class="edge-line" d="M 290 115 L 320 115 L 320 65 L 740 65 L 740 130 L 770 130" marker-start="url(#crows-zero-one-t)" marker-end="url(#crows-zero-many-t)"/>
+  <rect x="500" y="58" width="60" height="13" fill="#FFF"/>
+  <text class="edge-label" x="502" y="68">user_id -&gt; id</text>
+  <text class="cardinality-badge" x="295" y="110">0..1</text>
+  <text class="cardinality-badge" x="745" y="125">0..*</text>
+
+  <!-- Res (0..1) -> QR (0..*) -->
+  <path class="edge-line" d="M 290 320 L 320 320 L 320 480 L 350 480" marker-start="url(#crows-zero-one-t)" marker-end="url(#crows-zero-many-t)"/>
+  <rect x="295" y="380" width="50" height="13" fill="#FFF"/>
+  <text class="edge-label" x="297" y="390">res_id</text>
+  <text class="cardinality-badge" x="295" y="315">0..1</text>
+  <text class="cardinality-badge" x="330" y="475">0..*</text>
+
+  <!-- Spaces (0..1) -> QR (0..*) -->
+  <path class="edge-line" d="M 290 500 L 350 500" marker-start="url(#crows-zero-one-t)" marker-end="url(#crows-zero-many-t)"/>
+  <rect x="295" y="488" width="50" height="13" fill="#FFF"/>
+  <text class="edge-label" x="297" y="498">space_id</text>
+  <text class="cardinality-badge" x="295" y="515">0..1</text>
+  <text class="cardinality-badge" x="330" y="515">0..*</text>
+</svg>
+</body></html>
