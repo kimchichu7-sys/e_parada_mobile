@@ -445,6 +445,12 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     _speakerOn = !_speakerOn;
     if (!kIsWeb) {
       unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
+      final remoteTracks = _remoteRenderer.srcObject?.getAudioTracks() ?? [];
+      for (final track in remoteTracks) {
+        try {
+          Helper.setVolume(_speakerOn ? 1.0 : 0.7, track);
+        } catch (_) {}
+      }
     }
     setState(() {});
   }
