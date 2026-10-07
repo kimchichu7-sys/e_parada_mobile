@@ -506,6 +506,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     _connectionTimeoutTimer?.cancel();
     _connectionTimeoutTimer = null;
     _pollTimer?.cancel();
+    if (!kIsWeb) {
+      unawaited(AudioRoutingHelper.resetAudioRoute());
+    }
     for (final track in _localStream?.getTracks() ?? <MediaStreamTrack>[]) {
       track.stop();
     }
