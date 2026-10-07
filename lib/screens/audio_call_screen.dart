@@ -28,7 +28,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   static const _turnUrls = String.fromEnvironment(
     'WEBRTC_TURN_URLS',
     defaultValue:
-        'turn:openrelay.metered.ca:80,turn:openrelay.metered.ca:443,turn:openrelay.metered.ca:443?transport=tcp',
+        'turn:openrelay.metered.ca:80,turn:openrelay.metered.ca:443,turn:openrelay.metered.ca:443?transport=tcp,turns:openrelay.metered.ca:443,turns:openrelay.metered.ca:443?transport=tcp',
   );
   static const _turnUsername = String.fromEnvironment(
     'WEBRTC_TURN_USERNAME',
@@ -248,7 +248,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         });
       }
       _connectionTimeoutTimer?.cancel();
-      _connectionTimeoutTimer = Timer(const Duration(seconds: 30), () {
+      _connectionTimeoutTimer = Timer(const Duration(seconds: 50), () {
         if (mounted && !_connected) {
           unawaited(ConversationService.endCall(_call).catchError((_) => _call));
           Navigator.of(context).pop();
@@ -316,7 +316,16 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       _call = batch.call;
 
       if (mounted && !_connected && _call.status == 'accepted') {
-        setState(() => _status = 'Connecting audio...');
+        if (_status != 'Connecting audio...') {
+          setState(() => _status = 'Connecting audio...');
+          _connectionTimeoutTimer?.cancel();
+          _connectionTimeoutTimer = Timer(const Duration(seconds: 35), () {
+            if (mounted && !_connected) {
+              unawaited(ConversationService.endCall(_call).catchError((_) => _call));
+              Navigator.of(context).pop();
+            }
+          });
+        }
       }
 
       for (final signal in batch.signals) {
@@ -366,9 +375,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
     if (type == 'offer') {
       await _setRemoteDescription(payload);
-      _localAnswer = await _peerConnection!.createAnswer({
-        'offerToReceiveAudio': true,
-      });
+      _localAnswer = await _peerConnection!.createAnswer();
       await _peerConnection!.setLocalDescription(_localAnswer!);
       await ConversationService.sendSignal(_call, 'answer', {
         'sdp': _localAnswer!.sdp,
