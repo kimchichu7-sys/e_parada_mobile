@@ -52,7 +52,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   bool _rendererInitialized = false;
   bool _connected = false;
   bool _muted = false;
-  bool _speakerOn = true;
+  bool _speakerOn = false;
   bool _busy = true;
   bool _polling = false;
   bool _setupFailed = false;
@@ -301,6 +301,13 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     _remoteDescriptionSet = false;
     _localAnswer = null;
     _connected = false;
+    if (!kIsWeb) {
+      try {
+        Helper.setSpeakerphoneOn(false);
+      } catch (_) {}
+    }
+    _speakerOn = false;
+    _muted = false;
     _lastSignalId = 0;
     _pendingCandidates.clear();
   }
@@ -597,32 +604,137 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                     ],
                   ),
                 ],
-                const SizedBox(height: 48),
+                if (_muted) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colors.errorContainer,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: colors.error.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.mic_off, size: 16, color: colors.onErrorContainer),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Your microphone is muted',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: colors.onErrorContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 36),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    IconButton.filledTonal(
-                      onPressed: _busy ? null : _toggleMute,
-                      tooltip: _muted ? 'Unmute' : 'Mute',
-                      icon: Icon(_muted ? Icons.mic_off : Icons.mic),
+                    // Mute / Unmute Button with distinct styling
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 58,
+                          height: 58,
+                          child: IconButton.filled(
+                            onPressed: _busy ? null : _toggleMute,
+                            tooltip: _muted ? 'Unmute microphone' : 'Mute microphone',
+                            style: IconButton.styleFrom(
+                              backgroundColor: _muted
+                                  ? colors.error
+                                  : colors.surfaceContainerHighest,
+                              foregroundColor: _muted
+                                  ? colors.onError
+                                  : colors.onSurfaceVariant,
+                            ),
+                            icon: Icon(
+                              _muted ? Icons.mic_off : Icons.mic,
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _muted ? 'Muted' : 'Mute',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: _muted ? FontWeight.bold : FontWeight.w500,
+                            color: _muted ? colors.error : colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                     if (!kIsWeb) ...[
-                      const SizedBox(width: 20),
-                      IconButton.filledTonal(
-                        onPressed: _busy ? null : _toggleSpeaker,
-                        tooltip: _speakerOn ? 'Speaker on' : 'Speaker off',
-                        icon: Icon(_speakerOn ? Icons.volume_up : Icons.volume_off),
+                      const SizedBox(width: 28),
+                      // Loudspeaker Button with clear state
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 58,
+                            height: 58,
+                            child: IconButton.filled(
+                              onPressed: _busy ? null : _toggleSpeaker,
+                              tooltip: _speakerOn ? 'Switch to device earpiece' : 'Turn loudspeaker on',
+                              style: IconButton.styleFrom(
+                                backgroundColor: _speakerOn
+                                    ? colors.primary
+                                    : colors.surfaceContainerHighest,
+                                foregroundColor: _speakerOn
+                                    ? colors.onPrimary
+                                    : colors.onSurfaceVariant,
+                              ),
+                              icon: Icon(
+                                _speakerOn ? Icons.volume_up : Icons.volume_down,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _speakerOn ? 'Speaker ON' : 'Speaker',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _speakerOn ? FontWeight.bold : FontWeight.w500,
+                              color: _speakerOn ? colors.primary : colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                    const SizedBox(width: 20),
-                    IconButton.filled(
-                      onPressed: _busy ? null : _hangUp,
-                      tooltip: 'End call',
-                      style: IconButton.styleFrom(
-                        backgroundColor: colors.error,
-                        foregroundColor: colors.onError,
-                      ),
-                      icon: const Icon(Icons.call_end),
+                    const SizedBox(width: 28),
+                    // End Call Button
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 58,
+                          height: 58,
+                          child: IconButton.filled(
+                            onPressed: _busy ? null : _hangUp,
+                            tooltip: 'End call',
+                            style: IconButton.styleFrom(
+                              backgroundColor: colors.error,
+                              foregroundColor: colors.onError,
+                            ),
+                            icon: const Icon(Icons.call_end, size: 28),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'End',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: colors.error,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
