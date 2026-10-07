@@ -9,6 +9,7 @@ import '../services/api_client.dart';
 import '../services/call_environment.dart';
 import '../services/conversation_service.dart';
 import '../services/permission_service.dart';
+import '../utils/audio_routing_helper.dart';
 
 class AudioCallScreen extends StatefulWidget {
   const AudioCallScreen({
@@ -121,9 +122,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       });
 
       if (!kIsWeb) {
-        try {
-          Helper.setSpeakerphoneOn(true);
-        } catch (_) {}
+        unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
       }
 
       if (kIsWeb && !_rendererInitialized) {
@@ -161,9 +160,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           });
         }
         if (!kIsWeb) {
-          try {
-            Helper.setSpeakerphoneOn(_speakerOn);
-          } catch (_) {}
+          unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
         }
       };
       _peerConnection!.onConnectionState = (state) {
@@ -171,9 +168,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         final isConnected =
             state == RTCPeerConnectionState.RTCPeerConnectionStateConnected;
         if (isConnected && !_connected && !kIsWeb) {
-          try {
-            Helper.setSpeakerphoneOn(_speakerOn);
-          } catch (_) {}
+          unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
         }
         final wasConnected = _connected;
         setState(() {
@@ -203,9 +198,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         if (state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
             state == RTCIceConnectionState.RTCIceConnectionStateCompleted) {
           if (!_connected && !kIsWeb) {
-            try {
-              Helper.setSpeakerphoneOn(_speakerOn);
-            } catch (_) {}
+            unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
           }
           _connectionTimeoutTimer?.cancel();
           _connectionTimeoutTimer = null;
@@ -302,9 +295,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     _localAnswer = null;
     _connected = false;
     if (!kIsWeb) {
-      try {
-        Helper.setSpeakerphoneOn(false);
-      } catch (_) {}
+      unawaited(AudioRoutingHelper.resetAudioRoute());
     }
     _speakerOn = false;
     _muted = false;
@@ -453,9 +444,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   void _toggleSpeaker() {
     _speakerOn = !_speakerOn;
     if (!kIsWeb) {
-      try {
-        Helper.setSpeakerphoneOn(_speakerOn);
-      } catch (_) {}
+      unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
     }
     setState(() {});
   }

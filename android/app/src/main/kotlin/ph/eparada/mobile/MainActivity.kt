@@ -12,18 +12,59 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val PERMISSIONS_CHANNEL = "ph.eparada.mobile/permissions"
+    private val AUDIO_ROUTING_CHANNEL = "ph.eparada.mobile/audio_routing"
     private val RECORD_AUDIO_REQUEST_CODE = 4001
     private var pendingPermissionResult: MethodChannel.Result? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         createNotificationChannel()
+    }
+
+    private fun setSpeakerphone(enable: Boolean) {
+        try {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val devices = audioManager.availableCommunicationDevices
+                if (enable) {
+                    val speaker = devices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
+                    if (speaker != null) {
+                        audioManager.setCommunicationDevice(speaker)
+                    }
+                } else {
+                    val earpiece = devices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_EARPIECE }
+                    if (earpiece != null) {
+                        audioManager.setCommunicationDevice(earpiece)
+                    } else {
+                        audioManager.clearCommunicationDevice()
+                    }
+                }
+            }
+            audioManager.isSpeakerphoneOn = enable
+        } catch (_: Throwable) {
+        }
+    }
+
+    private fun resetAudioRouting() {
+        try {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                audioManager.clearCommunicationDevice()
+            }
+            audioManager.isSpeakerphoneOn = false
+            audioManager.mode = AudioManager.MODE_NORMAL
+        } catch (_: Throwable) {
+        }
     }
 
     private fun ensureBluetoothAudioSafety() {
@@ -56,6 +97,21 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         ensureBluetoothAudioSafety()
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, AUDIO_ROUTING_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setSpeakerphoneOn" -> {
+                    val enable = call.argument<Boolean>("enable") ?: false
+                    setSpeakerphone(enable)
+                    result.success(true)
+                }
+                "resetAudioRoute" -> {
+                    resetAudioRouting()
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, PERMISSIONS_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
