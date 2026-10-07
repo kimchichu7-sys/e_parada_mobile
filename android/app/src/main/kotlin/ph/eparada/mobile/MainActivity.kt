@@ -81,17 +81,26 @@ class MainActivity : FlutterActivity() {
                     Manifest.permission.BLUETOOTH_CONNECT
                 ) == PackageManager.PERMISSION_GRANTED
 
-                val manager = com.cloudwebrtc.webrtc.audio.AudioSwitchManager.instance
-                if (manager != null) {
-                    if (!btGranted) {
-                        // Avoid SecurityException on Android 12+ if BLUETOOTH_CONNECT is not granted
-                        manager.preferredDeviceList.removeAll { deviceClass ->
-                            deviceClass.name.contains("Bluetooth", ignoreCase = true)
-                        }
-                    } else {
-                        val hasBt = manager.preferredDeviceList.any { it.name.contains("Bluetooth", ignoreCase = true) }
-                        if (!hasBt) {
-                            manager.preferredDeviceList.add(0, com.twilio.audioswitch.AudioDevice.BluetoothHeadset::class.java)
+                val managerClass = Class.forName("com.cloudwebrtc.webrtc.audio.AudioSwitchManager")
+                val instanceField = managerClass.getDeclaredField("instance")
+                instanceField.isAccessible = true
+                val manager = instanceField.get(null) ?: return
+                val preferredListField = managerClass.getDeclaredField("preferredDeviceList")
+                preferredListField.isAccessible = true
+                @Suppress("UNCHECKED_CAST")
+                val preferredList = preferredListField.get(manager) as? MutableList<Class<*>> ?: return
+
+                if (!btGranted) {
+                    preferredList.removeAll { deviceClass ->
+                        deviceClass.name.contains("Bluetooth", ignoreCase = true)
+                    }
+                } else {
+                    val hasBt = preferredList.any { it.name.contains("Bluetooth", ignoreCase = true) }
+                    if (!hasBt) {
+                        try {
+                            val btDeviceClass = Class.forName("com.twilio.audioswitch.AudioDevice\$BluetoothHeadset")
+                            preferredList.add(0, btDeviceClass)
+                        } catch (_: Throwable) {
                         }
                     }
                 }
