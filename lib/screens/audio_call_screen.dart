@@ -234,7 +234,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         });
         await _peerConnection!.setLocalDescription(offer);
         await ConversationService.sendSignal(_call, 'offer', {
-          'sdp': offer.sdp,
+          'sdp': _sanitizeSdp(offer.sdp ?? ''),
           'type': offer.type,
         });
         unawaited(_pollSignals());
@@ -378,7 +378,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       _localAnswer = await _peerConnection!.createAnswer();
       await _peerConnection!.setLocalDescription(_localAnswer!);
       await ConversationService.sendSignal(_call, 'answer', {
-        'sdp': _localAnswer!.sdp,
+        'sdp': _sanitizeSdp(_localAnswer!.sdp ?? ''),
         'type': _localAnswer!.type,
       });
       unawaited(_pollSignals());
@@ -407,9 +407,10 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
   Future<void> _setRemoteDescription(Map<String, dynamic> payload) async {
     if (_remoteDescriptionSet) return;
+    final sdp = _sanitizeSdp(payload['sdp']?.toString() ?? '');
     await _peerConnection?.setRemoteDescription(
       RTCSessionDescription(
-        payload['sdp']?.toString(),
+        sdp,
         payload['type']?.toString(),
       ),
     );
@@ -422,6 +423,15 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       }
     }
     _pendingCandidates.clear();
+  }
+
+  static String _sanitizeSdp(String raw) {
+    if (raw.isEmpty) return raw;
+    final normalized = raw.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+    final lines = normalized.split('\n');
+    final validLines = lines.where((l) => l.trim().isNotEmpty).toList();
+    if (validLines.isEmpty) return raw;
+    return '${validLines.join('\r\n')}\r\n';
   }
 
   void _toggleMute() {
