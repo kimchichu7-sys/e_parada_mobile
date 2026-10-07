@@ -151,6 +151,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         if (event.streams.isNotEmpty) {
           _remoteRenderer.srcObject = event.streams.first;
         }
+        try {
+          Helper.setVolume(_speakerOn ? 1.0 : 0.7, event.track);
+        } catch (_) {}
         if (mounted && !_connected) {
           _connectionTimeoutTimer?.cancel();
           _connectionTimeoutTimer = null;
@@ -441,7 +444,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     setState(() {});
   }
 
-  void _toggleSpeaker() {
+  Future<void> _toggleSpeaker() async {
     _speakerOn = !_speakerOn;
     if (!kIsWeb) {
       unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
@@ -451,8 +454,19 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           Helper.setVolume(_speakerOn ? 1.0 : 0.7, track);
         } catch (_) {}
       }
+      try {
+        final receivers = await _peerConnection?.getReceivers();
+        if (receivers != null) {
+          for (final receiver in receivers) {
+            final track = receiver.track;
+            if (track != null && track.kind == 'audio') {
+              Helper.setVolume(_speakerOn ? 1.0 : 0.7, track);
+            }
+          }
+        }
+      } catch (_) {}
     }
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<void> _hangUp() async {

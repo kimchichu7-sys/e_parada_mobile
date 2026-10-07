@@ -9,13 +9,13 @@ class AudioRoutingHelper {
   static Future<void> setSpeakerphoneOn(bool enable) async {
     if (kIsWeb) return;
     try {
+      await Helper.setSpeakerphoneOn(enable);
+    } catch (_) {}
+    try {
       await _channel.invokeMethod('setSpeakerphoneOn', {'enable': enable});
     } catch (e) {
       debugPrint('Native audio routing error: $e');
     }
-    try {
-      await Helper.setSpeakerphoneOn(enable);
-    } catch (_) {}
   }
 
   static Future<void> resetAudioRoute() async {

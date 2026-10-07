@@ -56,6 +56,10 @@ class MainActivity : FlutterActivity() {
                 audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, maxCallVol, 0)
                 val maxMusicVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxMusicVol, 0)
+            } else {
+                val maxCallVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+                val normalCallVol = (maxCallVol * 0.75).toInt().coerceAtLeast(1)
+                audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, normalCallVol, 0)
             }
         } catch (_: Throwable) {
         }
