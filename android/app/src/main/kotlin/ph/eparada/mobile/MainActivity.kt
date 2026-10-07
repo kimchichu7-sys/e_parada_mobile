@@ -51,6 +51,12 @@ class MainActivity : FlutterActivity() {
                 }
             }
             audioManager.isSpeakerphoneOn = enable
+            if (enable) {
+                val maxCallVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+                audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, maxCallVol, 0)
+                val maxMusicVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxMusicVol, 0)
+            }
         } catch (_: Throwable) {
         }
     }
