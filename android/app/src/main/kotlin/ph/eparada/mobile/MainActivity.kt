@@ -27,6 +27,7 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         createNotificationChannel()
+        ensureAudioSafety()
     }
 
     private fun setSpeakerphone(enable: Boolean) {
@@ -77,45 +78,18 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun ensureBluetoothAudioSafety() {
+    private fun ensureAudioSafety() {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val btGranted = ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) == PackageManager.PERMISSION_GRANTED
-
-                val managerClass = Class.forName("com.cloudwebrtc.webrtc.audio.AudioSwitchManager")
-                val instanceField = managerClass.getDeclaredField("instance")
-                instanceField.isAccessible = true
-                val manager = instanceField.get(null) ?: return
-                val preferredListField = managerClass.getDeclaredField("preferredDeviceList")
-                preferredListField.isAccessible = true
-                @Suppress("UNCHECKED_CAST")
-                val preferredList = preferredListField.get(manager) as? MutableList<Class<*>> ?: return
-
-                if (!btGranted) {
-                    preferredList.removeAll { deviceClass ->
-                        deviceClass.name.contains("Bluetooth", ignoreCase = true)
-                    }
-                } else {
-                    val hasBt = preferredList.any { it.name.contains("Bluetooth", ignoreCase = true) }
-                    if (!hasBt) {
-                        try {
-                            val btDeviceClass = Class.forName("com.twilio.audioswitch.AudioDevice\$BluetoothHeadset")
-                            preferredList.add(0, btDeviceClass)
-                        } catch (_: Throwable) {
-                        }
-                    }
-                }
-            }
+            val clazz = Class.forName("com.cloudwebrtc.webrtc.audio.AudioSwitchManager")
+            val method = clazz.getMethod("setAudioSessionManagementEnabled", java.lang.Boolean.TYPE)
+            method.invoke(null, false)
         } catch (_: Throwable) {
         }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        ensureBluetoothAudioSafety()
+        ensureAudioSafety()
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, AUDIO_ROUTING_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -135,7 +109,7 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, PERMISSIONS_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "checkMicrophonePermission" -> {
-                    ensureBluetoothAudioSafety()
+                    ensureAudioSafety()
                     val granted = ContextCompat.checkSelfPermission(
                         this,
                         Manifest.permission.RECORD_AUDIO
@@ -143,7 +117,7 @@ class MainActivity : FlutterActivity() {
                     result.success(granted)
                 }
                 "requestMicrophonePermission" -> {
-                    ensureBluetoothAudioSafety()
+                    ensureAudioSafety()
                     val permissionsToRequest = mutableListOf<String>()
 
                     if (ContextCompat.checkSelfPermission(
@@ -198,7 +172,7 @@ class MainActivity : FlutterActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        ensureBluetoothAudioSafety()
+        ensureAudioSafety()
         if (requestCode == RECORD_AUDIO_REQUEST_CODE) {
             val micIndex = permissions.indexOf(Manifest.permission.RECORD_AUDIO)
             val granted = if (micIndex != -1 && micIndex < grantResults.size) {

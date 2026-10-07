@@ -114,6 +114,22 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
       if (_call.isIncoming && _call.status == 'ringing') {
         _call = await ConversationService.acceptCall(_call);
+      } else {
+        try {
+          final active = await ConversationService.activeCall(_call.reservationId);
+          if (active != null) {
+            _call = active;
+          }
+        } catch (_) {}
+        if (!_call.isActive) {
+          if (!mounted) return;
+          setState(() {
+            _busy = false;
+            _setupFailed = true;
+            _status = 'This call has ended.';
+          });
+          return;
+        }
       }
 
       _localStream = await navigator.mediaDevices.getUserMedia({
@@ -263,6 +279,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       final errorStr = error.toString().toLowerCase();
       final isPermError = msg == microphonePermissionMessage ||
           errorStr.contains('permission') ||
+          errorStr.contains('record_audio') ||
           errorStr.contains('mediastreamtrack') ||
           errorStr.contains('failed to create new track') ||
           errorStr.contains('securityexception') ||
@@ -502,17 +519,36 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         ],
       },
     ];
-    final turnUrls = _turnUrls
+
+    final turnList = <String>[];
+    final turnsList = <String>[];
+    for (final url in _turnUrls
         .split(',')
-        .map((url) => url.trim())
-        .where((url) => url.isNotEmpty)
-        .toList();
-    if (turnUrls.isNotEmpty) {
-      iceServers.add({
-        'urls': turnUrls,
-        'username': _turnUsername.isNotEmpty ? _turnUsername : null,
-        'credential': _turnCredential.isNotEmpty ? _turnCredential : null,
-      });
+        .map((u) => u.trim())
+        .where((u) => u.isNotEmpty)) {
+      if (url.startsWith('turns:')) {
+        turnsList.add(url);
+      } else {
+        turnList.add(url);
+      }
+    }
+
+    if (turnList.isNotEmpty) {
+      final turnMap = <String, dynamic>{
+        'urls': turnList,
+      };
+      if (_turnUsername.isNotEmpty) turnMap['username'] = _turnUsername;
+      if (_turnCredential.isNotEmpty) turnMap['credential'] = _turnCredential;
+      iceServers.add(turnMap);
+    }
+
+    if (turnsList.isNotEmpty) {
+      final turnsMap = <String, dynamic>{
+        'urls': turnsList,
+      };
+      if (_turnUsername.isNotEmpty) turnsMap['username'] = _turnUsername;
+      if (_turnCredential.isNotEmpty) turnsMap['credential'] = _turnCredential;
+      iceServers.add(turnsMap);
     }
 
     return {
