@@ -151,16 +151,60 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                 );
               }
               if (snapshot.hasError || snapshot.data == null) {
-                return Padding(
+                final message = snapshot.error?.toString() ?? 'Image unavailable.';
+                return Container(
+                  height: 200,
                   padding: const EdgeInsets.all(20),
-                  child: Text(
-                    snapshot.error?.toString() ?? 'Image unavailable.',
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        message.replaceFirst(RegExp(r'^Exception:\s*'), ''),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }
               return ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.memory(snapshot.data!, fit: BoxFit.contain),
+                child: Image.memory(
+                  snapshot.data!,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 200,
+                    padding: const EdgeInsets.all(20),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Unable to display image preview',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               );
             },
           ),
@@ -498,8 +542,41 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                 loader: () => AdminOperationsService.vehiclePhotoBack(item.id),
               )
             : null,
-        onApprove: () =>
-            _perform(() => AdminOperationsService.approveVehicle(item.id)),
+        onApprove: () async {
+          if (item.plateScanStatus == 'mismatch' ||
+              item.plateScanStatus == 'not_detected') {
+            final proceed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.amber),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('OCR Mismatch Warning')),
+                  ],
+                ),
+                content: Text(
+                  'Automated photo scan did not match "${item.plateNumber}".\n\n'
+                  'Please ensure you have manually verified the vehicle front and back photos before approving.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel & Inspect'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Confirm Approval'),
+                  ),
+                ],
+              ),
+            );
+            if (proceed != true) return;
+          }
+          await _perform(
+            () => AdminOperationsService.approveVehicle(item.id),
+          );
+        },
         onReject: () async {
           final reason = await _reasonDialog('Reject ${item.plateNumber}');
           if (reason != null) {
@@ -663,17 +740,127 @@ class _VehicleCard extends StatelessWidget {
       status: vehicle.status,
       details: [
         vehicle.description,
-        'Photo scan: ${_scanStatus(vehicle.plateScanStatus)}',
         if (vehicle.reviewerName.isNotEmpty)
           'Reviewed by ${vehicle.reviewerName}',
         if (vehicle.notes.isNotEmpty) 'Notes: ${vehicle.notes}',
       ],
+      banner: _buildScanBanner(context, vehicle.plateScanStatus, vehicle.plateNumber),
       primaryAction: vehicle.status == 'pending' ? onApprove : null,
       secondaryAction: vehicle.status == 'pending' ? onReject : null,
       documentAction: onPhoto,
       documentLabel: 'Vehicle front',
       secondaryDocumentAction: onPhotoBack,
       secondaryDocumentLabel: 'Vehicle back',
+    );
+  }
+
+  Widget _buildScanBanner(BuildContext context, String status, String plateNumber) {
+    if (status == 'matched') {
+      return Container(
+        margin: const EdgeInsets.only(top: 2, bottom: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.green.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
+            const SizedBox(width: 6),
+            const Text(
+              'Photo scan: plate matched',
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'Quick approve ready',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (status == 'mismatch') {
+      return Container(
+        margin: const EdgeInsets.only(top: 2, bottom: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.45)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, size: 18, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 6),
+                Text(
+                  'Photo scan: mismatch detected',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text(
+              'Plate characters in photo did not match $plateNumber. Admin manual checking recommended.',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 2, bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
+          const SizedBox(width: 6),
+          Text(
+            'Photo scan: ${_scanStatus(status)}',
+            style: TextStyle(
+              color: Colors.amber.shade900,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -737,6 +924,7 @@ class _ReviewCard extends StatelessWidget {
     this.secondaryDocumentAction,
     this.secondaryDocumentLabel = 'View back',
     this.previewImageUrl,
+    this.banner,
   });
 
   final IconData icon;
@@ -751,6 +939,7 @@ class _ReviewCard extends StatelessWidget {
   final VoidCallback? secondaryDocumentAction;
   final String secondaryDocumentLabel;
   final String? previewImageUrl;
+  final Widget? banner;
 
   @override
   Widget build(BuildContext context) {
@@ -807,6 +996,10 @@ class _ReviewCard extends StatelessWidget {
             const Divider(height: 28),
             for (final detail in details.where((item) => item.isNotEmpty)) ...[
               Text(detail),
+              const SizedBox(height: 6),
+            ],
+            if (banner != null) ...[
+              banner!,
               const SizedBox(height: 6),
             ],
             if (documentAction != null ||
