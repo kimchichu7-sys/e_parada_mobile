@@ -61,6 +61,19 @@ class NotificationService {
     return _message(response, 'Notifications cleared.');
   }
 
+  static Future<Map<String, dynamic>?> resolveConversation(int notificationId) async {
+    try {
+      final response = await ApiClient.get(
+        'notifications/$notificationId/resolve-conversation',
+        headers: await _headers(),
+      );
+      if (response.statusCode == 200) {
+        return ApiClient.decodeObject(response);
+      }
+    } catch (_) {}
+    return null;
+  }
+
   static Future<String> registerDeviceToken(
     String token, {
     String platform = 'android',

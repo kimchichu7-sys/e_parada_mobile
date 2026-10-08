@@ -8,6 +8,9 @@ class MobileNotification {
     required this.readAt,
     required this.createdAt,
     this.reservationId,
+    this.dedupeKey,
+    this.otherPartyName,
+    this.canMessage,
   });
 
   final int id;
@@ -15,22 +18,42 @@ class MobileNotification {
   final String message;
   final String type;
   final String link;
+  final String? dedupeKey;
+  final String? otherPartyName;
+  final bool? canMessage;
   final DateTime? readAt;
   final DateTime? createdAt;
   final int? reservationId;
 
   bool get isUnread => readAt == null;
 
+  bool get isMessageOrCall =>
+      type == 'message' ||
+      type == 'call' ||
+      canMessage == true ||
+      title.toLowerCase().contains('new message') ||
+      title.toLowerCase().contains('incoming call') ||
+      extractedReservationId != null;
+
   int? get extractedReservationId {
     if (reservationId != null && reservationId! > 0) return reservationId;
-    final match = RegExp(r'reservations/(\d+)').firstMatch(link);
+    final match = RegExp(r'reservations?/(\d+)', caseSensitive: false).firstMatch(link);
     if (match != null) return int.tryParse(match.group(1)!);
+    if (dedupeKey != null && dedupeKey!.isNotEmpty) {
+      final dMatch = RegExp(r':(\d+)(?::\d+)?$').firstMatch(dedupeKey!);
+      if (dMatch != null) return int.tryParse(dMatch.group(1)!);
+    }
     final msgMatch = RegExp(r'reservation\s*#?(\d+)', caseSensitive: false).firstMatch(message);
     if (msgMatch != null) return int.tryParse(msgMatch.group(1)!);
+    final titleMatch = RegExp(r'reservation\s*#?(\d+)', caseSensitive: false).firstMatch(title);
+    if (titleMatch != null) return int.tryParse(titleMatch.group(1)!);
     return null;
   }
 
   String get otherPartyDisplayName {
+    if (otherPartyName != null && otherPartyName!.trim().isNotEmpty) {
+      return otherPartyName!.trim();
+    }
     final match = RegExp(r'^(?:New message from|Incoming Call from)\s*(.+)$', caseSensitive: false).firstMatch(title);
     if (match != null) return match.group(1)!.trim();
     return 'Driver / Space Provider';
@@ -41,11 +64,11 @@ class MobileNotification {
     final dedupeStr = json['dedupe_key']?.toString() ?? '';
     int? resId = _nullableInteger(json['reservation_id']);
     if (resId == null && linkStr.isNotEmpty) {
-      final m = RegExp(r'reservations/(\d+)').firstMatch(linkStr);
+      final m = RegExp(r'reservations?/(\d+)', caseSensitive: false).firstMatch(linkStr);
       if (m != null) resId = int.tryParse(m.group(1)!);
     }
     if (resId == null && dedupeStr.isNotEmpty) {
-      final m = RegExp(r'reservation:(?:msg|call):(\d+)').firstMatch(dedupeStr);
+      final m = RegExp(r':(\d+)(?::\d+)?$').firstMatch(dedupeStr);
       if (m != null) resId = int.tryParse(m.group(1)!);
     }
 
@@ -55,6 +78,9 @@ class MobileNotification {
       message: json['message']?.toString() ?? '',
       type: json['type']?.toString() ?? 'general',
       link: linkStr,
+      dedupeKey: dedupeStr.isEmpty ? null : dedupeStr,
+      otherPartyName: json['other_party_name']?.toString(),
+      canMessage: json['can_message'] == true,
       reservationId: resId,
       readAt: DateTime.tryParse(json['read_at']?.toString() ?? ''),
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
