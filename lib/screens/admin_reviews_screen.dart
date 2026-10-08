@@ -140,7 +140,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
       builder: (context) => AlertDialog(
         title: Text(title),
         content: SizedBox(
-          width: 420,
+          width: 480,
           child: FutureBuilder<Uint8List>(
             future: loader(),
             builder: (context, snapshot) {
@@ -151,7 +151,8 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                 );
               }
               if (snapshot.hasError || snapshot.data == null) {
-                final message = snapshot.error?.toString() ?? 'Image unavailable.';
+                final message =
+                    snapshot.error?.toString() ?? 'Image unavailable.';
                 return Container(
                   height: 200,
                   padding: const EdgeInsets.all(20),
@@ -169,42 +170,115 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                         message.replaceFirst(RegExp(r'^Exception:\s*'), ''),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 );
               }
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.memory(
-                  snapshot.data!,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 200,
-                    padding: const EdgeInsets.all(20),
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.broken_image_outlined,
-                          size: 48,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Unable to display image preview',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.error,
+
+              final imageData = snapshot.data!;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => _openExamineImageViewer(
+                        title: title,
+                        bytes: imageData,
+                      ),
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.memory(
+                              imageData,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                height: 200,
+                                padding: const EdgeInsets.all(20),
+                                alignment: Alignment.center,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.broken_image_outlined,
+                                      size: 48,
+                                      color:
+                                          Theme.of(context).colorScheme.error,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Unable to display image preview',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 7,
+                              horizontal: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.8),
+                                ],
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.zoom_in_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Tap image to enlarge & examine',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  FilledButton.tonalIcon(
+                    onPressed: () => _openExamineImageViewer(
+                      title: title,
+                      bytes: imageData,
+                    ),
+                    icon: const Icon(Icons.fullscreen_rounded),
+                    label: const Text('Examine Fullscreen (Zoom & Pan)'),
+                  ),
+                ],
               );
             },
           ),
@@ -215,6 +289,21 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
             child: const Text('Close'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openExamineImageViewer({
+    required String title,
+    required Uint8List bytes,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (context) => _InspectionImageViewerDialog(
+          title: title,
+          bytes: bytes,
+        ),
       ),
     );
   }
@@ -1125,3 +1214,188 @@ String _title(String value) {
   if (value.isEmpty) return value;
   return '${value[0].toUpperCase()}${value.substring(1)}';
 }
+
+class _InspectionImageViewerDialog extends StatefulWidget {
+  const _InspectionImageViewerDialog({
+    required this.title,
+    required this.bytes,
+  });
+
+  final String title;
+  final Uint8List bytes;
+
+  @override
+  State<_InspectionImageViewerDialog> createState() =>
+      _InspectionImageViewerDialogState();
+}
+
+class _InspectionImageViewerDialogState
+    extends State<_InspectionImageViewerDialog> {
+  final _transformationController = TransformationController();
+  TapDownDetails? _doubleTapDetails;
+  double _currentScale = 1.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _transformationController.addListener(_onTransformationChanged);
+  }
+
+  void _onTransformationChanged() {
+    final scale = _transformationController.value.getMaxScaleOnAxis();
+    if ((scale - _currentScale).abs() > 0.05) {
+      setState(() => _currentScale = scale);
+    }
+  }
+
+  @override
+  void dispose() {
+    _transformationController.removeListener(_onTransformationChanged);
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  void _zoomIn() {
+    final newScale = (_currentScale * 1.5).clamp(1.0, 8.0);
+    _animateToScale(newScale);
+  }
+
+  void _zoomOut() {
+    final newScale = (_currentScale / 1.5).clamp(1.0, 8.0);
+    _animateToScale(newScale);
+  }
+
+  void _resetZoom() {
+    _animateToScale(1.0);
+  }
+
+  void _animateToScale(double targetScale) {
+    _transformationController.value = Matrix4.diagonal3Values(
+      targetScale,
+      targetScale,
+      1.0,
+    );
+  }
+
+  void _handleDoubleTap() {
+    if (_currentScale > 1.2) {
+      _resetZoom();
+    } else {
+      final position = _doubleTapDetails?.localPosition ?? Offset.zero;
+      final x = -position.dx * 2.0;
+      final y = -position.dy * 2.0;
+      final matrix = Matrix4.diagonal3Values(3.0, 3.0, 1.0);
+      matrix.setTranslationRaw(x, y, 0.0);
+      _transformationController.value = matrix;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0F172A),
+        foregroundColor: Colors.white,
+        title: Text(
+          widget.title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Zoom Out',
+            icon: const Icon(Icons.zoom_out_rounded),
+            onPressed: _currentScale > 1.05 ? _zoomOut : null,
+          ),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white12,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${(_currentScale * 100).round()}%',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Zoom In',
+            icon: const Icon(Icons.zoom_in_rounded),
+            onPressed: _currentScale < 7.9 ? _zoomIn : null,
+          ),
+          IconButton(
+            tooltip: 'Reset to 100%',
+            icon: const Icon(Icons.restart_alt_rounded),
+            onPressed: _currentScale != 1.0 ? _resetZoom : null,
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Stack(
+        children: [
+          GestureDetector(
+            onDoubleTapDown: (details) => _doubleTapDetails = details,
+            onDoubleTap: _handleDoubleTap,
+            child: Center(
+              child: InteractiveViewer(
+                transformationController: _transformationController,
+                minScale: 1.0,
+                maxScale: 8.0,
+                clipBehavior: Clip.none,
+                child: Image.memory(
+                  widget.bytes,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 24,
+            left: 16,
+            right: 16,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.pinch_rounded,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Pinch to zoom (up to 8x) • Drag to pan • Double-tap to quick zoom',
+                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
