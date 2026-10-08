@@ -436,6 +436,12 @@ class _ReservationCard extends StatelessWidget {
                 Icons.warning_amber_outlined,
                 '${_title(reservation.overstayStatus)} | ${reservation.overstayMinutes} minutes | PHP ${reservation.overstayAmount.toStringAsFixed(2)}',
               ),
+            if (reservation.status == 'cancelled' &&
+                reservation.cancellationReason.isNotEmpty)
+              _line(
+                Icons.cancel_outlined,
+                'Cancellation: ${reservation.cancellationReason}',
+              ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,

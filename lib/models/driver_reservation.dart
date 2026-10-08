@@ -40,6 +40,7 @@ class DriverReservation {
     required this.canExtend,
     required this.canSubmitPayment,
     required this.canSubmitFeedback,
+    this.cancellationReason = '',
   }) : backupReference =
             Validators.formatReservationNumber(backupReference, id: id);
 
@@ -81,6 +82,7 @@ class DriverReservation {
   final bool canExtend;
   final bool canSubmitPayment;
   final bool canSubmitFeedback;
+  final String cancellationReason;
 
   String get scheduleLabel =>
       '$reservationDate $startTime to $endDate $endTime';
@@ -180,6 +182,7 @@ class DriverReservation {
       canExtend: actions['can_extend'] == true,
       canSubmitPayment: actions['can_submit_payment'] == true,
       canSubmitFeedback: actions['can_submit_feedback'] == true,
+      cancellationReason: json['cancellation_reason']?.toString() ?? '',
     );
   }
 

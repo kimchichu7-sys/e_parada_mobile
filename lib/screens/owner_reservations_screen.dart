@@ -569,6 +569,15 @@ class _ReservationCard extends StatelessWidget {
                     : reservation.extensionReason,
               ),
             ],
+            if (reservation.status == 'cancelled' &&
+                reservation.cancellationReason.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _DetailRow(
+                icon: Icons.cancel_outlined,
+                title: 'Reservation Voided / Cancelled',
+                subtitle: reservation.cancellationReason,
+              ),
+            ],
             if (reservation.isPending ||
                 reservation.canCancel ||
                 reservation.canMarkPaid ||

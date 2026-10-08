@@ -32,6 +32,7 @@ class OwnerReservation {
     required this.extensionReason,
     required this.extensionOwnerNotes,
     required this.hasPendingExtension,
+    this.cancellationReason = '',
   }) : backupReference =
             Validators.formatReservationNumber(backupReference, id: id);
 
@@ -65,6 +66,7 @@ class OwnerReservation {
   final String extensionReason;
   final String extensionOwnerNotes;
   final bool hasPendingExtension;
+  final String cancellationReason;
 
   bool get isPending => status == 'pending';
 
@@ -128,6 +130,7 @@ class OwnerReservation {
       extensionReason: extension['reason']?.toString() ?? '',
       extensionOwnerNotes: extension['owner_notes']?.toString() ?? '',
       hasPendingExtension: json['has_pending_extension'] == true,
+      cancellationReason: json['cancellation_reason']?.toString() ?? '',
     );
   }
 
@@ -137,6 +140,7 @@ class OwnerReservation {
     String? paymentStatus,
     bool? canCancel,
     bool? canMarkPaid,
+    String? cancellationReason,
   }) {
     return OwnerReservation(
       id: id,
@@ -169,6 +173,7 @@ class OwnerReservation {
       extensionReason: extensionReason,
       extensionOwnerNotes: extensionOwnerNotes,
       hasPendingExtension: hasPendingExtension,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
     );
   }
 
