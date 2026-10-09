@@ -145,17 +145,36 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _checkSession() async {
     Widget target = const WelcomeScreen();
     try {
-      if (await AuthService.isLoggedIn()) {
-        final user = await AuthService.fetchMe().timeout(
-          const Duration(milliseconds: 1500),
-          onTimeout: () => null,
-        );
-        if (user != null) {
-          target = MainNavigationScreen(user: user);
+      final loggedIn = await AuthService.isLoggedIn();
+      if (loggedIn) {
+        // 1. Immediately restore persistent session so user stays logged in
+        final cachedUser = await AuthService.getCachedUser();
+        if (cachedUser != null) {
+          target = MainNavigationScreen(user: cachedUser);
+        }
+
+        // 2. Concurrently attempt a quick profile sync from server
+        try {
+          final freshUser = await AuthService.fetchMe().timeout(
+            const Duration(seconds: 3),
+          );
+          if (freshUser != null) {
+            target = MainNavigationScreen(user: freshUser);
+          } else if (!await AuthService.isLoggedIn()) {
+            // Server explicitly returned 401 Unauthorized (session invalidated)
+            target = const WelcomeScreen();
+          }
+        } catch (_) {
+          // If offline or network timeout, keep cachedUser session intact!
         }
       }
     } catch (_) {
-      // Offline fallback
+      try {
+        final cachedUser = await AuthService.getCachedUser();
+        if (cachedUser != null) {
+          target = MainNavigationScreen(user: cachedUser);
+        }
+      } catch (_) {}
     }
 
     _destination = target;

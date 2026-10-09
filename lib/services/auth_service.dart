@@ -180,6 +180,37 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
+  static Future<AuthUser?> getCachedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null || token.isEmpty) {
+      return null;
+    }
+
+    final id = prefs.getInt('user_id');
+    final name = prefs.getString('user_name');
+    final email = prefs.getString('user_email');
+    final role = prefs.getString('user_role');
+
+    if (id == null || name == null || email == null || role == null) {
+      return null;
+    }
+
+    return AuthUser(
+      id: id,
+      name: name,
+      email: email,
+      role: role,
+      verificationStatus: prefs.getString('verification_status') ?? 'pending',
+      emailVerified: prefs.getBool('email_verified') ?? false,
+      hasApprovedVehicle: prefs.getBool('has_approved_vehicle') ?? false,
+      canReserve: prefs.getBool('can_reserve') ?? false,
+      canManageParkingSpaces:
+          prefs.getBool('can_manage_parking_spaces') ?? false,
+      remainingVehicleSlots: prefs.getInt('remaining_vehicle_slots') ?? 0,
+    );
+  }
+
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
