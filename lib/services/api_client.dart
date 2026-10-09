@@ -32,6 +32,7 @@ class UploadFilePart {
 
 class ApiClient {
   static const Duration _timeout = Duration(seconds: 30);
+  static const Duration _uploadTimeout = Duration(seconds: 120);
   static final ValueNotifier<bool> isOfflineNotifier = ValueNotifier<bool>(false);
 
   static Future<http.Response> get(
@@ -109,6 +110,7 @@ class ApiClient {
     Map<String, String>? fields,
     Map<String, UploadFileData>? files,
     List<UploadFilePart>? fileParts,
+    Duration timeout = _uploadTimeout,
   }) {
     return _send(() async {
       final request = http.MultipartRequest('POST', ApiConfig.endpoint(path));
@@ -137,7 +139,7 @@ class ApiClient {
 
       final streamedResponse = await request.send();
       return http.Response.fromStream(streamedResponse);
-    });
+    }, timeout: timeout);
   }
 
   static Map<String, dynamic> decodeObject(http.Response response) {
@@ -196,10 +198,11 @@ class ApiClient {
   }
 
   static Future<http.Response> _send(
-    Future<http.Response> Function() request,
-  ) async {
+    Future<http.Response> Function() request, {
+    Duration? timeout,
+  }) async {
     try {
-      final response = await request().timeout(_timeout);
+      final response = await request().timeout(timeout ?? _timeout);
       if (isOfflineNotifier.value) {
         isOfflineNotifier.value = false;
       }

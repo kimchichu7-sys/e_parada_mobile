@@ -5,6 +5,7 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/vehicle_service.dart';
 import '../utils/registration_validation.dart';
+import '../widgets/email_verification_dialog.dart';
 import '../widgets/vehicle_catalog_fields.dart';
 import 'main_navigation_screen.dart';
 
@@ -42,8 +43,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _pickImage(ValueSetter<XFile> onPicked) async {
     final image = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
-      maxWidth: 2200,
+      imageQuality: 75,
+      maxWidth: 1280,
+      maxHeight: 1280,
     );
     if (image != null && mounted) {
       setState(() {
@@ -99,6 +101,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         vehiclePhoto: await _uploadData(_vehicleFront),
         vehiclePhotoBack: await _uploadData(_vehicleBack),
       );
+
+      if (!mounted) return;
+
+      if (!user.emailVerified) {
+        await EmailVerificationDialog.show(
+          context,
+          email: user.email,
+        );
+      }
 
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(

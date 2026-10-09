@@ -442,8 +442,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   Future<void> _pickPhoto(ValueSetter<XFile> onPicked) async {
     final photo = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
-      maxWidth: 2000,
+      imageQuality: 75,
+      maxWidth: 1280,
+      maxHeight: 1280,
     );
     if (photo != null && mounted) {
       setState(() {
