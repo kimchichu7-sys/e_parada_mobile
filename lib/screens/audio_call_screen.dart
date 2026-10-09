@@ -42,6 +42,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
   RTCPeerConnection? _peerConnection;
   MediaStream? _localStream;
+  MediaStreamTrack? _remoteAudioTrack;
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   Timer? _pollTimer;
   Timer? _connectionTimeoutTimer;
@@ -164,8 +165,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       _peerConnection!.onTrack = (event) {
         if (event.track.kind != 'audio') return;
         event.track.enabled = true;
-        if (event.streams.isNotEmpty) {
-          _remoteRenderer.srcObject = event.streams.first;
+        _remoteAudioTrack = event.track;
+        if (kIsWeb && _rendererInitialized && event.streams.isNotEmpty) {
+          try {
+            _remoteRenderer.srcObject = event.streams.first;
+          } catch (_) {}
         }
         try {
           Helper.setVolume(_speakerOn ? 1.0 : 0.7, event.track);
@@ -310,7 +314,12 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     await _peerConnection?.close();
     _localStream = null;
     _peerConnection = null;
-    _remoteRenderer.srcObject = null;
+    if (kIsWeb && _rendererInitialized) {
+      try {
+        _remoteRenderer.srcObject = null;
+      } catch (_) {}
+    }
+    _remoteAudioTrack = null;
     _remoteDescriptionSet = false;
     _localAnswer = null;
     _connected = false;
@@ -465,10 +474,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     _speakerOn = !_speakerOn;
     if (!kIsWeb) {
       unawaited(AudioRoutingHelper.setSpeakerphoneOn(_speakerOn));
-      final remoteTracks = _remoteRenderer.srcObject?.getAudioTracks() ?? [];
-      for (final track in remoteTracks) {
+      if (_remoteAudioTrack != null) {
         try {
-          Helper.setVolume(_speakerOn ? 1.0 : 0.7, track);
+          Helper.setVolume(_speakerOn ? 1.0 : 0.7, _remoteAudioTrack!);
         } catch (_) {}
       }
       try {
@@ -482,6 +490,15 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           }
         }
       } catch (_) {}
+    } else {
+      if (_rendererInitialized) {
+        final remoteTracks = _remoteRenderer.srcObject?.getAudioTracks() ?? [];
+        for (final track in remoteTracks) {
+          try {
+            Helper.setVolume(_speakerOn ? 1.0 : 0.7, track);
+          } catch (_) {}
+        }
+      }
     }
     if (mounted) setState(() {});
   }
