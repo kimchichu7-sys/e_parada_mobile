@@ -138,6 +138,38 @@ class _RebookSelectionDialogState extends State<RebookSelectionDialog> {
             ),
           ),
 
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.amber.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  color: Colors.amber,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Rebooking requests must be approved by the space owner before your reservation is active.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.amber.shade900,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           const Divider(height: 1),
 
           // List of alternatives
@@ -332,7 +364,7 @@ class _RebookSelectionDialogState extends State<RebookSelectionDialog> {
                             label: Text(
                               alt.slots.isEmpty
                                   ? 'No Slots Available'
-                                  : 'Rebook to ${alt.spaceName}',
+                                  : 'Request Rebooking at ${alt.spaceName}',
                             ),
                           ),
                         ),

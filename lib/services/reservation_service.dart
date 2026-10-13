@@ -191,7 +191,7 @@ class ReservationService {
       },
     );
     ApiClient.requireStatus(response, const {200});
-    return _message(response, 'Reservation successfully rebooked.');
+    return _message(response, 'Rebooking requested. Awaiting space owner approval.');
   }
 
   static Future<Map<String, String>> _headers() async {
