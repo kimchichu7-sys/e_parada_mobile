@@ -31,6 +31,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
   final _addressController = TextEditingController();
   final _dimensionsController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _unavailabilityReasonController = TextEditingController();
 
   final Set<String> _vehicleTypes = <String>{};
   final List<List<String>> _slotVehicleTypes = <List<String>>[];
@@ -38,6 +39,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
 
   GoogleMapController? _mapController;
   LatLng? _location;
+  bool _isAvailable = true;
   bool _open24Hours = true;
   TimeOfDay _openingTime = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _closingTime = const TimeOfDay(hour: 20, minute: 0);
@@ -62,6 +64,8 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
     _addressController.text = space.address;
     _dimensionsController.text = space.dimensionsSquareMeters?.toString() ?? '';
     _descriptionController.text = space.description;
+    _isAvailable = space.isAvailable;
+    _unavailabilityReasonController.text = space.unavailabilityReason ?? '';
     if (space.latitude != null && space.longitude != null) {
       _location = LatLng(space.latitude!, space.longitude!);
     }
@@ -100,6 +104,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
     _addressController.dispose();
     _dimensionsController.dispose();
     _descriptionController.dispose();
+    _unavailabilityReasonController.dispose();
     super.dispose();
   }
 
@@ -273,6 +278,9 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
         abandonedAfterHours: _abandonedHours,
         slotVehicleTypes: _slotVehicleTypes,
         images: uploads,
+        isAvailable: _isAvailable,
+        unavailabilityReason:
+            !_isAvailable ? _unavailabilityReasonController.text.trim() : null,
       );
 
       if (!mounted) return;
@@ -309,6 +317,67 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                   color: colors.error,
                   title: 'Admin review notes',
                   message: widget.space!.adminNotes!,
+                ),
+              if (widget.isEditing)
+                _Section(
+                  title: 'Space availability',
+                  icon: Icons.event_busy_rounded,
+                  children: [
+                    Text(
+                      'Select whether this space is open for driver bookings or temporarily unavailable.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment<bool>(
+                          value: true,
+                          label: Text('Available'),
+                          icon: Icon(Icons.check_circle_outline, color: Colors.green),
+                        ),
+                        ButtonSegment<bool>(
+                          value: false,
+                          label: Text('Unavailable'),
+                          icon: Icon(Icons.cancel_outlined, color: Colors.red),
+                        ),
+                      ],
+                      selected: {_isAvailable},
+                      onSelectionChanged: (selected) {
+                        setState(() {
+                          _isAvailable = selected.first;
+                        });
+                      },
+                    ),
+                    if (!_isAvailable) ...[
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _unavailabilityReasonController,
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: const InputDecoration(
+                          labelText: 'Reason for unavailability',
+                          hintText: 'e.g., Road repair, private event, space maintenance...',
+                          alignLabelWithHint: true,
+                        ),
+                        validator: (value) {
+                          if (!_isAvailable && (value == null || value.trim().isEmpty)) {
+                            return 'Please enter a reason for marking this space unavailable.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Note: Marking this space unavailable notifies drivers with active reservations and offers them rebooking to nearby spaces or cancellation.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.error,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               _Section(
                 title: 'Parking details',

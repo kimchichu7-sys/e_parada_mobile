@@ -1,4 +1,5 @@
 import '../models/driver_reservation.dart';
+import '../models/rebook_alternative.dart';
 import '../models/reservation_availability.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
@@ -162,6 +163,35 @@ class ReservationService {
     );
     ApiClient.requireStatus(response, const {201});
     return _message(response, 'Feedback submitted.');
+  }
+
+  static Future<RebookAlternativesResponse> fetchRebookAlternatives(
+    int reservationId,
+  ) async {
+    final response = await ApiClient.get(
+      'driver/reservations/$reservationId/rebook-alternatives',
+      headers: await _headers(),
+    );
+    ApiClient.requireStatus(response, const {200});
+    final body = ApiClient.decodeObject(response);
+    return RebookAlternativesResponse.fromJson(body);
+  }
+
+  static Future<String> rebookReservation({
+    required int reservationId,
+    required int targetParkingSpaceId,
+    required int targetParkingSlotId,
+  }) async {
+    final response = await ApiClient.postJson(
+      'driver/reservations/$reservationId/rebook',
+      headers: await _headers(),
+      body: {
+        'target_parking_space_id': targetParkingSpaceId,
+        'target_parking_slot_id': targetParkingSlotId,
+      },
+    );
+    ApiClient.requireStatus(response, const {200});
+    return _message(response, 'Reservation successfully rebooked.');
   }
 
   static Future<Map<String, String>> _headers() async {

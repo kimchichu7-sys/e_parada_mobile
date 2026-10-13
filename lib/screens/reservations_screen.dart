@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/driver_reservation.dart';
+import '../models/rebook_alternative.dart';
 import '../services/api_client.dart';
 import '../services/offline_parking_pass_service.dart';
 import '../services/reservation_service.dart';
@@ -10,6 +11,7 @@ import '../widgets/digital_receipt_dialog.dart';
 import '../widgets/extend_parking_dialog.dart';
 import '../widgets/live_overstay_tracker_card.dart';
 import '../widgets/offline_parking_pass_dialog.dart';
+import '../widgets/rebook_selection_dialog.dart';
 import '../widgets/reservation_action_dialogs.dart';
 import '../widgets/reservation_credential_dialog.dart';
 import '../widgets/security_gate_pass_dialog.dart';
@@ -139,18 +141,25 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       reservation.backupReference,
       id: reservation.id,
     );
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Cancel $ref?'),
-        content: TextField(
-          controller: controller,
-          maxLength: 1000,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Optional reason',
-            border: OutlineInputBorder(),
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: controller,
+              maxLength: 1000,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Optional reason',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -158,8 +167,9 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
             child: const Text('Back'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Cancel reservation'),
+            child: const Text('Confirm Cancellation'),
           ),
         ],
       ),
@@ -169,6 +179,84 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     if (confirmed != true) return;
     await _perform(
       () => ReservationService.cancel(reservation.id, reason: reason),
+    );
+  }
+
+  Future<void> _rebook(DriverReservation reservation) async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    RebookAlternativesResponse? data;
+    try {
+      data = await ReservationService.fetchRebookAlternatives(reservation.id);
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Unable to load alternatives'),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    if (data.alternatives.isEmpty) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          icon: const Icon(Icons.search_off_rounded, size: 40, color: Colors.amber),
+          title: const Text('No Nearby Spaces Available'),
+          content: const Text(
+            'We could not find any other nearby parking spaces with available slots for your vehicle type at this time.\n\nYou can cancel your reservation without penalty.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Keep Reservation'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _cancel(reservation);
+              },
+              child: const Text('Cancel Reservation'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final selection = await RebookSelectionDialog.show(
+      context,
+      reservation: reservation,
+      alternativesResponse: data,
+    );
+
+    if (selection == null) return;
+
+    await _perform(
+      () => ReservationService.rebookReservation(
+        reservationId: reservation.id,
+        targetParkingSpaceId: selection.targetParkingSpaceId,
+        targetParkingSlotId: selection.targetParkingSlotId,
+      ),
     );
   }
 
@@ -317,6 +405,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                     onFeedback: () => _feedback(reservation),
                     onCancel: () => _cancel(reservation),
                     onExtend: () => _extend(reservation),
+                    onRebook: () => _rebook(reservation),
                     onPay: () => _pay(reservation),
                     onReceipt: () =>
                         DigitalReceiptDialog.showForDriver(context, reservation),
@@ -354,6 +443,7 @@ class _ReservationCard extends StatelessWidget {
     required this.onFeedback,
     required this.onCancel,
     required this.onExtend,
+    required this.onRebook,
     required this.onPay,
     required this.onReceipt,
     required this.onContact,
@@ -366,6 +456,7 @@ class _ReservationCard extends StatelessWidget {
   final VoidCallback onFeedback;
   final VoidCallback onCancel;
   final VoidCallback onExtend;
+  final VoidCallback onRebook;
   final VoidCallback onPay;
   final VoidCallback onReceipt;
   final VoidCallback onContact;
@@ -396,6 +487,91 @@ class _ReservationCard extends StatelessWidget {
             Text(
               '${Validators.formatReservationNumber(reservation.backupReference, id: reservation.id)} | ${reservation.slotLabel}',
             ),
+            if (reservation.needsRebook) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.amber.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.amber,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Action Required: Space Unavailable',
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: Colors.amber.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      reservation.rebookReason.isNotEmpty
+                          ? reservation.rebookReason
+                          : 'The space provider reported this location unavailable. Please choose an option below:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.amber.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: disabled ? null : onRebook,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.amber.shade800,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                          ),
+                          icon: const Icon(Icons.near_me_rounded, size: 16),
+                          label: const Text('Rebook Nearest Space'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: disabled ? null : onCancel,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colors.error,
+                            side: BorderSide(
+                              color: colors.error.withValues(alpha: 0.5),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                          ),
+                          icon: const Icon(Icons.cancel_outlined, size: 16),
+                          label: const Text('Cancel Reservation'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const Divider(height: 26),
             ReservationProgressTracker(
               status: reservation.status,
@@ -447,6 +623,16 @@ class _ReservationCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
+                if (reservation.canRebook || reservation.needsRebook)
+                  FilledButton.icon(
+                    onPressed: disabled ? null : onRebook,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.amber.shade800,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: const Icon(Icons.near_me_outlined),
+                    label: const Text('Rebook Space'),
+                  ),
                 if (reservation.status == 'approved' &&
                     reservation.hasCredential)
                   FilledButton.icon(

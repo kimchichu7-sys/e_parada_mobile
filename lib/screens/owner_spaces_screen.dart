@@ -89,6 +89,113 @@ class _OwnerSpacesScreenState extends State<OwnerSpacesScreen> {
     }
   }
 
+  Future<void> _reportUnavailable(OwnerParkingSpace space) async {
+    final controller = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Report Space Unavailable'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Reporting “${space.name}” as unavailable will update its status and notify all drivers with active reservations so they can rebook or cancel.',
+                style: const TextStyle(fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: controller,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Reason for unavailability *',
+                  hintText: 'e.g. Emergency plumbing repairs, gate maintenance, flooding',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Please provide a reason.';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              if (formKey.currentState?.validate() == true) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text('Submit Report'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final message = await OwnerOperationsService.reportUnavailable(
+        space.id,
+        reason: controller.text.trim(),
+      );
+      if (!mounted) return;
+      _showMessage(message);
+      await _refresh();
+    } on ApiException catch (error) {
+      if (mounted) _showMessage(error.message, error: true);
+    } catch (error) {
+      if (mounted) _showMessage(error.toString(), error: true);
+    }
+  }
+
+  Future<void> _restoreAvailable(OwnerParkingSpace space) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Mark Space Available?'),
+        content: Text(
+          'Mark “${space.name}” as available again for reservations and bookings?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Mark Available'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final message = await OwnerOperationsService.restoreAvailable(space.id);
+      if (!mounted) return;
+      _showMessage(message);
+      await _refresh();
+    } on ApiException catch (error) {
+      if (mounted) _showMessage(error.message, error: true);
+    } catch (error) {
+      if (mounted) _showMessage(error.toString(), error: true);
+    }
+  }
+
   void _showMessage(String message, {bool error = false}) {
     final colors = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context)
@@ -147,6 +254,8 @@ class _OwnerSpacesScreenState extends State<OwnerSpacesScreen> {
                 space: spaces[index],
                 onEdit: () => _openEditor(spaces[index]),
                 onDelete: () => _deleteSpace(spaces[index]),
+                onReportUnavailable: () => _reportUnavailable(spaces[index]),
+                onRestoreAvailable: () => _restoreAvailable(spaces[index]),
               ),
             ),
           );
@@ -161,11 +270,15 @@ class _SpaceCard extends StatelessWidget {
     required this.space,
     required this.onEdit,
     required this.onDelete,
+    required this.onReportUnavailable,
+    required this.onRestoreAvailable,
   });
 
   final OwnerParkingSpace space;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onReportUnavailable;
+  final VoidCallback onRestoreAvailable;
 
   @override
   Widget build(BuildContext context) {
@@ -220,9 +333,20 @@ class _SpaceCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                _StatusChip(
-                  label: space.isOpenNow ? 'Open' : 'Closed',
-                  color: openColor,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (!space.isAvailable)
+                      const _StatusChip(
+                        label: 'Unavailable',
+                        color: Colors.red,
+                      )
+                    else
+                      _StatusChip(
+                        label: space.isOpenNow ? 'Open' : 'Closed',
+                        color: openColor,
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -256,6 +380,54 @@ class _SpaceCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
+            if (!space.isAvailable) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Reported Unavailable',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (space.unavailabilityReason?.isNotEmpty == true) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              space.unavailabilityReason!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.onSurface.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (space.approvalStatus == 'rejected' &&
                 space.adminNotes?.isNotEmpty == true) ...[
               const SizedBox(height: 12),
@@ -273,21 +445,44 @@ class _SpaceCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Edit'),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: onDelete,
-                  tooltip: 'Delete parking space',
-                  icon: const Icon(Icons.delete_outline),
-                ),
-              ],
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (space.isAvailable)
+                    OutlinedButton.icon(
+                      onPressed: onReportUnavailable,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: BorderSide(
+                          color: Colors.red.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      icon: const Icon(Icons.report_problem_outlined, size: 16),
+                      label: const Text('Report Unavailable'),
+                    )
+                  else
+                    FilledButton.tonalIcon(
+                      onPressed: onRestoreAvailable,
+                      icon: const Icon(Icons.check_circle_outline, size: 16),
+                      label: const Text('Mark Available'),
+                    ),
+                  OutlinedButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined, size: 16),
+                    label: const Text('Edit'),
+                  ),
+                  IconButton(
+                    onPressed: onDelete,
+                    tooltip: 'Delete parking space',
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

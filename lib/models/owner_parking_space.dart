@@ -55,6 +55,8 @@ class OwnerParkingSpace {
     this.hourlyRate,
     this.vehicleHourlyRates = const {},
     this.slots = const [],
+    this.unavailabilityReason,
+    this.unavailabilityReportedAt,
   });
 
   final int id;
@@ -82,6 +84,8 @@ class OwnerParkingSpace {
   final double? hourlyRate;
   final Map<String, double> vehicleHourlyRates;
   final List<OwnerParkingSlot> slots;
+  final String? unavailabilityReason;
+  final DateTime? unavailabilityReportedAt;
 
   factory OwnerParkingSpace.fromJson(Map<String, dynamic> json) {
     return OwnerParkingSpace(
@@ -114,6 +118,10 @@ class OwnerParkingSpace {
       slots: _maps(
         json['slots'],
       ).map(OwnerParkingSlot.fromJson).toList(growable: false),
+      unavailabilityReason: json['unavailability_reason']?.toString(),
+      unavailabilityReportedAt: DateTime.tryParse(
+        json['unavailability_reported_at']?.toString() ?? '',
+      ),
     );
   }
 

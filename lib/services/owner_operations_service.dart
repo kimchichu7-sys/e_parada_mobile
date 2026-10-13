@@ -80,6 +80,8 @@ class OwnerOperationsService {
     required int abandonedAfterHours,
     required List<List<String>> slotVehicleTypes,
     required List<UploadFileData> images,
+    bool isAvailable = true,
+    String? unavailabilityReason,
   }) async {
     final fields = <String, String>{
       'space_name': name,
@@ -94,6 +96,9 @@ class OwnerOperationsService {
       'overstay_grace_minutes': overstayGraceMinutes.toString(),
       'abandoned_after_hours': abandonedAfterHours.toString(),
       'total_slots': slotVehicleTypes.length.toString(),
+      'is_available': isAvailable ? '1' : '0',
+      if (!isAvailable && unavailabilityReason != null && unavailabilityReason.trim().isNotEmpty)
+        'unavailability_reason': unavailabilityReason.trim(),
     };
 
     for (var index = 0; index < vehicleTypes.length; index++) {
@@ -254,6 +259,31 @@ class OwnerOperationsService {
         body['transaction_logs'],
       ).map(CheckpointTransaction.fromJson).toList(growable: false),
     );
+  }
+
+  static Future<String> reportUnavailable(
+    int parkingSpaceId, {
+    required String reason,
+  }) async {
+    final response = await ApiClient.postJson(
+      'owner/parking-spaces/$parkingSpaceId/report-unavailable',
+      headers: await _headers(),
+      body: {'reason': reason},
+    );
+    ApiClient.requireStatus(response, const {200});
+    return ApiClient.decodeObject(response)['message']?.toString() ??
+        'Parking space reported as unavailable.';
+  }
+
+  static Future<String> restoreAvailable(int parkingSpaceId) async {
+    final response = await ApiClient.postJson(
+      'owner/parking-spaces/$parkingSpaceId/restore-available',
+      headers: await _headers(),
+      body: const {},
+    );
+    ApiClient.requireStatus(response, const {200});
+    return ApiClient.decodeObject(response)['message']?.toString() ??
+        'Parking space marked as available.';
   }
 
   static Future<String> _reservationAction(

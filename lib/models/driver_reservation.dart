@@ -41,6 +41,11 @@ class DriverReservation {
     required this.canSubmitPayment,
     required this.canSubmitFeedback,
     this.cancellationReason = '',
+    this.needsRebook = false,
+    this.rebookReason = '',
+    this.canRebook = false,
+    this.refundStatus = '',
+    this.refundAmount,
   }) : backupReference =
             Validators.formatReservationNumber(backupReference, id: id);
 
@@ -83,6 +88,11 @@ class DriverReservation {
   final bool canSubmitPayment;
   final bool canSubmitFeedback;
   final String cancellationReason;
+  final bool needsRebook;
+  final String rebookReason;
+  final bool canRebook;
+  final String refundStatus;
+  final double? refundAmount;
 
   String get scheduleLabel =>
       '$reservationDate $startTime to $endDate $endTime';
@@ -183,6 +193,13 @@ class DriverReservation {
       canSubmitPayment: actions['can_submit_payment'] == true,
       canSubmitFeedback: actions['can_submit_feedback'] == true,
       cancellationReason: json['cancellation_reason']?.toString() ?? '',
+      needsRebook: json['needs_rebook'] == true,
+      rebookReason: json['rebook_reason']?.toString() ?? '',
+      canRebook: actions['can_rebook'] == true ||
+          (json['needs_rebook'] == true &&
+              (json['status'] == 'approved' || json['status'] == 'pending')),
+      refundStatus: json['refund_status']?.toString() ?? '',
+      refundAmount: _decimal(json['refund_amount']),
     );
   }
 
