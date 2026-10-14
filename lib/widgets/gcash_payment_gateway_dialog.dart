@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../services/paymongo_service.dart';
-import 'paymongo_settings_dialog.dart';
+import '../services/reservation_service.dart';
 
 class GcashPaymentResult {
   const GcashPaymentResult({
@@ -32,12 +32,14 @@ class GcashPaymentGatewayDialog extends StatefulWidget {
     required this.reservationReference,
     required this.totalAmount,
     this.initialMobileNumber = '',
+    this.reservationId,
   });
 
   final String parkingSpaceName;
   final String reservationReference;
   final double totalAmount;
   final String initialMobileNumber;
+  final int? reservationId;
 
   static Future<GcashPaymentResult?> show({
     required BuildContext context,
@@ -45,6 +47,7 @@ class GcashPaymentGatewayDialog extends StatefulWidget {
     required String reservationReference,
     required double totalAmount,
     String initialMobileNumber = '',
+    int? reservationId,
   }) {
     return showDialog<GcashPaymentResult>(
       context: context,
@@ -54,6 +57,7 @@ class GcashPaymentGatewayDialog extends StatefulWidget {
         reservationReference: reservationReference,
         totalAmount: totalAmount,
         initialMobileNumber: initialMobileNumber,
+        reservationId: reservationId,
       ),
     );
   }
@@ -64,14 +68,13 @@ class GcashPaymentGatewayDialog extends StatefulWidget {
 }
 
 class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
-  int _step = 1; // 1: Choose / Mobile, 2: PayMongo Hosted / Polling, 3: In-App MPIN, 4: Success
+  int _step = 1; // 1: Choose / Initiate, 2: PayMongo Window Active, 3: In-App MPIN Simulator, 4: Success
   late final TextEditingController _phoneController;
   final TextEditingController _pinController = TextEditingController();
   bool _processing = false;
   String _generatedReference = '';
-  PayMongoSourceResult? _sourceResult;
-  Timer? _pollingTimer;
-  int _pollCount = 0;
+  String? _checkoutUrl;
+  bool _isLiveGateway = false;
 
   @override
   void initState() {
@@ -86,7 +89,6 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
 
   @override
   void dispose() {
-    _pollingTimer?.cancel();
     _phoneController.dispose();
     _pinController.dispose();
     super.dispose();
@@ -99,93 +101,53 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
   }
 
   Future<void> _handlePaymongoGatewayTap() async {
-    if (!PayMongoService.hasCustomKey) {
-      // Out of the box without real API key: smoothly proceed to the in-app interactive checkout
-      setState(() => _step = 3);
-      return;
-    }
-
     setState(() => _processing = true);
+
     try {
-      final source = await PayMongoService.createGcashSource(
-        amountPhp: widget.totalAmount,
-        description: 'E-Parada Parking: ${widget.parkingSpaceName} (${widget.reservationReference})',
-        customerPhone: _phoneController.text.trim(),
-      );
+      if (widget.reservationId != null) {
+        // Backend creates official PayMongo checkout session like website
+        final session = await ReservationService.createCheckoutSession(widget.reservationId!);
+        final checkoutUrl = session['checkout_url']?.toString();
+        _isLiveGateway = session['is_live'] == true;
 
-      if (!mounted) return;
+        if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
+          _checkoutUrl = checkoutUrl;
+          final uri = Uri.parse(checkoutUrl);
+          await launchUrl(
+            uri,
+            mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+            webOnlyWindowName: '_blank',
+          );
+        }
 
-      setState(() {
-        _sourceResult = source;
-        _step = 2;
-        _processing = false;
-        _pollCount = 0;
-      });
-
-      if (source.checkoutUrl != null && source.checkoutUrl!.isNotEmpty) {
-        final uri = Uri.parse(source.checkoutUrl!);
-        await launchUrl(
-          uri,
-          mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
-          webOnlyWindowName: '_blank',
-        );
-      }
-
-      _startStatusPolling(source.id);
-    } catch (e) {
-      if (mounted) {
-        setState(() => _processing = false);
-        showDialog<void>(
-          context: context,
-          builder: (dialogCtx) => AlertDialog(
-            title: const Text('PayMongo Gateway Notice'),
-            content: Text(
-              '$e\n\nWould you like to use the In-App Direct Checkout or configure a valid API key in settings?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogCtx);
-                  PaymongoSettingsDialog.show(context);
-                },
-                child: const Text('Open Settings'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.pop(dialogCtx);
-                  setState(() => _step = 3);
-                },
-                child: const Text('Use In-App Checkout'),
-              ),
-            ],
-          ),
-        );
-      }
-    }
-  }
-
-  void _startStatusPolling(String sourceId) {
-    _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (timer) async {
-      _pollCount++;
-      if (!mounted || _pollCount > 30) {
-        timer.cancel();
+        if (!mounted) return;
+        setState(() {
+          _step = 2;
+          _processing = false;
+        });
         return;
       }
 
-      final status = await PayMongoService.fetchSourceStatus(sourceId);
-      if (status.isChargeable || status.isPaid) {
-        timer.cancel();
-        if (mounted) {
-          _completeSuccessfulPayment(sourceId: status.id);
-        }
-      }
-    });
+      // If reservationId is null (e.g. Wallet top-up), use direct interactive simulation
+      if (!mounted) return;
+      setState(() {
+        _processing = false;
+        _step = 3;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _processing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not start PayMongo checkout: $e'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
   }
 
-  void _completeSuccessfulPayment({String? sourceId}) {
-    _pollingTimer?.cancel();
-    final ref = sourceId ?? _sourceResult?.id ?? _generateGcashRef();
+  void _completeSuccessfulPayment({String? referenceId}) {
+    final ref = referenceId ?? _generateGcashRef();
     setState(() {
       _processing = false;
       _generatedReference = ref;
@@ -204,8 +166,6 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
   Widget build(BuildContext context) {
     const gcashBlue = Color(0xFF005CE6);
     const gcashLightBlue = Color(0xFFE6F0FF);
-    final hasKey = PayMongoService.hasCustomKey;
-    final env = PayMongoService.environment;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -239,7 +199,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'GCash Payment Gateway',
+                          'GCash / PayMongo Gateway',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -255,11 +215,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                hasKey
-                                    ? (env == PayMongoEnvironment.live
-                                        ? 'PayMongo Live'
-                                        : 'PayMongo Sandbox')
-                                    : 'GCash Sandbox',
+                                _isLiveGateway ? 'PayMongo Live' : 'PayMongo / GCash',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -280,10 +236,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                   if (_step != 4)
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () {
-                        _pollingTimer?.cancel();
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => Navigator.pop(context),
                     ),
                 ],
               ),
@@ -333,7 +286,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: switch (_step) {
-                1 => _buildStep1Select(gcashBlue, hasKey),
+                1 => _buildStep1Select(gcashBlue),
                 2 => _buildStep2PayMongoHosted(gcashBlue),
                 3 => _buildStep3InAppPin(gcashBlue),
                 _ => _buildStep4Success(gcashBlue),
@@ -345,7 +298,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
     );
   }
 
-  Widget _buildStep1Select(Color gcashBlue, bool hasKey) {
+  Widget _buildStep1Select(Color gcashBlue) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -389,28 +342,26 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
               }
               _handlePaymongoGatewayTap();
             },
-            icon: Icon(hasKey ? Icons.open_in_browser_rounded : Icons.account_balance_wallet_rounded),
-            label: Text(hasKey ? 'Pay via PayMongo Hosted Checkout' : 'Proceed to GCash Checkout'),
+            icon: const Icon(Icons.open_in_browser_rounded),
+            label: Text('Pay via PayMongo / GCash (₱${widget.totalAmount.toStringAsFixed(2)})'),
           ),
-          if (hasKey) ...[
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              onPressed: () {
-                if (_phoneController.text.trim().length < 11) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter an 11-digit GCash mobile number.')),
-                  );
-                  return;
-                }
-                setState(() => _step = 3);
-              },
-              icon: const Icon(Icons.pin_rounded),
-              label: const Text('In-App Direct MPIN Checkout'),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
             ),
-          ],
+            onPressed: () {
+              if (_phoneController.text.trim().length < 11) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter an 11-digit GCash mobile number.')),
+                );
+                return;
+              }
+              setState(() => _step = 3);
+            },
+            icon: const Icon(Icons.pin_rounded),
+            label: const Text('Quick In-App GCash Simulation'),
+          ),
         ],
       ],
     );
@@ -428,15 +379,15 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFFBFDBFE)),
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1D4ED8)),
                   SizedBox(width: 6),
                   Text(
-                    'PayMongo Authorization Active',
+                    'PayMongo Checkout Window Active',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
@@ -445,71 +396,55 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
-                'Source ID: ${_sourceResult?.id ?? 'N/A'}',
-                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                'Complete your payment in the PayMongo window or simulate approval below.',
+                'Complete your payment in the PayMongo window opened in your browser.',
                 style: TextStyle(fontSize: 12, color: Colors.black87),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Once your payment is authorized, return here and tap "I Have Completed Payment".',
+                style: TextStyle(fontSize: 11, color: Color(0xFF1E40AF), fontWeight: FontWeight.w600),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox.square(
-              dimension: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            SizedBox(width: 10),
-            Text(
-              'Listening for settlement status...',
-              style: TextStyle(fontSize: 12, color: Colors.black54),
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
         FilledButton.icon(
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF16A34A),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 12),
           ),
-          onPressed: () => _completeSuccessfulPayment(),
+          onPressed: () => _completeSuccessfulPayment(
+            referenceId: 'PAYMONGO-GCASH-${DateTime.now().millisecondsSinceEpoch % 1000000}',
+          ),
           icon: const Icon(Icons.check_circle_outline_rounded),
-          label: const Text('Confirm Payment & Settle'),
+          label: const Text('I Have Completed Payment'),
         ),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {
-                  _pollingTimer?.cancel();
-                  setState(() => _step = 1);
-                },
+                onPressed: () => setState(() => _step = 1),
                 child: const Text('Back'),
               ),
             ),
-            if (_sourceResult?.checkoutUrl != null) ...[
+            if (_checkoutUrl != null) ...[
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    if (_sourceResult?.checkoutUrl != null) {
+                    if (_checkoutUrl != null) {
                       await launchUrl(
-                        Uri.parse(_sourceResult!.checkoutUrl!),
+                        Uri.parse(_checkoutUrl!),
                         mode: LaunchMode.externalApplication,
                       );
                     }
                   },
                   icon: const Icon(Icons.launch, size: 16),
-                  label: const Text('Re-open Window'),
+                  label: const Text('Re-open Link'),
                 ),
               ),
             ],
@@ -546,7 +481,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
         ),
         const SizedBox(height: 6),
         const Text(
-          'Enter your GCash MPIN (e.g. 1234) to confirm and authorize payment.',
+          'Enter your GCash MPIN (e.g. 1234) to authorize payment.',
           style: TextStyle(fontSize: 12, color: Colors.black54),
         ),
         const SizedBox(height: 16),
@@ -653,7 +588,6 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                 referenceNo: _generatedReference,
                 mobileNumber: _phoneController.text,
                 amount: widget.totalAmount,
-                paymongoSourceId: _sourceResult?.id,
               ),
             );
           },

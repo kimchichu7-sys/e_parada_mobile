@@ -296,6 +296,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                               parkingSpaceName: reservation.parkingSpaceName,
                               reservationReference: reservation.backupReference,
                               totalAmount: totalDue,
+                              reservationId: reservation.id,
                             );
                             if (result != null && result.success) {
                               setDialogState(() {
@@ -305,7 +306,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                           },
                           icon: const Icon(Icons.open_in_new_rounded, size: 18),
                           label: Text(
-                            'Proceed to GCash (PHP ${totalDue.toStringAsFixed(2)})',
+                            'Pay via GCash / PayMongo (PHP ${totalDue.toStringAsFixed(2)})',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),

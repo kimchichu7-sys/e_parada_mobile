@@ -151,6 +151,18 @@ class ReservationService {
     return _message(response, 'Payment submitted.');
   }
 
+  static Future<Map<String, dynamic>> createCheckoutSession(
+    int reservationId,
+  ) async {
+    final response = await ApiClient.postJson(
+      'driver/reservations/$reservationId/checkout-session',
+      headers: await _headers(),
+      body: {},
+    );
+    ApiClient.requireStatus(response, const {200});
+    return ApiClient.decodeObject(response);
+  }
+
   static Future<String> submitFeedback({
     required int reservationId,
     required int rating,
