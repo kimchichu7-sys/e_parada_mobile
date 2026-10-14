@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/owner_parking_space.dart';
 import '../services/api_client.dart';
 import '../services/owner_operations_service.dart';
+import '../utils/geotag_helper.dart';
 
 class OwnerSpaceFormScreen extends StatefulWidget {
   const OwnerSpaceFormScreen({super.key, this.space});
@@ -158,13 +159,49 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
       return;
     }
 
+    final added = selected.take(remaining).toList();
     setState(() {
-      _images.addAll(selected.take(remaining));
+      _images.addAll(added);
       _errorMessage = null;
     });
 
     if (selected.length > remaining) {
       _showMessage('Only the first five selected images were added.');
+    }
+
+    await _checkImagesForGeotag(added);
+  }
+
+  Future<void> _checkImagesForGeotag(List<XFile> files) async {
+    for (final file in files) {
+      try {
+        final bytes = await file.readAsBytes();
+        final coordinates = await GeotagHelper.extractCoordinates(bytes);
+        if (coordinates != null && mounted) {
+          setState(() {
+            _location = coordinates;
+          });
+          await _mapController?.animateCamera(
+            CameraUpdate.newLatLngZoom(coordinates, 17),
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Location detected from your photo! Please drag the pin if you need to adjust the exact entrance.',
+                  ),
+                  duration: Duration(seconds: 5),
+                  backgroundColor: Color(0xFF10B981),
+                ),
+              );
+          }
+          return;
+        }
+      } catch (_) {
+        // Fall back gracefully without showing an error
+      }
     }
   }
 
