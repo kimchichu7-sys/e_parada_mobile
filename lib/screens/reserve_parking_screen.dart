@@ -149,18 +149,24 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
 
   Future<void> _pickDate(bool start) async {
     final current = start ? _startDate : _endDate;
-    final today = DateTime.now();
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final maxDate = todayDate.add(const Duration(days: 7));
+    final initial = current.isBefore(todayDate)
+        ? todayDate
+        : (current.isAfter(maxDate) ? maxDate : current);
     final selected = await showDatePicker(
       context: context,
-      initialDate: current.isBefore(today) ? today : current,
-      firstDate: DateTime(today.year, today.month, today.day),
-      lastDate: today.add(const Duration(days: 365)),
+      initialDate: initial,
+      firstDate: start ? todayDate : _startDate,
+      lastDate: maxDate,
     );
     if (selected == null) return;
     setState(() {
       if (start) {
         _startDate = selected;
         if (_endDate.isBefore(selected)) _endDate = selected;
+        if (_endDate.isAfter(maxDate)) _endDate = maxDate;
       } else {
         _endDate = selected;
       }
@@ -324,6 +330,21 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 14,
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Advance booking allowed up to 7 days ahead',
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),

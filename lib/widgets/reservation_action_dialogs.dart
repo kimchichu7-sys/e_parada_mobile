@@ -442,7 +442,7 @@ Future<RescheduleSelection?> showRescheduleDialog(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'The parking owner must approve the new schedule again.',
+                  'The new schedule can be up to 7 days in advance. The parking owner must approve the new schedule.',
                 ),
                 const SizedBox(height: 10),
                 ListTile(
@@ -451,16 +451,21 @@ Future<RescheduleSelection?> showRescheduleDialog(
                   title: const Text('Start date'),
                   subtitle: Text(_date(startDate)),
                   onTap: () async {
+                    final maxDate = today.add(const Duration(days: 7));
+                    final initial = startDate.isBefore(today)
+                        ? today
+                        : (startDate.isAfter(maxDate) ? maxDate : startDate);
                     final selected = await showDatePicker(
                       context: context,
-                      initialDate: startDate,
+                      initialDate: initial,
                       firstDate: today,
-                      lastDate: today.add(const Duration(days: 365)),
+                      lastDate: maxDate,
                     );
                     if (selected == null) return;
                     setDialogState(() {
                       startDate = selected;
                       if (endDate.isBefore(startDate)) endDate = startDate;
+                      if (endDate.isAfter(maxDate)) endDate = maxDate;
                     });
                   },
                 ),
@@ -485,13 +490,15 @@ Future<RescheduleSelection?> showRescheduleDialog(
                   title: const Text('End date'),
                   subtitle: Text(_date(endDate)),
                   onTap: () async {
+                    final maxDate = today.add(const Duration(days: 7));
+                    final initial = endDate.isBefore(startDate)
+                        ? startDate
+                        : (endDate.isAfter(maxDate) ? maxDate : endDate);
                     final selected = await showDatePicker(
                       context: context,
-                      initialDate: endDate.isBefore(startDate)
-                          ? startDate
-                          : endDate,
+                      initialDate: initial,
                       firstDate: startDate,
-                      lastDate: today.add(const Duration(days: 365)),
+                      lastDate: maxDate,
                     );
                     if (selected != null) {
                       setDialogState(() => endDate = selected);
