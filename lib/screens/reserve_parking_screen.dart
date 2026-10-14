@@ -275,7 +275,8 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Reserve Parking')),
