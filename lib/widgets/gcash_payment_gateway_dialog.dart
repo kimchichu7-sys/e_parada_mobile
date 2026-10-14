@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -123,7 +124,11 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
 
       if (source.checkoutUrl != null && source.checkoutUrl!.isNotEmpty) {
         final uri = Uri.parse(source.checkoutUrl!);
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        await launchUrl(
+          uri,
+          mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+          webOnlyWindowName: '_blank',
+        );
       }
 
       _startStatusPolling(source.id);

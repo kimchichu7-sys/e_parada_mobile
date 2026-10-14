@@ -161,8 +161,8 @@ class PayMongoService {
     String? customerName,
     String? customerPhone,
     String? customerEmail,
-    String successUrl = 'https://e-parada.ph/payment-success',
-    String failedUrl = 'https://e-parada.ph/payment-failed',
+    String successUrl = 'https://e-parada.onrender.com/driver/reservations/payment/public-success',
+    String failedUrl = 'https://e-parada.onrender.com/driver/reservations/payment/public-cancel',
   }) async {
     final amountCentavos = (amountPhp * 100).round();
 
