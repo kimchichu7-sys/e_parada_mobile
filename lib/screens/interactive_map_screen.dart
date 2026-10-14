@@ -6,12 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart' hide Path;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/parking_space.dart';
 import '../services/api_service.dart';
 import '../services/route_navigation_service.dart';
-import '../utils/map_navigation_launcher.dart';
 import '../utils/parking_discovery.dart';
 import '../widgets/app_network_image.dart';
 import '../widgets/favorite_space_button.dart';
@@ -52,6 +50,13 @@ class _MapScreenState extends State<MapScreen> {
   bool _mapReady = false;
   bool _locating = false;
   LatLng? _currentLocation;
+  StreamSubscription<Position>? _positionStreamSubscription;
+  double _currentHeading = 0.0;
+  double _currentSpeedKmh = 0.0;
+  double _currentAccuracyMeters = 0.0;
+  bool _isLiveTrackingActive = false;
+  bool _isSimulatingRoute = false;
+
   ParkingSpace? _selectedSpace;
   NavigationRouteData? _routeData;
   NavigationTransportMode _transportMode = NavigationTransportMode.car;
@@ -95,10 +100,13 @@ class _MapScreenState extends State<MapScreen> {
         widget.initialLongitude!,
       );
     }
+    // Automatically start continuous, high-accuracy real-time driver GPS tracking
+    _initRealtimeLocationTracking();
   }
 
   @override
   void dispose() {
+    _positionStreamSubscription?.cancel();
     _navSubscription?.cancel();
     _searchController.dispose();
     _googleMapController?.dispose();
@@ -246,9 +254,12 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _startDriving({bool simulate = true}) {
+  void _startDriving({bool simulate = false}) {
     if (_selectedSpace == null || _routeData == null) return;
     _navSubscription?.cancel();
+    _isSimulatingRoute = simulate;
+
+    final initialPos = _currentLocation ?? _routeData!.primaryCoordinates.first;
     final initialProgress = RouteNavigationService.computeProgress(
       routeData: _routeData!,
       progressFraction: 0.0,
@@ -259,19 +270,20 @@ class _MapScreenState extends State<MapScreen> {
       _navProgress = initialProgress;
     });
 
-    _moveMap(initialProgress.currentPosition, 17.5);
+    _initRealtimeLocationTracking(moveCameraOnFix: true);
+    _moveMap(initialPos, 18.0);
 
     if (simulate) {
       _navSubscription = RouteNavigationService.simulateNavigationStream(
         routeData: _routeData!,
-        totalDurationSeconds: 12.0,
+        totalDurationSeconds: 15.0,
       ).listen((progress) {
         if (!mounted) return;
         setState(() {
           _navProgress = progress;
         });
         if (_cameraFollowsVehicle) {
-          _moveMap(progress.currentPosition, 17.5);
+          _moveMap(progress.currentPosition, 18.0);
         }
         if (progress.isArrived) {
           _showArrivalDialog(_selectedSpace!);
@@ -283,6 +295,7 @@ class _MapScreenState extends State<MapScreen> {
   void _stopDriving() {
     _navSubscription?.cancel();
     _navSubscription = null;
+    _isSimulatingRoute = false;
     setState(() {
       _isNavigating = false;
       _navProgress = null;
@@ -489,6 +502,179 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  Future<void> _initRealtimeLocationTracking({bool moveCameraOnFix = false}) async {
+    try {
+      final enabled = await Geolocator.isLocationServiceEnabled();
+      if (!enabled) return;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      // Try quick cached fix first to show the pin immediately
+      try {
+        final lastPos = await Geolocator.getLastKnownPosition();
+        if (lastPos != null && mounted) {
+          _handlePositionUpdate(lastPos);
+        }
+      } catch (_) {}
+
+      // Get precise initial fix
+      try {
+        final initialPos = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.bestForNavigation,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
+        if (mounted) {
+          _handlePositionUpdate(initialPos);
+          if (moveCameraOnFix) {
+            _moveMap(LatLng(initialPos.latitude, initialPos.longitude), 17.5);
+          }
+        }
+      } catch (_) {}
+
+      // Start continuous high-accuracy position stream (fires every 2 meters of movement)
+      _positionStreamSubscription?.cancel();
+      const locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 2,
+      );
+
+      _positionStreamSubscription = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      ).listen(
+        _handlePositionUpdate,
+        onError: (e) {
+          debugPrint('Geolocator position stream error: $e');
+        },
+      );
+    } catch (e) {
+      debugPrint('Location tracking init error: $e');
+    }
+  }
+
+  void _handlePositionUpdate(Position position) {
+    if (!mounted) return;
+    final newPoint = LatLng(position.latitude, position.longitude);
+
+    double heading = _currentHeading;
+    if (position.heading > 0.0 && !position.heading.isNaN) {
+      heading = position.heading;
+    } else if (_currentLocation != null) {
+      final movedMeters = Geolocator.distanceBetween(
+        _currentLocation!.latitude,
+        _currentLocation!.longitude,
+        newPoint.latitude,
+        newPoint.longitude,
+      );
+      if (movedMeters >= 1.5) {
+        heading = RouteNavigationService.computeBearing(_currentLocation!, newPoint);
+      }
+    }
+
+    final speedKmh = position.speed >= 0 ? (position.speed * 3.6) : 0.0;
+
+    setState(() {
+      _currentLocation = newPoint;
+      _currentHeading = heading;
+      _currentSpeedKmh = speedKmh;
+      _currentAccuracyMeters = position.accuracy;
+      _isLiveTrackingActive = true;
+    });
+
+    // If navigating in real GPS mode (not simulation mode), update turn instructions & progress
+    if (_isNavigating && !_isSimulatingRoute && _selectedSpace != null && _routeData != null) {
+      _updateRealtimeNavigationProgress(newPoint, heading, speedKmh);
+    }
+
+    // If camera follows vehicle and navigating, animate camera along driver's movement
+    if (_isNavigating && _cameraFollowsVehicle && _mapReady && _googleMapController != null) {
+      _googleMapController!.animateCamera(
+        gmaps.CameraUpdate.newCameraPosition(
+          gmaps.CameraPosition(
+            target: gmaps.LatLng(newPoint.latitude, newPoint.longitude),
+            bearing: heading,
+            tilt: 45.0,
+            zoom: 18.0,
+          ),
+        ),
+      );
+    }
+  }
+
+  void _updateRealtimeNavigationProgress(
+    LatLng currentPos,
+    double heading,
+    double speedKmh,
+  ) {
+    if (_routeData == null || _selectedSpace == null) return;
+
+    final destPt = _pointFor(_selectedSpace!);
+    if (destPt == null) return;
+
+    final distanceToDestMeters = Geolocator.distanceBetween(
+      currentPos.latitude,
+      currentPos.longitude,
+      destPt.latitude,
+      destPt.longitude,
+    );
+    final distanceToDestKm = distanceToDestMeters / 1000.0;
+
+    // Check arrival if within 25 meters of destination
+    final isArrived = distanceToDestMeters <= 25.0;
+
+    final totalKm = _routeData!.distanceKm > 0 ? _routeData!.distanceKm : 1.0;
+    final progressFraction = (1.0 - (distanceToDestKm / totalKm)).clamp(0.0, 1.0);
+
+    final steps = _routeData!.steps;
+    final stepIndex = steps.isNotEmpty
+        ? (progressFraction * steps.length).floor().clamp(0, steps.length - 1)
+        : 0;
+    final currentStep = steps.isNotEmpty
+        ? steps[stepIndex]
+        : const RouteStepItem(instruction: 'Follow route to destination');
+    final nextStep = (stepIndex + 1 < steps.length) ? steps[stepIndex + 1] : null;
+
+    final effectiveSpeed = speedKmh > 5.0
+        ? speedKmh
+        : (_transportMode == NavigationTransportMode.motorcycle ? 30.0 : 24.0);
+    final remainingMinutes = math.max(1, (distanceToDestKm / effectiveSpeed * 60.0).round());
+    final remainingEtaText = isArrived
+        ? 'Arrived'
+        : (remainingMinutes < 60
+            ? '$remainingMinutes min'
+            : '${remainingMinutes ~/ 60}h ${remainingMinutes % 60}m');
+
+    final updatedProgress = LiveNavigationProgress(
+      currentPosition: currentPos,
+      bearing: heading,
+      currentStepIndex: stepIndex,
+      currentStep: currentStep,
+      nextStep: nextStep,
+      remainingDistanceKm: distanceToDestKm,
+      remainingDurationMinutes: remainingMinutes,
+      remainingEtaText: remainingEtaText,
+      currentSpeedKmh: speedKmh,
+      isArrived: isArrived,
+      progressFraction: progressFraction,
+    );
+
+    setState(() {
+      _navProgress = updatedProgress;
+    });
+
+    if (isArrived) {
+      _showArrivalDialog(_selectedSpace!);
+    }
+  }
+
   Future<void> _goToCurrentLocation({ParkingSpace? refitFor}) async {
     if (_locating) return;
     setState(() => _locating = true);
@@ -521,21 +707,25 @@ class _MapScreenState extends State<MapScreen> {
         return;
       }
 
+      // Ensure continuous position stream is active
+      if (_positionStreamSubscription == null) {
+        await _initRealtimeLocationTracking();
+      }
+
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 15),
+          accuracy: LocationAccuracy.bestForNavigation,
+          timeLimit: Duration(seconds: 10),
         ),
       );
+      _handlePositionUpdate(position);
       final point = LatLng(position.latitude, position.longitude);
-      if (!mounted) return;
-      setState(() => _currentLocation = point);
 
       final targetSpace = refitFor ?? _selectedSpace;
       if (targetSpace != null && _pointFor(targetSpace) != null) {
         _fetchAndApplyRoute(targetSpace, autoFit: true);
       } else {
-        _moveMap(point, 16);
+        _moveMap(point, 16.5);
       }
     } catch (_) {
       _message('Your current location could not be retrieved.');
@@ -572,14 +762,19 @@ class _MapScreenState extends State<MapScreen> {
         title: const Text('Browse Parking'),
         actions: [
           IconButton(
-            tooltip: 'Use my location',
+            tooltip: _isLiveTrackingActive ? 'Live GPS Active' : 'Use my location',
             onPressed: _locating ? null : _goToCurrentLocation,
             icon: _locating
                 ? const SizedBox.square(
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.my_location_rounded),
+                : Icon(
+                    _isLiveTrackingActive
+                        ? Icons.gps_fixed_rounded
+                        : Icons.my_location_rounded,
+                    color: _isLiveTrackingActive ? const Color(0xFF16A34A) : null,
+                  ),
           ),
         ],
       ),
@@ -613,7 +808,7 @@ class _MapScreenState extends State<MapScreen> {
                   transportMode: _transportMode,
                   isLiveGps: _currentLocation != null,
                   onModeChanged: _setTransportMode,
-                  onStartDriving: () => _startDriving(simulate: true),
+                  onStartDriving: () => _startDriving(simulate: false),
                   onClose: _clearSelection,
                   onRecenter: () {
                     if (_pointFor(_selectedSpace!) != null) {
@@ -961,7 +1156,7 @@ class _MapScreenState extends State<MapScreen> {
                                   steps: _routeData?.steps ?? const [],
                                   isLiveGps: _currentLocation != null,
                                   onStartDriving: () =>
-                                      _startDriving(simulate: true),
+                                      _startDriving(simulate: false),
                                   onClose: _clearSelection,
                                   onRecenter: () {
                                     if (_pointFor(_selectedSpace!) != null) {
@@ -1075,29 +1270,66 @@ class _MapScreenState extends State<MapScreen> {
         ),
       );
 
-      // Driver vehicle / origin marker
-      final originPt = _navProgress?.currentPosition ?? _effectiveOrigin(_selectedSpace!);
+      // Driver vehicle / origin marker (real-time moving pin)
+      final originPt = _navProgress?.currentPosition ??
+          _currentLocation ??
+          _effectiveOrigin(_selectedSpace!);
+      final bearing = _isNavigating
+          ? (_navProgress?.bearing ?? _currentHeading)
+          : _currentHeading;
+
       markers.add(
         gmaps.Marker(
           markerId: const gmaps.MarkerId('driver_vehicle_marker'),
           position: gmaps.LatLng(originPt.latitude, originPt.longitude),
-          rotation: _navProgress?.bearing ?? 0.0,
-          flat: _isNavigating,
+          rotation: bearing,
+          flat: true,
           anchor: const Offset(0.5, 0.5),
+          zIndexInt: 10,
           icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
             _isNavigating
-                ? gmaps.BitmapDescriptor.hueBlue
-                : gmaps.BitmapDescriptor.hueYellow,
+                ? gmaps.BitmapDescriptor.hueCyan
+                : gmaps.BitmapDescriptor.hueBlue,
           ),
           infoWindow: gmaps.InfoWindow(
-            title: _isNavigating ? 'Vehicle En Route' : 'Your Origin',
-            snippet: _routeData != null ? '${_routeData!.etaText} (${_routeData!.distanceKm.toStringAsFixed(1)} km)' : null,
+            title: _isNavigating ? 'Vehicle En Route' : 'Your Live Location',
+            snippet: _currentSpeedKmh > 1.0
+                ? '${_currentSpeedKmh.toStringAsFixed(0)} km/h • GPS Active${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'
+                : (_routeData != null
+                    ? '${_routeData!.etaText} (${_routeData!.distanceKm.toStringAsFixed(1)} km)'
+                    : 'Real-time GPS Tracking${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'),
           ),
         ),
       );
     }
-    // 2. In Browse Mode: show all filtered parking spaces
+    // 2. In Browse Mode: show real-time driver location pin PLUS all filtered spaces
     else {
+      // Add real-time driver location marker if position is known
+      if (_currentLocation != null) {
+        markers.add(
+          gmaps.Marker(
+            markerId: const gmaps.MarkerId('driver_live_location_marker'),
+            position: gmaps.LatLng(
+              _currentLocation!.latitude,
+              _currentLocation!.longitude,
+            ),
+            rotation: _currentHeading,
+            flat: true,
+            anchor: const Offset(0.5, 0.5),
+            zIndexInt: 10,
+            icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+              gmaps.BitmapDescriptor.hueAzure,
+            ),
+            infoWindow: gmaps.InfoWindow(
+              title: 'Your Location (Live GPS)',
+              snippet: _currentSpeedKmh > 1.0
+                  ? '${_currentSpeedKmh.toStringAsFixed(0)} km/h • Real-time Tracking${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'
+                  : 'Real-time GPS detected${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}',
+            ),
+          ),
+        );
+      }
+
       for (final space in mappedSpaces) {
         final pt = _pointFor(space);
         if (pt == null) continue;
@@ -1368,29 +1600,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-class _LocationDot extends StatelessWidget {
-  const _LocationDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF2563EB).withValues(alpha: 0.22),
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: Container(
-        width: 16,
-        height: 16,
-        decoration: BoxDecoration(
-          color: const Color(0xFF2563EB),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-        ),
-      ),
-    );
-  }
-}
 
 class _FilterSelection {
   const _FilterSelection({
@@ -1878,164 +2087,7 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
   }
 }
 
-class _FloatingRouteEtaCallout extends StatelessWidget {
-  const _FloatingRouteEtaCallout({
-    required this.etaText,
-    required this.distanceText,
-    required this.isPrimary,
-  });
 
-  final String etaText;
-  final String distanceText;
-  final bool isPrimary;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = isPrimary ? Colors.white : const Color(0xFFF1F5F9);
-    final borderColor = isPrimary ? const Color(0xFF0F172A) : const Color(0xFF94A3B8);
-    final textColor = isPrimary ? const Color(0xFF0F172A) : const Color(0xFF475569);
-    final etaColor = isPrimary ? const Color(0xFF2563EB) : const Color(0xFF64748B);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: borderColor.withValues(alpha: isPrimary ? 0.85 : 0.5),
-              width: 1.4,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.directions_car_rounded,
-                    size: 13,
-                    color: etaColor,
-                  ),
-                  const SizedBox(width: 3),
-                  Flexible(
-                    child: Text(
-                      etaText.replaceAll(' drive', ''),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: isPrimary
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFF334155),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              if (distanceText.isNotEmpty)
-                Text(
-                  distanceText,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w600,
-                    color: textColor.withValues(alpha: 0.85),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        CustomPaint(
-          size: const Size(10, 5),
-          painter: _TrianglePointerPainter(color: bg, borderColor: borderColor),
-        ),
-      ],
-    );
-  }
-}
-
-class _TrianglePointerPainter extends CustomPainter {
-  const _TrianglePointerPainter({required this.color, required this.borderColor});
-  final Color color;
-  final Color borderColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width / 2, size.height)
-      ..lineTo(size.width, 0)
-      ..close();
-
-    final paint = Paint()..color = color..style = PaintingStyle.fill;
-    canvas.drawPath(path, paint);
-
-    final borderPaint = Paint()
-      ..color = borderColor.withValues(alpha: 0.8)
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-    canvas.drawPath(path, borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _DriverOriginMarker extends StatelessWidget {
-  const _DriverOriginMarker({
-    required this.isLiveGps,
-    this.bearing = 0.0,
-    this.mode = NavigationTransportMode.car,
-    this.isNavigating = false,
-  });
-
-  final bool isLiveGps;
-  final double bearing;
-  final NavigationTransportMode mode;
-  final bool isNavigating;
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = mode == NavigationTransportMode.motorcycle
-        ? Icons.two_wheeler_rounded
-        : Icons.directions_car_rounded;
-    return Transform.rotate(
-      angle: bearing * (math.pi / 180.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isNavigating ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2.5),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black38,
-              blurRadius: 8,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 24,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _DrivingNavigationHUD extends StatelessWidget {
   const _DrivingNavigationHUD({
