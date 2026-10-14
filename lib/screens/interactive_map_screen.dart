@@ -254,42 +254,74 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _startDriving({bool simulate = false}) {
-    if (_selectedSpace == null || _routeData == null) return;
+  Future<void> _startDriving() async {
+    if (_selectedSpace == null) return;
     _navSubscription?.cancel();
-    _isSimulatingRoute = simulate;
+    _navSubscription = null;
+    _isSimulatingRoute = false;
 
-    final initialPos = _currentLocation ?? _routeData!.primaryCoordinates.first;
-    final initialProgress = RouteNavigationService.computeProgress(
-      routeData: _routeData!,
-      progressFraction: 0.0,
-    );
+    // 1. Detect driver's live GPS location if not yet available
+    if (_currentLocation == null) {
+      _message('Detecting your live GPS location...');
+      try {
+        final enabled = await Geolocator.isLocationServiceEnabled();
+        if (!enabled) {
+          _message('Please turn on location services on your device.');
+        } else {
+          var permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+          if (permission == LocationPermission.whileInUse ||
+              permission == LocationPermission.always) {
+            final pos = await Geolocator.getCurrentPosition(
+              locationSettings: const LocationSettings(
+                accuracy: LocationAccuracy.bestForNavigation,
+                timeLimit: Duration(seconds: 10),
+              ),
+            );
+            if (mounted) {
+              _handlePositionUpdate(pos);
+            }
+          } else {
+            _message('Location permission is needed for live driving.');
+          }
+        }
+      } catch (e) {
+        debugPrint('Live location detection error: $e');
+      }
+    }
+
+    // 2. If live location is known, recalculate route starting from driver's actual location
+    if (_selectedSpace != null && _currentLocation != null) {
+      await _fetchAndApplyRoute(_selectedSpace!, autoFit: false);
+    }
+
+    if (!mounted || _selectedSpace == null || _routeData == null) return;
+
+    final livePos = _currentLocation ?? _routeData!.primaryCoordinates.first;
+
     setState(() {
       _isNavigating = true;
       _cameraFollowsVehicle = true;
-      _navProgress = initialProgress;
     });
 
+    // 3. Start continuous high-accuracy live GPS stream (only moves pin when driver actually moves)
     _initRealtimeLocationTracking(moveCameraOnFix: true);
-    _moveMap(initialPos, 18.0);
 
-    if (simulate) {
-      _navSubscription = RouteNavigationService.simulateNavigationStream(
+    if (_currentLocation != null) {
+      _updateRealtimeNavigationProgress(_currentLocation!, _currentHeading, _currentSpeedKmh);
+    } else {
+      final initialProgress = RouteNavigationService.computeProgress(
         routeData: _routeData!,
-        totalDurationSeconds: 15.0,
-      ).listen((progress) {
-        if (!mounted) return;
-        setState(() {
-          _navProgress = progress;
-        });
-        if (_cameraFollowsVehicle) {
-          _moveMap(progress.currentPosition, 18.0);
-        }
-        if (progress.isArrived) {
-          _showArrivalDialog(_selectedSpace!);
-        }
+        progressFraction: 0.0,
+      );
+      setState(() {
+        _navProgress = initialProgress;
       });
     }
+
+    _moveMap(livePos, 18.0);
   }
 
   void _stopDriving() {
@@ -808,7 +840,7 @@ class _MapScreenState extends State<MapScreen> {
                   transportMode: _transportMode,
                   isLiveGps: _currentLocation != null,
                   onModeChanged: _setTransportMode,
-                  onStartDriving: () => _startDriving(simulate: false),
+                  onStartDriving: _startDriving,
                   onClose: _clearSelection,
                   onRecenter: () {
                     if (_pointFor(_selectedSpace!) != null) {
@@ -1155,8 +1187,7 @@ class _MapScreenState extends State<MapScreen> {
                                       ),
                                   steps: _routeData?.steps ?? const [],
                                   isLiveGps: _currentLocation != null,
-                                  onStartDriving: () =>
-                                      _startDriving(simulate: false),
+                                  onStartDriving: _startDriving,
                                   onClose: _clearSelection,
                                   onRecenter: () {
                                     if (_pointFor(_selectedSpace!) != null) {
@@ -1168,9 +1199,7 @@ class _MapScreenState extends State<MapScreen> {
                                       );
                                     }
                                   },
-                                  onExternalNavigation: () {
-                                    _startDriving(simulate: false);
-                                  },
+                                  onExternalNavigation: _startDriving,
                                   onDetails: () =>
                                       _openDetails(_selectedSpace!),
                                   onSyncGps: () => _goToCurrentLocation(
@@ -1271,11 +1300,11 @@ class _MapScreenState extends State<MapScreen> {
       );
 
       // Driver vehicle / origin marker (real-time moving pin)
-      final originPt = _navProgress?.currentPosition ??
-          _currentLocation ??
+      final originPt = _currentLocation ??
+          _navProgress?.currentPosition ??
           _effectiveOrigin(_selectedSpace!);
       final bearing = _isNavigating
-          ? (_navProgress?.bearing ?? _currentHeading)
+          ? (_currentHeading > 0.0 ? _currentHeading : (_navProgress?.bearing ?? 0.0))
           : _currentHeading;
 
       markers.add(
