@@ -188,19 +188,6 @@ class _MapScreenState extends State<MapScreen> {
     if (destPoint == null) return;
     final startPoint = _effectiveOrigin(space);
 
-    final instantFallback = RouteNavigationService.generateFallbackRoute(
-      origin: startPoint,
-      destination: destPoint,
-      destinationSpace: space,
-      mode: _transportMode,
-    );
-
-    if (mounted && _selectedSpace?.id == space.id) {
-      setState(() {
-        _routeData = instantFallback;
-      });
-    }
-
     if (autoFit) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _fitRoute(startPoint, destPoint);
@@ -218,8 +205,15 @@ class _MapScreenState extends State<MapScreen> {
         setState(() {
           _routeData = liveData;
         });
+        if (autoFit) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _fitRoute(startPoint, destPoint);
+          });
+        }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error fetching route: $e');
+    }
   }
 
   void _selectSpace(ParkingSpace space, {bool autoFit = true}) {

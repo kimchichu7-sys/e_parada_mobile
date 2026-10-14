@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
+import '../config/api_config.dart';
 import '../models/parking_space.dart';
 
 enum NavigationTransportMode {
@@ -92,7 +94,7 @@ class LiveNavigationProgress {
 }
 
 class RouteNavigationService {
-  static const _timeout = Duration(seconds: 4);
+  static const _timeout = Duration(seconds: 7);
 
   static Future<NavigationRouteData> fetchRoute({
     required LatLng origin,
@@ -107,75 +109,55 @@ class RouteNavigationService {
         : mode == NavigationTransportMode.bicycle
             ? 'bicycle'
             : 'driving';
-    final url = Uri.parse(
-      'https://router.project-osrm.org/route/v1/$profile/'
-      '${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}'
-      '?overview=full&geometries=geojson&steps=true&alternatives=true',
-    );
+    final routedProfile = profile == 'foot'
+        ? 'routed-foot'
+        : (profile == 'bicycle' ? 'routed-bike' : 'routed-car');
+
+    final candidateUrls = <Uri>[
+      // 1. Same-origin / backend route proxy (guarantees no CORS or browser-header blocks on Web)
+      ApiConfig.endpoint(
+        'navigation/route?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=$profile',
+      ),
+      // 2. Primary Public OSRM routing engine
+      Uri.parse(
+        'https://router.project-osrm.org/route/v1/$profile/'
+        '${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}'
+        '?overview=full&geometries=geojson&steps=true&alternatives=true',
+      ),
+      // 3. Secondary OpenStreetMap routing cluster
+      Uri.parse(
+        'https://routing.openstreetmap.de/$routedProfile/route/v1/$profile/'
+        '${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}'
+        '?overview=full&geometries=geojson&steps=true',
+      ),
+    ];
 
     try {
-      final response = await httpClient.get(
-        url,
-        headers: {'User-Agent': 'EParadaMobile/1.0'},
-      ).timeout(_timeout);
+      for (final url in candidateUrls) {
+        try {
+          final headers = <String, String>{
+            'Accept': 'application/json',
+            // Browsers forbid custom User-Agent in XMLHttpRequest/fetch
+            if (!kIsWeb) 'User-Agent': 'EParadaMobile/1.0',
+          };
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body) as Map<String, dynamic>;
-        if (data['code'] == 'Ok' && data['routes'] is List && (data['routes'] as List).isNotEmpty) {
-          final routes = data['routes'] as List;
-          final primaryJson = routes[0] as Map<String, dynamic>;
-          final primaryCoords = _parseCoordinates(primaryJson['geometry']);
+          final response = await httpClient.get(url, headers: headers).timeout(_timeout);
 
-          if (primaryCoords.length >= 2) {
-            final distanceMeters = (primaryJson['distance'] as num?)?.toDouble() ?? 0.0;
-            final durationSeconds = (primaryJson['duration'] as num?)?.toDouble() ?? 0.0;
-            final distanceKm = distanceMeters / 1000.0;
-            final durationMinutes = math.max(1, (durationSeconds / 60.0).round());
-            final etaText = _formatEta(durationMinutes, mode: mode);
-
-            final steps = _parseSteps(primaryJson, destinationSpace);
-            final primaryMidpoint = primaryCoords[primaryCoords.length ~/ 2];
-
-            List<LatLng>? altCoords;
-            LatLng? altMidpoint;
-            String? altEtaText;
-            double? altDistanceKm;
-
-            if (routes.length > 1) {
-              final altJson = routes[1] as Map<String, dynamic>;
-              altCoords = _parseCoordinates(altJson['geometry']);
-              if (altCoords.length >= 2) {
-                altMidpoint = altCoords[altCoords.length ~/ 2];
-                final altDistMeters = (altJson['distance'] as num?)?.toDouble() ?? 0.0;
-                final altDurSecs = (altJson['duration'] as num?)?.toDouble() ?? 0.0;
-                altDistanceKm = altDistMeters / 1000.0;
-                final altMins = math.max(1, (altDurSecs / 60.0).round());
-                altEtaText = _formatEta(altMins, mode: mode);
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body) as Map<String, dynamic>;
+            if (data['code'] == 'Ok' &&
+                data['routes'] is List &&
+                (data['routes'] as List).isNotEmpty) {
+              final parsed = _buildRouteData(data, destinationSpace, mode);
+              if (parsed != null && parsed.primaryCoordinates.length >= 2) {
+                return parsed;
               }
             }
-
-            return NavigationRouteData(
-              primaryCoordinates: primaryCoords,
-              alternativeCoordinates: altCoords,
-              distanceKm: distanceKm,
-              durationMinutes: durationMinutes,
-              etaText: etaText,
-              steps: steps,
-              primaryMidpoint: primaryMidpoint,
-              alternativeMidpoint: altMidpoint,
-              alternativeEtaText: altEtaText,
-              alternativeDistanceKm: altDistanceKm,
-              mode: mode,
-              carEta: formatModeEta(distanceKm, NavigationTransportMode.car),
-              motorcycleEta: formatModeEta(distanceKm, NavigationTransportMode.motorcycle),
-              walkingEta: formatModeEta(distanceKm, NavigationTransportMode.walking),
-              bicycleEta: formatModeEta(distanceKm, NavigationTransportMode.bicycle),
-            );
           }
+        } catch (e) {
+          debugPrint('Route attempt failed for $url: $e');
         }
       }
-    } catch (_) {
-      // Network failure or timeout: gracefully fall back to local road geometry generator
     } finally {
       if (client == null) {
         httpClient.close();
@@ -188,6 +170,68 @@ class RouteNavigationService {
       destinationSpace: destinationSpace,
       mode: mode,
     );
+  }
+
+  static NavigationRouteData? _buildRouteData(
+    Map<String, dynamic> data,
+    ParkingSpace? destinationSpace,
+    NavigationTransportMode mode,
+  ) {
+    try {
+      final routes = data['routes'] as List;
+      final primaryJson = routes[0] as Map<String, dynamic>;
+      final primaryCoords = _parseCoordinates(primaryJson['geometry']);
+
+      if (primaryCoords.length < 2) return null;
+
+      final distanceMeters = (primaryJson['distance'] as num?)?.toDouble() ?? 0.0;
+      final durationSeconds = (primaryJson['duration'] as num?)?.toDouble() ?? 0.0;
+      final distanceKm = distanceMeters / 1000.0;
+      final durationMinutes = math.max(1, (durationSeconds / 60.0).round());
+      final etaText = _formatEta(durationMinutes, mode: mode);
+
+      final steps = _parseSteps(primaryJson, destinationSpace);
+      final primaryMidpoint = primaryCoords[primaryCoords.length ~/ 2];
+
+      List<LatLng>? altCoords;
+      LatLng? altMidpoint;
+      String? altEtaText;
+      double? altDistanceKm;
+
+      if (routes.length > 1) {
+        final altJson = routes[1] as Map<String, dynamic>;
+        altCoords = _parseCoordinates(altJson['geometry']);
+        if (altCoords.length >= 2) {
+          altMidpoint = altCoords[altCoords.length ~/ 2];
+          final altDistMeters = (altJson['distance'] as num?)?.toDouble() ?? 0.0;
+          final altDurSecs = (altJson['duration'] as num?)?.toDouble() ?? 0.0;
+          altDistanceKm = altDistMeters / 1000.0;
+          final altMins = math.max(1, (altDurSecs / 60.0).round());
+          altEtaText = _formatEta(altMins, mode: mode);
+        }
+      }
+
+      return NavigationRouteData(
+        primaryCoordinates: primaryCoords,
+        alternativeCoordinates: altCoords,
+        distanceKm: distanceKm,
+        durationMinutes: durationMinutes,
+        etaText: etaText,
+        steps: steps,
+        primaryMidpoint: primaryMidpoint,
+        alternativeMidpoint: altMidpoint,
+        alternativeEtaText: altEtaText,
+        alternativeDistanceKm: altDistanceKm,
+        mode: mode,
+        carEta: formatModeEta(distanceKm, NavigationTransportMode.car),
+        motorcycleEta: formatModeEta(distanceKm, NavigationTransportMode.motorcycle),
+        walkingEta: formatModeEta(distanceKm, NavigationTransportMode.walking),
+        bicycleEta: formatModeEta(distanceKm, NavigationTransportMode.bicycle),
+      );
+    } catch (e) {
+      debugPrint('Error parsing route data: $e');
+      return null;
+    }
   }
 
   static List<LatLng> _parseCoordinates(dynamic geometry) {
