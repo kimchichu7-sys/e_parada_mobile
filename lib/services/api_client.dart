@@ -72,6 +72,20 @@ class ApiClient {
     );
   }
 
+  static Future<http.Response> putJson(
+    String path, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) {
+    return _send(
+      () => http.put(
+        ApiConfig.endpoint(path),
+        headers: _headers(headers, json: true),
+        body: jsonEncode(body ?? <String, dynamic>{}),
+      ),
+    );
+  }
+
   static Future<http.Response> post(
     String path, {
     Map<String, String>? headers,

@@ -118,6 +118,38 @@ class AuthService {
     }
   }
 
+  static Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    final token = await requireToken();
+
+    final response = await ApiClient.putJson(
+      'password',
+      headers: bearerHeaders(token),
+      body: {
+        'current_password': currentPassword,
+        'password': newPassword,
+        'password_confirmation': newPasswordConfirmation,
+      },
+    );
+
+    ApiClient.requireStatus(response, const {200});
+  }
+
+  static Future<String> forgotPassword({required String email}) async {
+    final response = await ApiClient.postJson(
+      'forgot-password',
+      body: {'email': email},
+    );
+
+    ApiClient.requireStatus(response, const {200});
+    final body = ApiClient.decodeObject(response);
+    return body['message']?.toString() ??
+        'Password reset link sent to your email.';
+  }
+
   static Future<AuthUser?> fetchMe() async {
     final token = await authToken();
 

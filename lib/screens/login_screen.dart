@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/api_config.dart';
 import '../services/auth_service.dart';
 import '../services/push_notification_handler.dart';
+import '../widgets/forgot_password_dialog.dart';
 import '../widgets/server_connection_dialog.dart';
 import 'main_navigation_screen.dart';
 
@@ -151,6 +152,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       validator: (value) => value == null || value.isEmpty
                           ? 'Enter your password.'
                           : null,
+                    ),
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          ForgotPasswordDialog.show(
+                            context,
+                            initialEmail: _emailController.text.trim(),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Text('Forgot password?'),
+                      ),
                     ),
                     if (_errorMessage != null) ...[
                       const SizedBox(height: 16),

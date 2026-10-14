@@ -4,6 +4,7 @@ import '../config/app_theme.dart';
 import '../models/auth_user.dart';
 import '../services/auth_service.dart';
 import '../widgets/app_feedback_dialog.dart';
+import '../widgets/change_password_dialog.dart';
 import '../widgets/delete_account_dialog.dart';
 import '../widgets/paymongo_settings_dialog.dart';
 import 'incident_report_screen.dart';
@@ -329,6 +330,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context,
                       MaterialPageRoute(builder: (_) => const SupportScreen()),
                     ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(
+                      Icons.lock_reset_rounded,
+                      color: Color(0xFF173B64),
+                    ),
+                    title: const Text(
+                      'Change Password',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    subtitle: const Text(
+                      'Update your account password and security credentials',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => ChangePasswordDialog.show(context),
                   ),
                 ),
                 const SizedBox(height: 12),
