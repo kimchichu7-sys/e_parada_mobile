@@ -34,6 +34,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   XFile? _identityBack;
   XFile? _vehicleFront;
   XFile? _vehicleBack;
+  XFile? _orPhoto;
+  XFile? _crPhoto;
   bool _consent = false;
   bool _showPassword = false;
   bool _showConfirmation = false;
@@ -100,6 +102,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         vehicleModel: _role == 'driver' ? _vehicleModel : null,
         vehiclePhoto: await _uploadData(_vehicleFront),
         vehiclePhotoBack: await _uploadData(_vehicleBack),
+        orPhoto: await _uploadData(_orPhoto),
+        crPhoto: await _uploadData(_crPhoto),
       );
 
       if (!mounted) return;
@@ -139,6 +143,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     if (_vehicleBack == null) {
       return 'Upload a back photo of the vehicle showing its plate.';
+    }
+    if (_orPhoto == null) {
+      return 'Upload your vehicle\'s Official Receipt (OR) or OR/CR document.';
     }
     if (!_consent) return 'Accept the vehicle-photo consent statement.';
     return null;
@@ -396,6 +403,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     subtitle: const Text(
                       'Users must upload clear front and back photos of their vehicle showing the plate number for vehicle verification. The photos will only be used to confirm that the registered vehicle matches the vehicle used during the parking reservation.',
                     ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _sectionHeading(
+                  context,
+                  icon: Icons.description_outlined,
+                  title: 'LTO registration documents (OR / CR)',
+                  caption:
+                      'Upload your vehicle\'s Official Receipt (OR) and Certificate of Registration (CR). If both are on one document, upload it in both cards.',
+                ),
+                const SizedBox(height: 12),
+                _uploadPair(
+                  first: _uploadCard(
+                    context,
+                    title: 'Official Receipt (OR)',
+                    hint: 'Latest registration receipt',
+                    image: _orPhoto,
+                    icon: Icons.receipt_long_outlined,
+                    onTap: () => _pickImage((file) => _orPhoto = file),
+                  ),
+                  second: _uploadCard(
+                    context,
+                    title: 'Cert. of Registration (CR)',
+                    hint: 'Certificate of registration',
+                    image: _crPhoto,
+                    icon: Icons.badge_outlined,
+                    onTap: () => _pickImage((file) => _crPhoto = file),
                   ),
                 ),
               ],

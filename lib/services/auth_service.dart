@@ -20,6 +20,8 @@ class AuthService {
     String? vehicleModel,
     UploadFileData? vehiclePhoto,
     UploadFileData? vehiclePhotoBack,
+    UploadFileData? orPhoto,
+    UploadFileData? crPhoto,
   }) async {
     final fields = <String, String>{
       'name': name,
@@ -49,6 +51,12 @@ class AuthService {
       }
       if (vehiclePhotoBack != null) {
         files['vehicle_photo_back'] = vehiclePhotoBack;
+      }
+      if (orPhoto != null) {
+        files['or_photo'] = orPhoto;
+      }
+      if (crPhoto != null) {
+        files['cr_photo'] = crPhoto;
       }
     }
 
