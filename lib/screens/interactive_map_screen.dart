@@ -1994,9 +1994,20 @@ class _MapScreenState extends State<MapScreen> {
                         style: FilledButton.styleFrom(
                           backgroundColor: colors.primary,
                           foregroundColor: colors.onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 10,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        child: const Text('View Details'),
+                        child: const Text(
+                          'View Details',
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ],
