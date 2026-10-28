@@ -212,51 +212,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   const Text(
                                     'Appearance',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 15,
                                     ),
                                   ),
+                                  const SizedBox(height: 2),
                                   Text(
                                     currentMode == ThemeMode.dark
                                         ? 'Dark Mode'
                                         : (currentMode == ThemeMode.light
                                             ? 'Light Mode'
                                             : 'System Default'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: Theme.of(context).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
                             ),
-                            SegmentedButton<ThemeMode>(
-                              showSelectedIcon: false,
-                              style: const ButtonStyle(
-                                visualDensity: VisualDensity.compact,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            const SizedBox(width: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFCBD5E1),
+                                  width: 1,
+                                ),
                               ),
-                              segments: const [
-                                ButtonSegment(
-                                  value: ThemeMode.light,
-                                  icon: Icon(Icons.light_mode_outlined, size: 16),
-                                  tooltip: 'Light Mode',
-                                ),
-                                ButtonSegment(
-                                  value: ThemeMode.dark,
-                                  icon: Icon(Icons.dark_mode_outlined, size: 16),
-                                  tooltip: 'Dark Mode',
-                                ),
-                                ButtonSegment(
-                                  value: ThemeMode.system,
-                                  icon: Icon(Icons.brightness_auto_outlined, size: 16),
-                                  tooltip: 'System Default',
-                                ),
-                              ],
-                              selected: {currentMode},
-                              onSelectionChanged: (selected) {
-                                if (selected.isNotEmpty) {
-                                  AppTheme.setThemeMode(selected.first);
-                                }
-                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _ThemeSegmentButton(
+                                    icon: Icons.light_mode_outlined,
+                                    selectedIcon: Icons.light_mode_rounded,
+                                    isSelected: currentMode == ThemeMode.light,
+                                    tooltip: 'Light Mode',
+                                    onTap: () => AppTheme.setThemeMode(ThemeMode.light),
+                                  ),
+                                  _ThemeSegmentButton(
+                                    icon: Icons.dark_mode_outlined,
+                                    selectedIcon: Icons.dark_mode_rounded,
+                                    isSelected: currentMode == ThemeMode.dark,
+                                    tooltip: 'Dark Mode',
+                                    onTap: () => AppTheme.setThemeMode(ThemeMode.dark),
+                                  ),
+                                  _ThemeSegmentButton(
+                                    icon: Icons.brightness_auto_outlined,
+                                    selectedIcon: Icons.brightness_auto_rounded,
+                                    isSelected: currentMode == ThemeMode.system,
+                                    tooltip: 'System Default',
+                                    onTap: () => AppTheme.setThemeMode(ThemeMode.system),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -540,6 +556,55 @@ class _ProfileError extends StatelessWidget {
             const SizedBox(height: 12),
             FilledButton(onPressed: onRetry, child: const Text('Try again')),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeSegmentButton extends StatelessWidget {
+  const _ThemeSegmentButton({
+    required this.icon,
+    required this.selectedIcon,
+    required this.isSelected,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final bool isSelected;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark
+                    ? primaryColor.withValues(alpha: 0.28)
+                    : primaryColor.withValues(alpha: 0.18))
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            isSelected ? selectedIcon : icon,
+            size: 18,
+            color: isSelected
+                ? primaryColor
+                : (isDark ? Colors.white70 : Colors.black54),
+          ),
         ),
       ),
     );
