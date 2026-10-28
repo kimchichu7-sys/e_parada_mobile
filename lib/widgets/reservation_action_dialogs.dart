@@ -321,9 +321,10 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                               reservationId: reservation.id,
                             );
                             if (result != null && result.success) {
-                              setDialogState(() {
-                                gcashRef = result.referenceNo;
-                              });
+                              gcashRef = result.referenceNo;
+                              if (context.mounted) {
+                                Navigator.pop(context, true);
+                              }
                             }
                           },
                           icon: const Icon(Icons.open_in_new_rounded, size: 18),

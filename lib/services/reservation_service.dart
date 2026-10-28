@@ -163,6 +163,21 @@ class ReservationService {
     return ApiClient.decodeObject(response);
   }
 
+  static Future<Map<String, dynamic>> verifyPayMongo({
+    required int reservationId,
+    String? checkoutSessionId,
+  }) async {
+    final response = await ApiClient.postJson(
+      'driver/reservations/$reservationId/verify-paymongo',
+      headers: await _headers(),
+      body: {
+        'checkout_session_id': ?checkoutSessionId,
+      },
+    );
+    ApiClient.requireStatus(response, const {200});
+    return ApiClient.decodeObject(response);
+  }
+
   static Future<String> submitFeedback({
     required int reservationId,
     required int rating,

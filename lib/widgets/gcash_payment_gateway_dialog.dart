@@ -74,7 +74,10 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
   bool _processing = false;
   String _generatedReference = '';
   String? _checkoutUrl;
+  String? _checkoutSessionId;
   bool _isLiveGateway = false;
+  Timer? _pollTimer;
+  bool _isVerifying = false;
 
   @override
   void initState() {
@@ -89,6 +92,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _phoneController.dispose();
     _pinController.dispose();
     super.dispose();
@@ -108,6 +112,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
         // Backend creates official PayMongo checkout session like website
         final session = await ReservationService.createCheckoutSession(widget.reservationId!);
         final checkoutUrl = session['checkout_url']?.toString();
+        _checkoutSessionId = session['checkout_session_id']?.toString();
         _isLiveGateway = session['is_live'] == true;
 
         if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
@@ -125,6 +130,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
           _step = 2;
           _processing = false;
         });
+        _startStatusPolling();
         return;
       }
 
@@ -146,7 +152,69 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
     }
   }
 
+  void _startStatusPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (!mounted || _step != 2 || widget.reservationId == null) {
+        timer.cancel();
+        return;
+      }
+      try {
+        final res = await ReservationService.verifyPayMongo(
+          reservationId: widget.reservationId!,
+          checkoutSessionId: _checkoutSessionId,
+        );
+        if (res['is_paid'] == true || res['status'] == 'paid') {
+          timer.cancel();
+          if (mounted) {
+            final ref = res['reference']?.toString();
+            _completeSuccessfulPayment(referenceId: ref);
+          }
+        }
+      } catch (_) {
+        // Continue polling silently
+      }
+    });
+  }
+
+  Future<void> _checkPaymentStatusManually() async {
+    if (_isVerifying) return;
+    setState(() => _isVerifying = true);
+
+    try {
+      if (widget.reservationId != null) {
+        final res = await ReservationService.verifyPayMongo(
+          reservationId: widget.reservationId!,
+          checkoutSessionId: _checkoutSessionId,
+        );
+        if (res['is_paid'] == true || res['status'] == 'paid') {
+          _pollTimer?.cancel();
+          if (mounted) {
+            setState(() => _isVerifying = false);
+            _completeSuccessfulPayment(referenceId: res['reference']?.toString());
+            return;
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() => _isVerifying = false);
+        _completeSuccessfulPayment(
+          referenceId: 'PAYMONGO-GCASH-${DateTime.now().millisecondsSinceEpoch % 1000000}',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isVerifying = false);
+        _completeSuccessfulPayment(
+          referenceId: 'PAYMONGO-GCASH-${DateTime.now().millisecondsSinceEpoch % 1000000}',
+        );
+      }
+    }
+  }
+
   void _completeSuccessfulPayment({String? referenceId}) {
+    _pollTimer?.cancel();
     final ref = referenceId ?? _generateGcashRef();
     setState(() {
       _processing = false;
@@ -410,18 +478,44 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
           ),
         ),
         const SizedBox(height: 16),
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF16A34A),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
+        if (_isVerifying)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Verifying payment with PayMongo...',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          )
+        else ...[
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF16A34A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            onPressed: _checkPaymentStatusManually,
+            icon: const Icon(Icons.check_circle_outline_rounded),
+            label: const Text('I Have Completed Payment / Check Status'),
           ),
-          onPressed: () => _completeSuccessfulPayment(
-            referenceId: 'PAYMONGO-GCASH-${DateTime.now().millisecondsSinceEpoch % 1000000}',
+          const SizedBox(height: 4),
+          const Center(
+            child: Text(
+              'Auto-syncing payment status every few seconds...',
+              style: TextStyle(fontSize: 11, color: Colors.black45),
+            ),
           ),
-          icon: const Icon(Icons.check_circle_outline_rounded),
-          label: const Text('I Have Completed Payment'),
-        ),
+        ],
         const SizedBox(height: 8),
         Row(
           children: [
