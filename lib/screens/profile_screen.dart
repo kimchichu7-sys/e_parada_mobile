@@ -90,6 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           final user = snapshot.data!;
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final tileTitleColor = isDark ? AppPalette.powderBlue : null;
 
           return RefreshIndicator(
             onRefresh: _refresh,
@@ -133,9 +135,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.garage_outlined),
-                      title: const Text(
+                      title: Text(
                         'My vehicles',
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                          color: tileTitleColor,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       subtitle: Text(
                         '${user.remainingVehicleSlots} of 3 registration slots remaining',
@@ -210,11 +215,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Appearance',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
+                                      color: tileTitleColor,
                                       fontWeight: FontWeight.w800,
                                       fontSize: 15,
                                     ),
@@ -288,9 +294,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Icons.account_balance_wallet_outlined,
                       color: Color(0xFF005CE6),
                     ),
-                    title: const Text(
+                    title: Text(
                       'GCash Payment Gateway',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        color: tileTitleColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     subtitle: const Text(
                       'Configure PayMongo API keys, Sandbox/Live modes, and test connection',
@@ -303,16 +312,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.report_problem_outlined),
-                    title: const Text(
+                    title: Text(
                       'Submit Incident Report',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        color: tileTitleColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     subtitle: const Text(
                       'Report property damage, spatial mismatch, overcharging, or bugs',
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => Navigator.push(
-                      context,
+                       context,
                       MaterialPageRoute(
                         builder: (_) => const IncidentReportScreen(),
                       ),
@@ -323,9 +335,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.rate_review_outlined),
-                    title: const Text(
+                    title: Text(
                       'Rate E-Parada App',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        color: tileTitleColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     subtitle: const Text(
                       'Share your feedback and rating to improve platform experience',
@@ -338,9 +353,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.help_outline_rounded),
-                    title: const Text(
+                    title: Text(
                       'Help & FAQs',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        color: tileTitleColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     subtitle: const Text(
                       'Verification, reservations, QR backup, payments, and privacy',
@@ -359,9 +377,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Icons.lock_reset_rounded,
                       color: Color(0xFF173B64),
                     ),
-                    title: const Text(
+                    title: Text(
                       'Change Password',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        color: tileTitleColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     subtitle: const Text(
                       'Update your account password and security credentials',
@@ -492,11 +513,18 @@ class _StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = approved ? Colors.green : Colors.amber.shade800;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
       child: ListTile(
         leading: Icon(icon, color: color),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppPalette.powderBlue : null,
+          ),
+        ),
         subtitle: Text(value),
         trailing: actionLabel == null
             ? Icon(approved ? Icons.check_circle : Icons.schedule, color: color)
@@ -523,6 +551,8 @@ class _PermissionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Card(
       child: ListTile(
         leading: Icon(
@@ -530,7 +560,10 @@ class _PermissionCard extends StatelessWidget {
         ),
         title: Text(
           enabled ? enabledTitle : disabledTitle,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: isDark ? AppPalette.powderBlue : null,
+          ),
         ),
         subtitle: Text(enabled ? enabledText : disabledText),
       ),

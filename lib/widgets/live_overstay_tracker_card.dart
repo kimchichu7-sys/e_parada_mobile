@@ -341,10 +341,10 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
 
       case ParkingSessionPhase.active:
         badgeBg = const Color(0xFF0C2744);
-        badgeBorder = const Color(0xFF1E4B7E);
-        accentColor = const Color(0xFF38BDF8);
+        badgeBorder = AppPalette.powderBlue.withValues(alpha: 0.4);
+        accentColor = AppPalette.powderBlue;
         statusIcon = Icons.timer_outlined;
-        statusTitle = 'PARKING SESSION ACTIVE';
+        statusTitle = 'LIVE ACTIVE SESSION';
         final remaining = end?.difference(_now) ?? Duration.zero;
         countdownLabel = '${_formatDuration(remaining)} remaining';
         subtitle = 'Expires at ${widget.reservation.endTime} • Slot: ${widget.reservation.slotLabel}';
@@ -419,8 +419,10 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                   ),
                   Text(
                     countdownLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: phase == ParkingSessionPhase.active
+                          ? AppPalette.powderBlue
+                          : Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
@@ -489,8 +491,10 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                     ),
                     Text(
                       countdownLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: phase == ParkingSessionPhase.active
+                            ? AppPalette.powderBlue
+                            : Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.2,

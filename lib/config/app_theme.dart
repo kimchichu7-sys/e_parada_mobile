@@ -115,15 +115,19 @@ class AppTheme {
     final hairline = AppPalette.powderBlue.withValues(alpha: dark ? 0.18 : 0.4);
     final accent = dark ? AppPalette.powderBlue : AppPalette.yaleBlue;
     final onAccent = dark ? AppPalette.yaleBlue : Colors.white;
+    final headerColor = dark ? AppPalette.powderBlue : AppPalette.yaleBlue;
 
     // Typography: body 14-16sp, headers 18-22sp bold (panel readability mandate).
     final textTheme = TextTheme(
-      displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: onSurface, letterSpacing: -0.5),
-      headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: onSurface, letterSpacing: -0.4),
-      headlineSmall: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: onSurface, letterSpacing: -0.3),
-      titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: onSurface),
-      titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: onSurface),
-      titleSmall: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: onSurface),
+      displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: headerColor, letterSpacing: -0.6),
+      displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: headerColor, letterSpacing: -0.5),
+      displaySmall: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: headerColor, letterSpacing: -0.5),
+      headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: headerColor, letterSpacing: -0.4),
+      headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: headerColor, letterSpacing: -0.4),
+      headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: headerColor, letterSpacing: -0.3),
+      titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: headerColor),
+      titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: headerColor),
+      titleSmall: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: headerColor),
       bodyLarge: TextStyle(fontSize: 16, height: 1.45, color: onSurface),
       bodyMedium: TextStyle(fontSize: 15, height: 1.45, color: onSurface),
       bodySmall: TextStyle(fontSize: 14, height: 1.4, color: onSurface.withValues(alpha: 0.78)),
@@ -170,15 +174,15 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: dark ? AppPalette.darkSurface : AppPalette.yaleBlue,
-        foregroundColor: AppPalette.aliceBlue,
+        foregroundColor: headerColor,
         elevation: 0,
         scrolledUnderElevation: 4,
         shadowColor: Colors.black.withValues(alpha: 0.25),
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         toolbarHeight: 60,
-        titleTextStyle: const TextStyle(
-          color: AppPalette.aliceBlue,
+        titleTextStyle: TextStyle(
+          color: headerColor,
           fontSize: 20,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.2,
@@ -291,7 +295,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTokens.radiusLg + 4),
         ),
-        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: onSurface),
+        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: headerColor),
         contentTextStyle: TextStyle(fontSize: 15, height: 1.45, color: onSurface),
       ),
       bottomSheetTheme: BottomSheetThemeData(
@@ -326,7 +330,7 @@ class AppTheme {
       listTileTheme: ListTileThemeData(
         minVerticalPadding: 10,
         shape: roundedMd,
-        titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: onSurface),
+        titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: headerColor),
         subtitleTextStyle: TextStyle(fontSize: 14, color: onSurface.withValues(alpha: 0.75)),
       ),
       dividerTheme: DividerThemeData(color: hairline, thickness: 1, space: 24),
