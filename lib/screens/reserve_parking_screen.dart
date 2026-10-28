@@ -277,6 +277,7 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Reserve Parking')),
@@ -314,6 +315,8 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 14),
+                _buildPolicyCard(isDark),
                 const SizedBox(height: 16),
                 if (_vehicles.isEmpty)
                   _MessageCard(
@@ -417,52 +420,6 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                       selectedSlot: _slot,
                       onSlotSelected: (slot) => setState(() => _slot = slot),
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.35),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: const [
-                              Icon(Icons.shield_outlined, color: Color(0xFF059669), size: 18),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  '1-Hour Downpayment & 60-Minute Grace Policy',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 14,
-                                    color: Color(0xFF065F46),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            '• A 1-hour downpayment will be required upon owner approval to lock your slot.\n'
-                            '• Your slot is reserved for up to 60 minutes after scheduled arrival.\n'
-                            '• If you do not arrive within 60 minutes, the booking is auto-cancelled and the 1-hour downpayment is forfeited to compensate the space owner.\n'
-                            '• Remaining balance is payable upon exit.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF047857),
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 18),
                     FilledButton.icon(
                       onPressed: _slot == null || _submitting ? null : _submit,
@@ -494,6 +451,62 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
             ),
           ),
         ),
+      );
+  }
+
+  Widget _buildPolicyCard(bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF064E3B).withValues(alpha: 0.25)
+            : const Color(0xFF10B981).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF059669).withValues(alpha: 0.45)
+              : const Color(0xFF10B981).withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.shield_outlined,
+                color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '1-Hour Downpayment & 60-Minute Grace Policy',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF065F46),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '• A 1-hour downpayment will be required upon owner approval to lock your slot.\n'
+            '• Your slot is reserved for up to 60 minutes after scheduled arrival.\n'
+            '• If you do not arrive within 60 minutes, the booking is auto-cancelled and the 1-hour downpayment is forfeited to compensate the space owner.\n'
+            '• Remaining balance is payable upon exit.',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857),
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
