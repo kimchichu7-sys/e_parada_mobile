@@ -276,7 +276,6 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
@@ -307,7 +306,9 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                         Text(
                           widget.price,
                           style: TextStyle(
-                            color: colors.primary,
+                            color: isDark
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF059669),
                             fontWeight: FontWeight.w800,
                           ),
                         ),

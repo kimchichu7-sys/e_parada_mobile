@@ -1824,6 +1824,7 @@ class _MapScreenState extends State<MapScreen> {
   Widget _parkingCard(ParkingSpace space) {
     final distance = _distanceFor(space);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final colors = theme.colorScheme;
     final hasImage = space.imageUrl != null && space.imageUrl!.trim().isNotEmpty;
 
@@ -1949,7 +1950,9 @@ class _MapScreenState extends State<MapScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: colors.primary,
+                    color: isDark
+                        ? const Color(0xFF34D399)
+                        : const Color(0xFF059669),
                   ),
                 ),
                 if (distance != null) ...[

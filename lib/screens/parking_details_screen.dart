@@ -166,6 +166,8 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final normalizedStatus = widget.status.trim().toLowerCase();
     final isAvailable =
         normalizedStatus == 'available' || normalizedStatus == 'open';
@@ -250,10 +252,10 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
               const SizedBox(width: 10),
               Text(
                 widget.price,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF4F46E5),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
                 ),
               ),
             ],
@@ -284,9 +286,23 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
             style: const TextStyle(fontSize: 15, height: 1.5),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Supported Vehicles',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          Row(
+            children: [
+              Icon(
+                Icons.directions_car_outlined,
+                size: 20,
+                color: isDark ? const Color(0xFFFACC15) : const Color(0xFFD97706),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Supported Vehicles',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? const Color(0xFFFDE047) : const Color(0xFFB45309),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           Wrap(
