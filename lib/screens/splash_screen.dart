@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
@@ -219,11 +220,15 @@ class _SplashScreenState extends State<SplashScreen>
         builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
           final screenHeight = constraints.maxHeight;
+          final isLandscape = screenWidth > screenHeight;
+          final minDimension = math.min(screenWidth, screenHeight);
 
-          // Responsive sizing metrics
-          final logoSize = (screenWidth * 0.40).clamp(135.0, 160.0);
-          final centerLogoY = (screenHeight * 0.42);
-          final targetLogoY = (screenHeight * 0.28);
+          // Responsive sizing metrics adaptable to portrait, landscape, tablets
+          final logoSize = isLandscape
+              ? (screenHeight * 0.22).clamp(64.0, 96.0)
+              : (minDimension * 0.40).clamp(120.0, 160.0);
+          final centerLogoY = isLandscape ? (screenHeight * 0.36) : (screenHeight * 0.42);
+          final targetLogoY = isLandscape ? (screenHeight * 0.16) : (screenHeight * 0.28);
 
           return ClipRect(
             child: Stack(
@@ -258,7 +263,7 @@ class _SplashScreenState extends State<SplashScreen>
                         gradient: RadialGradient(
                           colors: [
                             const Color(0xFFFFDE70).withValues(alpha: 0.18),
-                            const Color(0xFF005CEE).withValues(alpha: 0.12),
+                            const Color(0xFF2F6AA8).withValues(alpha: 0.12),
                             Colors.transparent,
                           ],
                           stops: const [0.0, 0.48, 0.80],
@@ -320,7 +325,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 spreadRadius: 3,
                               ),
                               BoxShadow(
-                                color: const Color(0xFF005CEE).withValues(alpha: 0.30),
+                                color: const Color(0xFF2F6AA8).withValues(alpha: 0.30),
                                 blurRadius: logoSize * 0.20,
                                 spreadRadius: 4,
                               ),
@@ -449,7 +454,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: const Text(
                             'Find Parking. Made Local',
                             style: TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.2,
                               color: Color(0xFFCBD5E1),
@@ -469,9 +474,9 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // ── Cyber Neon Loading Dock (Bottom Positioned) ──
                 Positioned(
-                  left: 36,
-                  right: 36,
-                  bottom: (screenHeight * 0.08).clamp(36.0, 70.0),
+                  left: isLandscape ? ((screenWidth - 380) / 2).clamp(36.0, screenWidth) : 36,
+                  right: isLandscape ? ((screenWidth - 380) / 2).clamp(36.0, screenWidth) : 36,
+                  bottom: isLandscape ? 12.0 : (screenHeight * 0.08).clamp(36.0, 70.0),
                   child: AnimatedBuilder(
                     animation: Listenable.merge([
                       _flareController,
@@ -500,7 +505,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF005CEE).withValues(alpha: 0.2),
+                                  color: const Color(0xFF2F6AA8).withValues(alpha: 0.2),
                                   blurRadius: 15,
                                 ),
                               ],
@@ -514,7 +519,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   borderRadius: BorderRadius.circular(99),
                                   gradient: const LinearGradient(
                                     colors: [
-                                      Color(0xFF005CEE),
+                                      Color(0xFF2F6AA8),
                                       Color(0xFF00E5FF),
                                       Color(0xFFFFDE70),
                                     ],
@@ -541,7 +546,7 @@ class _SplashScreenState extends State<SplashScreen>
                               const Text(
                                 'CONNECTING TO PARKING GRID',
                                 style: TextStyle(
-                                  fontSize: 10.5,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.6,
                                   color: Color(0xFF64748B),
@@ -550,7 +555,7 @@ class _SplashScreenState extends State<SplashScreen>
                               Text(
                                 '$percent%',
                                 style: const TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w800,
                                   color: Color(0xFFFFDE70),
                                   shadows: [
@@ -677,7 +682,7 @@ class _SplashScreenState extends State<SplashScreen>
             Color(0xFFFFFFFF),
             Color(0xFFBAE6FD),
             Color(0xFF38BDF8),
-            Color(0xFF005CEE),
+            Color(0xFF2F6AA8),
           ],
           stops: [0.0, 0.45, 0.80, 1.0],
         ).createShader(bounds),

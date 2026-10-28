@@ -191,7 +191,7 @@ class _DriverWalletDialogState extends State<DriverWalletDialog> {
                                       'Available Balance',
                                       style: TextStyle(
                                         color: Colors.white70,
-                                        fontSize: 13,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -208,7 +208,7 @@ class _DriverWalletDialogState extends State<DriverWalletDialog> {
                                         'ACTIVE',
                                         style: TextStyle(
                                           color: AppPalette.yaleBlue,
-                                          fontSize: 10,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w900,
                                         ),
                                       ),
@@ -230,7 +230,7 @@ class _DriverWalletDialogState extends State<DriverWalletDialog> {
                                   'Linked to your E-Parada Driver ID',
                                   style: TextStyle(
                                     color: Colors.white60,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ],
@@ -442,13 +442,13 @@ class _DriverWalletDialogState extends State<DriverWalletDialog> {
                                   tx.description,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                   ),
                                 ),
                                 subtitle: Text(
                                   '${tx.reference} • ${_formatDate(tx.timestamp)}',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     color: colors.onSurfaceVariant,
                                   ),
                                 ),
@@ -459,7 +459,7 @@ class _DriverWalletDialogState extends State<DriverWalletDialog> {
                                     color: tx.isPositive
                                         ? Colors.green.shade700
                                         : Colors.red.shade700,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                   ),
                                 ),
                               );

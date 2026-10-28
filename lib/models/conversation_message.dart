@@ -52,6 +52,7 @@ class ConversationMessage {
     required this.senderName,
     required this.body,
     required this.createdAt,
+    this.isSystem = false,
   });
 
   final int id;
@@ -59,17 +60,32 @@ class ConversationMessage {
   final String senderName;
   final String body;
   final DateTime? createdAt;
+  final bool isSystem;
+
+  bool get isOverstayAlert =>
+      isSystem ||
+      body.contains('[AUTOMATED SYSTEM ALERT]') ||
+      body.contains('Driver has overstayed') ||
+      body.contains('You have overstayed');
 
   ConversationCallLog? get callLog => ConversationCallLog.tryParse(body);
   bool get isCallLog => callLog != null;
 
   factory ConversationMessage.fromJson(Map<String, dynamic> json) {
+    final rawBody = json['body']?.toString() ?? '';
+    final isSystem = json['is_system'] == true ||
+        rawBody.contains('[AUTOMATED SYSTEM ALERT]') ||
+        rawBody.contains('Driver has overstayed');
+
     return ConversationMessage(
       id: (json['id'] as num).toInt(),
       senderId: (json['sender_id'] as num).toInt(),
-      senderName: json['sender_name']?.toString() ?? '',
-      body: json['body']?.toString() ?? '',
+      senderName: isSystem
+          ? 'E-Parada System'
+          : (json['sender_name']?.toString() ?? ''),
+      body: rawBody,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
+      isSystem: isSystem,
     );
   }
 }

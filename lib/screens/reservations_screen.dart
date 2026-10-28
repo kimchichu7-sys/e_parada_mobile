@@ -10,11 +10,9 @@ import '../utils/validators.dart';
 import '../widgets/digital_receipt_dialog.dart';
 import '../widgets/extend_parking_dialog.dart';
 import '../widgets/live_overstay_tracker_card.dart';
-import '../widgets/offline_parking_pass_dialog.dart';
 import '../widgets/rebook_selection_dialog.dart';
 import '../widgets/reservation_action_dialogs.dart';
 import '../widgets/reservation_credential_dialog.dart';
-import '../widgets/security_gate_pass_dialog.dart';
 import 'map_screen.dart';
 import 'reservation_conversation_screen.dart';
 
@@ -389,36 +387,42 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
           else
             RefreshIndicator(
               onRefresh: _refresh,
-              child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                itemCount: _reservations!.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final reservation = _reservations![index];
-                  return _ReservationCard(
-                    reservation: reservation,
-                    disabled: _acting,
-                    onCredential: () => _showCredential(reservation),
-                    onReschedule: () => _reschedule(reservation),
-                    onFeedback: () => _feedback(reservation),
-                    onCancel: () => _cancel(reservation),
-                    onExtend: () => _extend(reservation),
-                    onRebook: () => _rebook(reservation),
-                    onPay: () => _pay(reservation),
-                    onReceipt: () =>
-                        DigitalReceiptDialog.showForDriver(context, reservation),
-                    onContact: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => ReservationConversationScreen(
-                          reservationId: reservation.id,
-                          otherPartyName: reservation.ownerName,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _reservations!.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final reservation = _reservations![index];
+                      return _ReservationCard(
+                        reservation: reservation,
+                        disabled: _acting,
+                        onCredential: () => _showCredential(reservation),
+                        onReschedule: () => _reschedule(reservation),
+                        onFeedback: () => _feedback(reservation),
+                        onCancel: () => _cancel(reservation),
+                        onExtend: () => _extend(reservation),
+                        onRebook: () => _rebook(reservation),
+                        onPay: () => _pay(reservation),
+                        onReceipt: () =>
+                            DigitalReceiptDialog.showForDriver(context, reservation),
+                        onContact: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ReservationConversationScreen(
+                              reservationId: reservation.id,
+                              otherPartyName: reservation.ownerName,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           if (_acting)
@@ -463,8 +467,17 @@ class _ReservationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.colorScheme;
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.06),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -481,22 +494,80 @@ class _ReservationCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Chip(label: Text(_title(reservation.status))),
+                Chip(
+                  label: Text(
+                    _title(reservation.status),
+                    style: TextStyle(
+                      color: _statusColor(reservation.status),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  backgroundColor: _statusColor(reservation.status).withValues(alpha: 0.12),
+                  side: BorderSide(
+                    color: _statusColor(reservation.status).withValues(alpha: 0.3),
+                  ),
+                ),
               ],
             ),
             Text(
               '${Validators.formatReservationNumber(reservation.backupReference, id: reservation.id)} | ${reservation.slotLabel}',
             ),
+            if (reservation.isNoShowCancelled) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.15 : 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.4 : 0.5),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.timer_off_outlined, color: Color(0xFFEF4444), size: 24),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Auto-Cancelled (60-Minute No-Show)',
+                            style: TextStyle(
+                              color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFDC2626),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'This booking was automatically cancelled because arrival was not recorded within 60 minutes after scheduled start (${reservation.startTime}). Per policy, the 1-hour downpayment (PHP ${(reservation.downpaymentAmount ?? 0.0).toStringAsFixed(2)}) has been forfeited to compensate the space owner.',
+                            style: TextStyle(
+                              color: isDark ? const Color(0xFFFECACA) : const Color(0xFF991B1B),
+                              fontSize: 14,
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (reservation.needsRebook) ...[
               const SizedBox(height: 12),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.12),
+                  color: Colors.amber.withValues(alpha: isDark ? 0.15 : 0.12),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: Colors.amber.withValues(alpha: 0.6),
+                    color: Colors.amber.withValues(alpha: isDark ? 0.5 : 0.6),
                     width: 1.5,
                   ),
                 ),
@@ -516,7 +587,7 @@ class _ReservationCard extends StatelessWidget {
                             'Action Required: Space Unavailable',
                             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: Colors.amber.shade900,
+                              color: isDark ? const Color(0xFFFDE68A) : Colors.amber.shade900,
                             ),
                           ),
                         ),
@@ -528,8 +599,8 @@ class _ReservationCard extends StatelessWidget {
                           ? reservation.rebookReason
                           : 'The space provider reported this location unavailable. Please choose an option below:',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.amber.shade900,
+                        fontSize: 14,
+                        color: isDark ? const Color(0xFFFEF3C7) : Colors.amber.shade900,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -627,52 +698,30 @@ class _ReservationCard extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: disabled ? null : onRebook,
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colors.amber.shade800,
+                      backgroundColor: const Color(0xFFEA580C),
                       foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    icon: const Icon(Icons.near_me_outlined),
-                    label: const Text('Rebook Space'),
+                    icon: const Icon(Icons.near_me_outlined, size: 18),
+                    label: const Text('Rebook Space', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
-                if (reservation.status == 'approved' &&
-                    reservation.hasCredential)
+                if ((reservation.status == 'approved' && reservation.hasCredential) ||
+                    (reservation.timeIn != null && reservation.timeOut == null && reservation.hasCredential))
                   FilledButton.icon(
                     onPressed: disabled ? null : onCredential,
-                    icon: const Icon(Icons.qr_code_2),
-                    label: const Text('Entry code'),
-                  ),
-                if ((reservation.status == 'approved' &&
-                        reservation.hasCredential) ||
-                    (reservation.timeIn != null && reservation.timeOut == null))
-                  OutlinedButton.icon(
-                    onPressed: disabled
-                        ? null
-                        : () {
-                            OfflineParkingPassDialog.show(
-                              context,
-                              OfflinePassData.fromDriverReservation(
-                                reservation,
-                              ),
-                            );
-                          },
-                    icon: const Icon(Icons.cloud_off_rounded),
-                    label: const Text('Offline Pass'),
-                  ),
-                if ((reservation.status == 'approved' &&
-                        reservation.hasCredential) ||
-                    (reservation.timeIn != null && reservation.timeOut == null))
-                  OutlinedButton.icon(
-                    onPressed: disabled
-                        ? null
-                        : () => SecurityGatePassDialog.show(
-                              context,
-                              reservation: reservation,
-                            ),
-                    icon: const Icon(Icons.shield_outlined),
-                    label: const Text('Gate Pass'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB), // Royal Blue
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.qr_code_2, size: 18),
+                    label: const Text('QR Code', style: TextStyle(fontWeight: FontWeight.w800)),
                   ),
                 if ((reservation.status == 'approved') ||
                     (reservation.timeIn != null && reservation.timeOut == null))
-                  OutlinedButton.icon(
+                  FilledButton.icon(
                     onPressed: disabled
                         ? null
                         : () {
@@ -686,56 +735,113 @@ class _ReservationCard extends StatelessWidget {
                               ),
                             );
                           },
-                    icon: const Icon(Icons.directions_rounded),
-                    label: const Text('Directions'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D9488), // Deep Teal
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.directions_rounded, size: 18),
+                    label: const Text('Directions', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 if (reservation.canReschedule)
-                  OutlinedButton.icon(
-                    onPressed: disabled ? null : onReschedule,
-                    icon: const Icon(Icons.edit_calendar_outlined),
-                    label: const Text('Reschedule'),
-                  ),
-                if (reservation.canSubmitFeedback)
                   FilledButton.icon(
-                    onPressed: disabled ? null : onFeedback,
-                    icon: const Icon(Icons.rate_review_outlined),
-                    label: const Text('Rate parking'),
-                  ),
-                if (reservation.canExtend)
-                  OutlinedButton.icon(
-                    onPressed: disabled ? null : onExtend,
-                    icon: const Icon(Icons.more_time_outlined),
-                    label: const Text('Extend'),
+                    onPressed: disabled ? null : onReschedule,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFD97706), // Warm Amber
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+                    label: const Text('Reschedule', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 if (reservation.canSubmitPayment &&
                     reservation.paymentStatus == 'unpaid')
                   FilledButton.icon(
                     onPressed: disabled ? null : onPay,
-                    icon: const Icon(Icons.payment_outlined),
-                    label: const Text('Pay'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF059669), // Emerald Green
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.payment_outlined, size: 18),
+                    label: const Text('Pay', style: TextStyle(fontWeight: FontWeight.w800)),
+                  ),
+                if (reservation.canExtend)
+                  FilledButton.icon(
+                    onPressed: disabled ? null : onExtend,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF4F46E5), // Indigo
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.more_time_outlined, size: 18),
+                    label: const Text('Extend Time', style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                if (reservation.status == 'approved' &&
+                    reservation.timeOut == null)
+                  FilledButton.icon(
+                    onPressed: disabled ? null : onContact,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF7C3AED), // Violet
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.forum_outlined, size: 18),
+                    label: const Text('Message Provider', style: TextStyle(fontWeight: FontWeight.w700)),
+                  )
+                else if (reservation.status == 'completed')
+                  OutlinedButton.icon(
+                    onPressed: disabled ? null : onContact,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF7C3AED),
+                      side: const BorderSide(color: Color(0xFF7C3AED)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                    label: const Text('Messages (Read-Only)'),
+                  ),
+                if (reservation.canSubmitFeedback)
+                  FilledButton.icon(
+                    onPressed: disabled ? null : onFeedback,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFE11D48), // Rose
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.rate_review_outlined, size: 18),
+                    label: const Text('Rate Parking', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 if (reservation.status == 'completed' ||
                     reservation.paymentStatus == 'paid')
-                  FilledButton.tonalIcon(
+                  FilledButton.icon(
                     onPressed: disabled ? null : onReceipt,
-                    icon: const Icon(Icons.receipt_long_rounded),
-                    label: const Text('View E-Receipt'),
-                  ),
-                if (reservation.status == 'approved' ||
-                    reservation.status == 'completed')
-                  OutlinedButton.icon(
-                    onPressed: disabled ? null : onContact,
-                    icon: const Icon(Icons.forum_outlined),
-                    label: const Text('Message provider'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF334155), // Slate
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.receipt_long_rounded, size: 18),
+                    label: const Text('E-Receipt', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 if (reservation.canCancel)
-                  TextButton.icon(
+                  FilledButton.icon(
                     onPressed: disabled ? null : onCancel,
-                    icon: Icon(Icons.cancel_outlined, color: colors.error),
-                    label: Text(
-                      'Cancel',
-                      style: TextStyle(color: colors.error),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC2626), // Crimson Red
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
+                    icon: const Icon(Icons.cancel_outlined, size: 18),
+                    label: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
               ],
             ),
@@ -759,18 +865,40 @@ class _ReservationCard extends StatelessWidget {
     );
   }
 
+  static Color _statusColor(String status) => switch (status.toLowerCase()) {
+    'approved' => const Color(0xFF10B981), // Emerald Green
+    'completed' => const Color(0xFF235282), // Unified Yale Navy
+    'rejected' || 'cancelled' => const Color(0xFFEF4444), // Red
+    _ => const Color(0xFFF59E0B), // Amber for Pending
+  };
+
   static String _paymentLabel(DriverReservation reservation) {
-    final amount = reservation.totalAmount == null
-        ? null
-        : 'PHP ${reservation.totalAmount!.toStringAsFixed(2)}';
+    final dpAmount = reservation.downpaymentAmount ?? 0.0;
+    if (reservation.isNoShowCancelled) {
+      return '1-Hour Downpayment (PHP ${dpAmount.toStringAsFixed(2)}) forfeited (No-show)';
+    }
+
+    final totalStr = reservation.totalAmount != null
+        ? 'PHP ${reservation.totalAmount!.toStringAsFixed(2)}'
+        : null;
+
+    final downpaymentNote = reservation.isDownpaymentPaid
+        ? '1-hr downpayment (PHP ${dpAmount.toStringAsFixed(2)}) paid'
+        : (dpAmount > 0
+            ? '1-hr downpayment (PHP ${dpAmount.toStringAsFixed(2)}) pending'
+            : null);
 
     return switch (reservation.paymentStatus) {
-      'paid' => '${amount == null ? '' : '$amount | '}Payment verified',
+      'paid' => '${totalStr ?? ''}${totalStr != null ? ' | ' : ''}Payment verified',
       'pending_verification' =>
-        '${amount == null ? '' : '$amount | '}Payment sent, awaiting owner verification',
+        '${totalStr ?? ''}${totalStr != null ? ' | ' : ''}Payment sent, awaiting owner verification',
       _ when reservation.status == 'completed' =>
-        '${amount == null ? '' : '$amount | '}Payment due',
-      _ => 'Payment will be available after checkout',
+        '${reservation.remainingBalance != null ? 'Balance Due: PHP ${reservation.remainingBalance!.toStringAsFixed(2)}' : (totalStr ?? '')} | Exit payment due',
+      _ when reservation.isDownpaymentPaid =>
+        '${downpaymentNote ?? ''} | Balance payable upon exit',
+      _ when reservation.status == 'approved' =>
+        '${downpaymentNote ?? 'Downpayment due'} | Balance payable upon exit',
+      _ => 'Payable upon booking approval and exit',
     };
   }
 

@@ -123,7 +123,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                 ),
                 Text(
                   'Update account security credentials',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey),
                 ),
               ],
             ),
@@ -163,7 +163,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                           child: Text(
                             _errorMessage!,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               color: theme.colorScheme.error,
                               fontWeight: FontWeight.w600,
                             ),
@@ -270,7 +270,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                       Expanded(
                         child: Text(
                           'Must contain uppercase, lowercase, number, and special character.',
-                          style: TextStyle(fontSize: 10.5, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ),
                     ],

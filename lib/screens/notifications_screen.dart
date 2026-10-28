@@ -195,7 +195,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ? 'Call / Chat connected with $otherPartyName'
                             : 'Direct chat available with $otherPartyName',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Theme.of(dialogContext).colorScheme.primary,
                         ),
@@ -522,7 +522,7 @@ class _NotificationCard extends StatelessWidget {
                           notification.type == 'call'
                               ? 'Call / Chat'
                               : 'Message ${notification.otherPartyDisplayName.split(' ').first}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],

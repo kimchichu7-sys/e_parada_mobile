@@ -69,6 +69,26 @@ class AdminOperationsService {
     return _privateImage('admin/vehicles/$id/photo/back');
   }
 
+  static Future<Uint8List> vehicleOrPhoto(int id) {
+    return _privateImage('admin/vehicles/$id/or-photo');
+  }
+
+  static Future<Uint8List> vehicleCrPhoto(int id) {
+    return _privateImage('admin/vehicles/$id/cr-photo');
+  }
+
+  static Future<Uint8List> vehicleAuthorizationLetter(int id) {
+    return _privateImage('admin/vehicles/$id/authorization-letter');
+  }
+
+  static Future<Uint8List> parkingSpaceBarangayClearance(int id) {
+    return _privateImage('admin/parking-spaces/$id/barangay-clearance');
+  }
+
+  static Future<Uint8List> parkingSpaceTaxDeclaration(int id) {
+    return _privateImage('admin/parking-spaces/$id/tax-declaration');
+  }
+
   static Future<List<AdminParkingSpaceReview>> fetchSpaces({
     String? status,
   }) async {

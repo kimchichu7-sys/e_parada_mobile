@@ -131,7 +131,7 @@ class _OwnerCheckpointScreenState extends State<OwnerCheckpointScreen> {
                           child: Text(
                             'Time-in recorded. Slot status set to "Occupied".',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               color: Colors.green,
                               fontWeight: FontWeight.w500,
                             ),
@@ -145,20 +145,20 @@ class _OwnerCheckpointScreenState extends State<OwnerCheckpointScreen> {
                     'Automated Billing Summary',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 6),
                   if (res.timeIn != null && res.timeOut != null) ...[
                     Text(
                       'Session Duration: ${res.timeOut!.difference(res.timeIn!).inHours}h ${(res.timeOut!.difference(res.timeIn!).inMinutes % 60).toString().padLeft(2, '0')}m',
-                      style: const TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ],
                   const Text(
                     'Grace Period: -15 mins applied',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       color: Colors.green,
                       fontWeight: FontWeight.w600,
                     ),
@@ -185,7 +185,7 @@ class _OwnerCheckpointScreenState extends State<OwnerCheckpointScreen> {
                   Text(
                     'Payment Status: ${res.paymentStatus.toUpperCase()} (${res.paymentMethod})',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: res.paymentStatus == 'paid'
                           ? Colors.green.shade800

@@ -234,7 +234,7 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                     Expanded(
                       child: Text(
                         'Database concurrency locking protected against double-booking for this time slot.',
-                        style: TextStyle(fontSize: 12, color: Colors.brown),
+                        style: TextStyle(fontSize: 14, color: Colors.brown),
                       ),
                     ),
                   ],
@@ -282,9 +282,13 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
       appBar: AppBar(title: const Text('Reserve Parking')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -341,7 +345,7 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                       const SizedBox(width: 5),
                       Text(
                         'Advance booking allowed up to 7 days ahead',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                       ),
                     ],
                   ),
@@ -413,23 +417,83 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                       selectedSlot: _slot,
                       onSlotSelected: (slot) => setState(() => _slot = slot),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.shield_outlined, color: Color(0xFF059669), size: 18),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '1-Hour Downpayment & 60-Minute Grace Policy',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 14,
+                                    color: Color(0xFF065F46),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '• A 1-hour downpayment will be required upon owner approval to lock your slot.\n'
+                            '• Your slot is reserved for up to 60 minutes after scheduled arrival.\n'
+                            '• If you do not arrive within 60 minutes, the booking is auto-cancelled and the 1-hour downpayment is forfeited to compensate the space owner.\n'
+                            '• Remaining balance is payable upon exit.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF047857),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
                     FilledButton.icon(
                       onPressed: _slot == null || _submitting ? null : _submit,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                       icon: _submitting
                           ? const SizedBox.square(
                               dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : const Icon(Icons.send_outlined),
                       label: Text(
                         _submitting ? 'Submitting...' : 'Submit reservation',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),
                   ],
                 ],
               ],
             ),
+          ),
+        ),
     );
   }
 
@@ -522,13 +586,13 @@ class _MultiVehicleSwitcher extends StatelessWidget {
                 const SizedBox(width: 6),
                 const Text(
                   'Select Vehicle for Reservation',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                 ),
               ],
             ),
             Text(
               '${vehicles.length} Available',
-              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -618,7 +682,7 @@ class _MultiVehicleSwitcher extends StatelessWidget {
                             Text(
                               '${vehicle.vehicleType} • ${vehicle.make.isNotEmpty ? vehicle.make : 'Default'}',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: colors.onSurfaceVariant,
                                 fontWeight: FontWeight.w600,
                               ),

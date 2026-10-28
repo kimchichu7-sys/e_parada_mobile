@@ -50,6 +50,9 @@ class _MapScreenState extends State<MapScreen> {
   bool _mapReady = false;
   bool _locating = false;
   LatLng? _currentLocation;
+  LatLng? _customOrigin;
+  String? _customOriginName;
+  bool _isPickingOriginOnMap = false;
   StreamSubscription<Position>? _positionStreamSubscription;
   double _currentHeading = 0.0;
   double _currentSpeedKmh = 0.0;
@@ -162,6 +165,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   LatLng _effectiveOrigin(ParkingSpace destination) {
+    if (_customOrigin != null) return _customOrigin!;
     if (_currentLocation != null) return _currentLocation!;
     final destPoint = _pointFor(destination);
     if (destPoint != null) {
@@ -171,6 +175,59 @@ class _MapScreenState extends State<MapScreen> {
       );
     }
     return _fallbackCenter;
+  }
+
+  void _setCustomOrigin(LatLng point, String name) {
+    setState(() {
+      _customOrigin = point;
+      _customOriginName = name;
+      _isPickingOriginOnMap = false;
+    });
+    if (_selectedSpace != null) {
+      _fetchAndApplyRoute(_selectedSpace!, autoFit: true);
+    }
+  }
+
+  void _resetOriginToGps() {
+    setState(() {
+      _customOrigin = null;
+      _customOriginName = null;
+      _isPickingOriginOnMap = false;
+    });
+    if (_currentLocation == null) {
+      _goToCurrentLocation(refitFor: _selectedSpace);
+    } else if (_selectedSpace != null) {
+      _fetchAndApplyRoute(_selectedSpace!, autoFit: true);
+    }
+  }
+
+  void _showStartingPointPicker(List<ParkingSpace> allSpaces) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _StartingPointPickerSheet(
+        allSpaces: allSpaces,
+        currentSelectedSpace: _selectedSpace,
+        currentOrigin: _customOrigin,
+        currentOriginName: _customOriginName,
+        currentGpsLocation: _currentLocation,
+        onSelectOrigin: (point, name) {
+          _setCustomOrigin(point, name);
+          _message('Starting point set to $name');
+        },
+        onSelectOnMap: () {
+          setState(() {
+            _isPickingOriginOnMap = true;
+          });
+          _message('Tap anywhere on the map to place your starting point');
+        },
+        onResetToGps: () {
+          _resetOriginToGps();
+          _message('Starting point reset to Live GPS');
+        },
+      ),
+    );
   }
 
   void _setTransportMode(NavigationTransportMode mode) {
@@ -245,6 +302,9 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       _selectedSpace = null;
       _routeData = null;
+      _customOrigin = null;
+      _customOriginName = null;
+      _isPickingOriginOnMap = false;
     });
   }
 
@@ -254,8 +314,8 @@ class _MapScreenState extends State<MapScreen> {
     _navSubscription = null;
     _isSimulatingRoute = false;
 
-    // 1. Detect driver's live GPS location if not yet available
-    if (_currentLocation == null) {
+    // 1. Detect driver's live GPS location if no custom starting point is set and GPS is not yet available
+    if (_customOrigin == null && _currentLocation == null) {
       _message('Detecting your live GPS location...');
       try {
         final enabled = await Geolocator.isLocationServiceEnabled();
@@ -286,14 +346,14 @@ class _MapScreenState extends State<MapScreen> {
       }
     }
 
-    // 2. If live location is known, recalculate route starting from driver's actual location
-    if (_selectedSpace != null && _currentLocation != null) {
+    // 2. Recalculate route starting from effective origin
+    if (_selectedSpace != null) {
       await _fetchAndApplyRoute(_selectedSpace!, autoFit: false);
     }
 
     if (!mounted || _selectedSpace == null || _routeData == null) return;
 
-    final livePos = _currentLocation ?? _routeData!.primaryCoordinates.first;
+    final livePos = _customOrigin ?? _currentLocation ?? _routeData!.primaryCoordinates.first;
 
     setState(() {
       _isNavigating = true;
@@ -490,7 +550,7 @@ class _MapScreenState extends State<MapScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected ? Colors.white : const Color(0xFF334155),
                 ),
@@ -825,6 +885,151 @@ class _MapScreenState extends State<MapScreen> {
               .where((space) => _pointFor(space) != null)
               .toList(growable: false);
 
+          final isLandscape = MediaQuery.orientationOf(context) == Orientation.landscape;
+
+          if (_isNavigating) {
+            return _buildMapStack(
+              allSpaces,
+              mappedSpaces,
+              isLandscape: isLandscape,
+              borderRadius: BorderRadius.zero,
+            );
+          }
+
+          if (isLandscape) {
+            return Row(
+              children: [
+                // Left Control / List Pane (Responsive width)
+                SizedBox(
+                  width: 380,
+                  child: Column(
+                    children: [
+                      if (_selectedSpace != null)
+                        _RoutePlanningHeader(
+                          space: _selectedSpace!,
+                          routeData: _routeData,
+                          transportMode: _transportMode,
+                          isLiveGps: _currentLocation != null,
+                          customOriginName: _customOriginName,
+                          onSelectOrigin: () => _showStartingPointPicker(allSpaces),
+                          onResetToGps: _resetOriginToGps,
+                          onModeChanged: _setTransportMode,
+                          onStartDriving: _startDriving,
+                          onClose: _clearSelection,
+                          onRecenter: () {
+                            if (_pointFor(_selectedSpace!) != null) {
+                              final start = _effectiveOrigin(_selectedSpace!);
+                              _fitRoute(start, _pointFor(_selectedSpace!)!);
+                            }
+                          },
+                          onSyncGps: () => _goToCurrentLocation(
+                            refitFor: _selectedSpace,
+                          ),
+                        )
+                      else
+                        _buildSearchAndFilters(allSpaces),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                          children: [
+                            if (_selectedSpace != null) ...[
+                              _SelectedSpaceCard(
+                                space: _selectedSpace!,
+                                distance: _routeData?.distanceKm ??
+                                    _distanceFor(_selectedSpace!),
+                                eta: _routeData?.etaText ??
+                                    _estimateEta(
+                                      _distanceFor(_selectedSpace!),
+                                    ),
+                                steps: _routeData?.steps ?? const [],
+                                isLiveGps: _customOrigin == null &&
+                                    _currentLocation != null,
+                                originName: _customOriginName,
+                                onStartDriving: _startDriving,
+                                onClose: _clearSelection,
+                                onRecenter: () {
+                                  if (_pointFor(_selectedSpace!) != null) {
+                                    final start =
+                                        _effectiveOrigin(_selectedSpace!);
+                                    _fitRoute(
+                                      start,
+                                      _pointFor(_selectedSpace!)!,
+                                    );
+                                  }
+                                },
+                                onExternalNavigation: _startDriving,
+                                onDetails: () =>
+                                    _openDetails(_selectedSpace!),
+                                onSyncGps: () => _goToCurrentLocation(
+                                  refitFor: _selectedSpace,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _sort == ParkingSort.nearest
+                                        ? 'Nearest Parking'
+                                        : 'Available Nearby',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${spaces.length} found',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_sort == ParkingSort.nearest &&
+                                _currentLocation == null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: TextButton.icon(
+                                    onPressed: _goToCurrentLocation,
+                                    icon: const Icon(Icons.my_location_rounded),
+                                    label: const Text(
+                                      'Enable location to calculate distance',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 12),
+                            if (spaces.isEmpty)
+                              const _EmptyResult()
+                            else
+                              ...spaces.map(_parkingCard),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const VerticalDivider(width: 1, thickness: 1),
+                // Right Full-Height Map Pane
+                Expanded(
+                  child: _buildMapStack(
+                    allSpaces,
+                    mappedSpaces,
+                    isLandscape: true,
+                    borderRadius: BorderRadius.zero,
+                  ),
+                ),
+              ],
+            );
+          }
+
+          // Portrait orientation
           return Column(
             children: [
               if (_selectedSpace != null && !_isNavigating)
@@ -833,6 +1038,9 @@ class _MapScreenState extends State<MapScreen> {
                   routeData: _routeData,
                   transportMode: _transportMode,
                   isLiveGps: _currentLocation != null,
+                  customOriginName: _customOriginName,
+                  onSelectOrigin: () => _showStartingPointPicker(allSpaces),
+                  onResetToGps: _resetOriginToGps,
                   onModeChanged: _setTransportMode,
                   onStartDriving: _startDriving,
                   onClose: _clearSelection,
@@ -847,183 +1055,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 )
               else if (!_isNavigating)
-                Container(
-                  color: const Color(0xFFF8FAFC),
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: _searchController,
-                        textInputAction: TextInputAction.search,
-                        onChanged: (value) => setState(() {
-                          _query = value;
-                          if (_selectedSpace != null &&
-                              !_filtered(allSpaces).contains(_selectedSpace)) {
-                            _selectedSpace = null;
-                          }
-                        }),
-                        onSubmitted: (_) => _submitSearch(allSpaces),
-                        decoration: InputDecoration(
-                          hintText: 'Search location or parking space',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (_query.isNotEmpty)
-                                IconButton(
-                                  tooltip: 'Clear search',
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {
-                                      _query = '';
-                                      _selectedSpace = null;
-                                    });
-                                  },
-                                  icon: const Icon(Icons.close_rounded),
-                                ),
-                              IconButton(
-                                tooltip: 'Filters',
-                                onPressed: () => _openFilters(allSpaces),
-                                icon: Badge(
-                                  isLabelVisible: _activeFilterCount > 0,
-                                  label: Text('$_activeFilterCount'),
-                                  child: const Icon(Icons.tune_rounded),
-                                ),
-                              ),
-                            ],
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: [
-                            _buildQuickFilterChip(
-                              label: 'Open Now',
-                              icon: Icons.access_time_filled_rounded,
-                              isSelected: _openNowOnly,
-                              onTap: () {
-                                setState(() {
-                                  _openNowOnly = !_openNowOnly;
-                                  if (_selectedSpace != null &&
-                                      !_filtered(allSpaces).contains(_selectedSpace)) {
-                                    _selectedSpace = null;
-                                  }
-                                });
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            _buildQuickFilterChip(
-                              label: 'Cars',
-                              icon: Icons.directions_car_rounded,
-                              isSelected: _vehicleFilter == 'car',
-                              onTap: () {
-                                setState(() {
-                                  _vehicleFilter = _vehicleFilter == 'car' ? null : 'car';
-                                  if (_selectedSpace != null &&
-                                      !_filtered(allSpaces).contains(_selectedSpace)) {
-                                    _selectedSpace = null;
-                                  }
-                                });
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            _buildQuickFilterChip(
-                              label: 'Motorcycles',
-                              icon: Icons.two_wheeler_rounded,
-                              isSelected: _vehicleFilter == 'motorcycle',
-                              onTap: () {
-                                setState(() {
-                                  _vehicleFilter = _vehicleFilter == 'motorcycle' ? null : 'motorcycle';
-                                  if (_selectedSpace != null &&
-                                      !_filtered(allSpaces).contains(_selectedSpace)) {
-                                    _selectedSpace = null;
-                                  }
-                                });
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            _buildQuickFilterChip(
-                              label: '≤ ₱50/hr',
-                              icon: Icons.sell_rounded,
-                              isSelected: _maxHourlyRate == 50.0,
-                              onTap: () {
-                                setState(() {
-                                  _maxHourlyRate = _maxHourlyRate == 50.0 ? null : 50.0;
-                                  if (_selectedSpace != null &&
-                                      !_filtered(allSpaces).contains(_selectedSpace)) {
-                                    _selectedSpace = null;
-                                  }
-                                });
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            _buildQuickFilterChip(
-                              label: 'Nearest',
-                              icon: Icons.near_me_rounded,
-                              isSelected: _sort == ParkingSort.nearest,
-                              onTap: () async {
-                                setState(() {
-                                  _sort = _sort == ParkingSort.nearest
-                                      ? ParkingSort.recommended
-                                      : ParkingSort.nearest;
-                                });
-                                if (_sort == ParkingSort.nearest && _currentLocation == null) {
-                                  await _goToCurrentLocation();
-                                }
-                              },
-                            ),
-                            if (_activeFilterCount > 0) ...[
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _vehicleFilter = null;
-                                    _openNowOnly = false;
-                                    _maxHourlyRate = null;
-                                    _sort = ParkingSort.recommended;
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(20),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFEE2E2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.refresh_rounded, size: 14, color: Color(0xFFEF4444)),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Reset',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFFEF4444),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildSearchAndFilters(allSpaces),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
@@ -1033,176 +1065,11 @@ class _MapScreenState extends State<MapScreen> {
                       height: _isMapFullscreen
                           ? (MediaQuery.of(context).size.height * 0.70)
                           : 340,
-                      child: ClipRRect(
+                      child: _buildMapStack(
+                        allSpaces,
+                        mappedSpaces,
+                        isLandscape: false,
                         borderRadius: BorderRadius.circular(22),
-                        child: Stack(
-                          children: [
-                            gmaps.GoogleMap(
-                              gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                                Factory<OneSequenceGestureRecognizer>(
-                                  () => EagerGestureRecognizer(),
-                                ),
-                              },
-                              initialCameraPosition: gmaps.CameraPosition(
-                                target: gmaps.LatLng(
-                                  _initialCenter(allSpaces).latitude,
-                                  _initialCenter(allSpaces).longitude,
-                                ),
-                                zoom: 14,
-                              ),
-                              onMapCreated: (controller) {
-                                _googleMapController = controller;
-                                _mapReady = true;
-                                if (_selectedSpace != null &&
-                                    _pointFor(_selectedSpace!) != null) {
-                                  final start =
-                                      _effectiveOrigin(_selectedSpace!);
-                                  _fitRoute(
-                                    start,
-                                    _pointFor(_selectedSpace!)!,
-                                  );
-                                }
-                              },
-                              myLocationEnabled: true,
-                              myLocationButtonEnabled: false,
-                              compassEnabled: true,
-                              zoomControlsEnabled: false,
-                              mapToolbarEnabled: false,
-                              markers: _buildGoogleMarkers(allSpaces, mappedSpaces),
-                              polylines: _buildGooglePolylines(),
-                            ),
-                            if (!_isNavigating)
-                              Positioned(
-                                top: 14,
-                                right: 14,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _MapControlButton(
-                                      icon: _isMapFullscreen
-                                          ? Icons.fullscreen_exit_rounded
-                                          : Icons.fullscreen_rounded,
-                                      tooltip: _isMapFullscreen
-                                          ? 'Collapse map'
-                                          : 'Expand map',
-                                      onPressed: () {
-                                        setState(() {
-                                          _isMapFullscreen = !_isMapFullscreen;
-                                        });
-                                      },
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _MapControlButton(
-                                      icon: Icons.add_rounded,
-                                      tooltip: 'Zoom in',
-                                      onPressed: () {
-                                        _googleMapController?.animateCamera(
-                                          gmaps.CameraUpdate.zoomIn(),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _MapControlButton(
-                                      icon: Icons.remove_rounded,
-                                      tooltip: 'Zoom out',
-                                      onPressed: () {
-                                        _googleMapController?.animateCamera(
-                                          gmaps.CameraUpdate.zoomOut(),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _MapControlButton(
-                                      icon: Icons.my_location_rounded,
-                                      tooltip: 'Recenter',
-                                      onPressed: () {
-                                        if (_currentLocation != null) {
-                                          _moveMap(_currentLocation!, 16);
-                                        } else {
-                                          _goToCurrentLocation();
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            if (mappedSpaces.isEmpty)
-                              const Positioned(
-                                top: 12,
-                                left: 12,
-                                right: 12,
-                                child: _MapNotice(),
-                              ),
-                            if (_isNavigating &&
-                                _navProgress != null &&
-                                _selectedSpace != null)
-                              Positioned.fill(
-                                child: _DrivingNavigationHUD(
-                                  space: _selectedSpace!,
-                                  progress: _navProgress!,
-                                  mode: _transportMode,
-                                  cameraFollowsVehicle: _cameraFollowsVehicle,
-                                  onToggleCameraFollow: () {
-                                    setState(() {
-                                      _cameraFollowsVehicle =
-                                          !_cameraFollowsVehicle;
-                                    });
-                                    if (_cameraFollowsVehicle &&
-                                        _navProgress != null) {
-                                      _moveMap(
-                                        _navProgress!.currentPosition,
-                                        17.5,
-                                      );
-                                    }
-                                  },
-                                  onRecenter: () {
-                                    if (_navProgress != null) {
-                                      _moveMap(
-                                        _navProgress!.currentPosition,
-                                        17.5,
-                                      );
-                                    }
-                                  },
-                                  onStopDriving: _stopDriving,
-                                ),
-                              )
-                            else if (_selectedSpace != null)
-                              Positioned(
-                                left: 12,
-                                right: 12,
-                                bottom: 20,
-                                child: _SelectedSpaceCard(
-                                  space: _selectedSpace!,
-                                  distance: _routeData?.distanceKm ??
-                                      _distanceFor(_selectedSpace!),
-                                  eta: _routeData?.etaText ??
-                                      _estimateEta(
-                                        _distanceFor(_selectedSpace!),
-                                      ),
-                                  steps: _routeData?.steps ?? const [],
-                                  isLiveGps: _currentLocation != null,
-                                  onStartDriving: _startDriving,
-                                  onClose: _clearSelection,
-                                  onRecenter: () {
-                                    if (_pointFor(_selectedSpace!) != null) {
-                                      final start =
-                                          _effectiveOrigin(_selectedSpace!);
-                                      _fitRoute(
-                                        start,
-                                        _pointFor(_selectedSpace!)!,
-                                      );
-                                    }
-                                  },
-                                  onExternalNavigation: _startDriving,
-                                  onDetails: () =>
-                                      _openDetails(_selectedSpace!),
-                                  onSyncGps: () => _goToCurrentLocation(
-                                    refitFor: _selectedSpace,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -1259,6 +1126,446 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  Widget _buildSearchAndFilters(List<ParkingSpace> allSpaces) {
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _searchController,
+            textInputAction: TextInputAction.search,
+            onChanged: (value) => setState(() {
+              _query = value;
+              if (_selectedSpace != null &&
+                  !_filtered(allSpaces).contains(_selectedSpace)) {
+                _selectedSpace = null;
+              }
+            }),
+            onSubmitted: (_) => _submitSearch(allSpaces),
+            decoration: InputDecoration(
+              hintText: 'Search location or parking space',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_query.isNotEmpty)
+                    IconButton(
+                      tooltip: 'Clear search',
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _query = '';
+                          _selectedSpace = null;
+                        });
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  IconButton(
+                    tooltip: 'Filters',
+                    onPressed: () => _openFilters(allSpaces),
+                    icon: Badge(
+                      isLabelVisible: _activeFilterCount > 0,
+                      label: Text('$_activeFilterCount'),
+                      child: const Icon(Icons.tune_rounded),
+                    ),
+                  ),
+                ],
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                _buildQuickFilterChip(
+                  label: 'Open Now',
+                  icon: Icons.access_time_filled_rounded,
+                  isSelected: _openNowOnly,
+                  onTap: () {
+                    setState(() {
+                      _openNowOnly = !_openNowOnly;
+                      if (_selectedSpace != null &&
+                          !_filtered(allSpaces).contains(_selectedSpace)) {
+                        _selectedSpace = null;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                _buildQuickFilterChip(
+                  label: 'Cars',
+                  icon: Icons.directions_car_rounded,
+                  isSelected: _vehicleFilter == 'car',
+                  onTap: () {
+                    setState(() {
+                      _vehicleFilter = _vehicleFilter == 'car' ? null : 'car';
+                      if (_selectedSpace != null &&
+                          !_filtered(allSpaces).contains(_selectedSpace)) {
+                        _selectedSpace = null;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                _buildQuickFilterChip(
+                  label: 'Motorcycles',
+                  icon: Icons.two_wheeler_rounded,
+                  isSelected: _vehicleFilter == 'motorcycle',
+                  onTap: () {
+                    setState(() {
+                      _vehicleFilter = _vehicleFilter == 'motorcycle' ? null : 'motorcycle';
+                      if (_selectedSpace != null &&
+                          !_filtered(allSpaces).contains(_selectedSpace)) {
+                        _selectedSpace = null;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                _buildQuickFilterChip(
+                  label: '≤ ₱50/hr',
+                  icon: Icons.sell_rounded,
+                  isSelected: _maxHourlyRate == 50.0,
+                  onTap: () {
+                    setState(() {
+                      _maxHourlyRate = _maxHourlyRate == 50.0 ? null : 50.0;
+                      if (_selectedSpace != null &&
+                          !_filtered(allSpaces).contains(_selectedSpace)) {
+                        _selectedSpace = null;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                _buildQuickFilterChip(
+                  label: 'Nearest',
+                  icon: Icons.near_me_rounded,
+                  isSelected: _sort == ParkingSort.nearest,
+                  onTap: () async {
+                    setState(() {
+                      _sort = _sort == ParkingSort.nearest
+                          ? ParkingSort.recommended
+                          : ParkingSort.nearest;
+                    });
+                    if (_sort == ParkingSort.nearest && _currentLocation == null) {
+                      await _goToCurrentLocation();
+                    }
+                  },
+                ),
+                if (_activeFilterCount > 0) ...[
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _vehicleFilter = null;
+                        _openNowOnly = false;
+                        _maxHourlyRate = null;
+                        _sort = ParkingSort.recommended;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEE2E2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.refresh_rounded, size: 14, color: Color(0xFFEF4444)),
+                          SizedBox(width: 4),
+                          Text(
+                            'Reset',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFEF4444),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapStack(
+    List<ParkingSpace> allSpaces,
+    List<ParkingSpace> mappedSpaces, {
+    BorderRadius? borderRadius,
+    bool isLandscape = false,
+  }) {
+    return ClipRRect(
+      borderRadius: borderRadius ?? BorderRadius.circular(22),
+      child: Stack(
+        children: [
+          gmaps.GoogleMap(
+            gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+              Factory<OneSequenceGestureRecognizer>(
+                () => EagerGestureRecognizer(),
+              ),
+            },
+            initialCameraPosition: gmaps.CameraPosition(
+              target: gmaps.LatLng(
+                _initialCenter(allSpaces).latitude,
+                _initialCenter(allSpaces).longitude,
+              ),
+              zoom: 14,
+            ),
+            onMapCreated: (controller) {
+              _googleMapController = controller;
+              _mapReady = true;
+              if (_selectedSpace != null &&
+                  _pointFor(_selectedSpace!) != null) {
+                final start = _effectiveOrigin(_selectedSpace!);
+                _fitRoute(
+                  start,
+                  _pointFor(_selectedSpace!)!,
+                );
+              }
+            },
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            compassEnabled: true,
+            zoomControlsEnabled: false,
+            mapToolbarEnabled: false,
+            onTap: (latLng) {
+              if (_isPickingOriginOnMap) {
+                _setCustomOrigin(
+                  LatLng(latLng.latitude, latLng.longitude),
+                  'Map Pin (${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)})',
+                );
+                _message('Starting point set from map pin.');
+              }
+            },
+            markers: _buildGoogleMarkers(allSpaces, mappedSpaces),
+            polylines: _buildGooglePolylines(),
+          ),
+          if (_isPickingOriginOnMap)
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.touch_app_rounded,
+                      color: Color(0xFF38BDF8),
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Set Starting Point',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            'Tap anywhere on the map to set origin',
+                            style: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _isPickingOriginOnMap = false;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF38BDF8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (!_isNavigating)
+            Positioned(
+              top: 14,
+              right: 14,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _MapControlButton(
+                    icon: _isMapFullscreen
+                        ? Icons.fullscreen_exit_rounded
+                        : Icons.fullscreen_rounded,
+                    tooltip: _isMapFullscreen
+                        ? 'Collapse map'
+                        : 'Expand map',
+                    onPressed: () {
+                      setState(() {
+                        _isMapFullscreen = !_isMapFullscreen;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _MapControlButton(
+                    icon: Icons.add_rounded,
+                    tooltip: 'Zoom in',
+                    onPressed: () {
+                      _googleMapController?.animateCamera(
+                        gmaps.CameraUpdate.zoomIn(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _MapControlButton(
+                    icon: Icons.remove_rounded,
+                    tooltip: 'Zoom out',
+                    onPressed: () {
+                      _googleMapController?.animateCamera(
+                        gmaps.CameraUpdate.zoomOut(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _MapControlButton(
+                    icon: Icons.my_location_rounded,
+                    tooltip: 'Recenter',
+                    onPressed: () {
+                      if (_currentLocation != null) {
+                        _moveMap(_currentLocation!, 16);
+                      } else {
+                        _goToCurrentLocation();
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          if (mappedSpaces.isEmpty)
+            const Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: _MapNotice(),
+            ),
+          if (_isNavigating &&
+              _navProgress != null &&
+              _selectedSpace != null)
+            Positioned.fill(
+              child: _DrivingNavigationHUD(
+                space: _selectedSpace!,
+                progress: _navProgress!,
+                mode: _transportMode,
+                cameraFollowsVehicle: _cameraFollowsVehicle,
+                onToggleCameraFollow: () {
+                  setState(() {
+                    _cameraFollowsVehicle = !_cameraFollowsVehicle;
+                  });
+                  if (_cameraFollowsVehicle && _navProgress != null) {
+                    _moveMap(
+                      _navProgress!.currentPosition,
+                      17.5,
+                    );
+                  }
+                },
+                onRecenter: () {
+                  if (_navProgress != null) {
+                    _moveMap(
+                      _navProgress!.currentPosition,
+                      17.5,
+                    );
+                  }
+                },
+                onStopDriving: _stopDriving,
+              ),
+            )
+          else if (_selectedSpace != null && !isLandscape)
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 20,
+              child: _SelectedSpaceCard(
+                space: _selectedSpace!,
+                distance: _routeData?.distanceKm ??
+                    _distanceFor(_selectedSpace!),
+                eta: _routeData?.etaText ??
+                    _estimateEta(
+                      _distanceFor(_selectedSpace!),
+                    ),
+                steps: _routeData?.steps ?? const [],
+                isLiveGps: _customOrigin == null && _currentLocation != null,
+                originName: _customOriginName,
+                onStartDriving: _startDriving,
+                onClose: _clearSelection,
+                onRecenter: () {
+                  if (_pointFor(_selectedSpace!) != null) {
+                    final start = _effectiveOrigin(_selectedSpace!);
+                    _fitRoute(
+                      start,
+                      _pointFor(_selectedSpace!)!,
+                    );
+                  }
+                },
+                onExternalNavigation: _startDriving,
+                onDetails: () => _openDetails(_selectedSpace!),
+                onSyncGps: () => _goToCurrentLocation(
+                  refitFor: _selectedSpace,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Set<gmaps.Marker> _buildGoogleMarkers(
     List<ParkingSpace> allSpaces,
     List<ParkingSpace> mappedSpaces,
@@ -1293,8 +1600,9 @@ class _MapScreenState extends State<MapScreen> {
         ),
       );
 
-      // Driver vehicle / origin marker (real-time moving pin)
-      final originPt = _currentLocation ??
+      // Driver vehicle / origin marker (real-time moving pin or custom starting point)
+      final originPt = _customOrigin ??
+          _currentLocation ??
           _navProgress?.currentPosition ??
           _effectiveOrigin(_selectedSpace!);
       final bearing = _isNavigating
@@ -1310,20 +1618,52 @@ class _MapScreenState extends State<MapScreen> {
           anchor: const Offset(0.5, 0.5),
           zIndexInt: 10,
           icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            _isNavigating
-                ? gmaps.BitmapDescriptor.hueCyan
-                : gmaps.BitmapDescriptor.hueBlue,
+            _customOrigin != null
+                ? gmaps.BitmapDescriptor.hueOrange
+                : (_isNavigating
+                    ? gmaps.BitmapDescriptor.hueCyan
+                    : gmaps.BitmapDescriptor.hueBlue),
           ),
           infoWindow: gmaps.InfoWindow(
-            title: _isNavigating ? 'Vehicle En Route' : 'Your Live Location',
-            snippet: _currentSpeedKmh > 1.0
-                ? '${_currentSpeedKmh.toStringAsFixed(0)} km/h • GPS Active${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'
-                : (_routeData != null
+            title: _customOrigin != null
+                ? 'Starting Point: ${_customOriginName ?? "Custom"}'
+                : (_isNavigating ? 'Vehicle En Route' : 'Your Live Location'),
+            snippet: _customOrigin != null
+                ? (_routeData != null
                     ? '${_routeData!.etaText} (${_routeData!.distanceKm.toStringAsFixed(1)} km)'
-                    : 'Real-time GPS Tracking${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'),
+                    : 'Custom starting origin')
+                : (_currentSpeedKmh > 1.0
+                    ? '${_currentSpeedKmh.toStringAsFixed(0)} km/h • GPS Active${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'
+                    : (_routeData != null
+                        ? '${_routeData!.etaText} (${_routeData!.distanceKm.toStringAsFixed(1)} km)'
+                        : 'Real-time GPS Tracking${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}')),
           ),
         ),
       );
+
+      // If user specified a custom origin AND live GPS is available, show actual position pin too
+      if (_customOrigin != null && _currentLocation != null) {
+        markers.add(
+          gmaps.Marker(
+            markerId: const gmaps.MarkerId('driver_live_gps_marker'),
+            position: gmaps.LatLng(
+              _currentLocation!.latitude,
+              _currentLocation!.longitude,
+            ),
+            rotation: _currentHeading,
+            flat: true,
+            anchor: const Offset(0.5, 0.5),
+            zIndexInt: 9,
+            icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+              gmaps.BitmapDescriptor.hueAzure,
+            ),
+            infoWindow: const gmaps.InfoWindow(
+              title: 'Your Location (Live GPS)',
+              snippet: 'Live device position',
+            ),
+          ),
+        );
+      }
     }
     // 2. In Browse Mode: show real-time driver location pin PLUS all filtered spaces
     else {
@@ -1551,7 +1891,7 @@ class _MapScreenState extends State<MapScreen> {
                 Text(
                   space.address,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: colors.onSurfaceVariant,
                     height: 1.4,
                   ),
@@ -1560,7 +1900,7 @@ class _MapScreenState extends State<MapScreen> {
                 Text(
                   space.price,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: colors.primary,
                   ),
@@ -1578,7 +1918,7 @@ class _MapScreenState extends State<MapScreen> {
                       Text(
                         formatParkingDistance(distance),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: colors.onSurfaceVariant,
                         ),
@@ -1823,6 +2163,7 @@ class _SelectedSpaceCard extends StatefulWidget {
     required this.onExternalNavigation,
     required this.onDetails,
     required this.onSyncGps,
+    this.originName,
     this.onStartDriving,
     this.steps = const [],
   });
@@ -1831,6 +2172,7 @@ class _SelectedSpaceCard extends StatefulWidget {
   final double? distance;
   final String eta;
   final bool isLiveGps;
+  final String? originName;
   final VoidCallback onClose;
   final VoidCallback onRecenter;
   final VoidCallback onExternalNavigation;
@@ -1887,7 +2229,7 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
                         'IN-APP ROUTE',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10.5,
+                          fontSize: 12,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.6,
                         ),
@@ -1902,7 +2244,7 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
                         ? '${formatParkingDistance(widget.distance)} • ${widget.eta}'
                         : widget.eta,
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF0F172A),
                     ),
@@ -1930,11 +2272,67 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
+            if (widget.originName != null) ...[
+              const SizedBox(height: 3),
+              Row(
+                children: [
+                  const Icon(Icons.trip_origin_rounded, size: 12, color: Color(0xFF2563EB)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'From: ${widget.originName}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            LayoutBuilder(
+              builder: (context, cardConstraints) {
+                final isNarrow = cardConstraints.maxWidth < 360;
+
+                Widget buildDrivingButton() {
+                  return FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF16A34A),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      minimumSize: const Size(0, 34),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: widget.onStartDriving,
+                    icon: const Icon(Icons.navigation_rounded, size: 14),
+                    label: const Text('Start Driving', style: TextStyle(fontSize: 12)),
+                  );
+                }
+
+                Widget buildReserveButton() {
+                  return FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colors.primary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      minimumSize: const Size(0, 34),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: widget.onDetails,
+                    child: const Text('Reserve', style: TextStyle(fontSize: 12)),
+                  );
+                }
+
+                if (isNarrow) {
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -1952,41 +2350,61 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: Color(0xFF64748B),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          if (widget.onStartDriving != null) ...[
+                            Expanded(child: buildDrivingButton()),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(child: buildReserveButton()),
+                        ],
+                      ),
                     ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (widget.onStartDriving != null)
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF16A34A),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.space.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.space.address,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    onPressed: widget.onStartDriving,
-                    icon: const Icon(Icons.navigation_rounded, size: 15),
-                    label: const Text('Start Driving'),
-                  ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                  ),
-                  onPressed: widget.onDetails,
-                  child: const Text('Reserve'),
-                ),
-              ],
+                    const SizedBox(width: 8),
+                    if (widget.onStartDriving != null) ...[
+                      buildDrivingButton(),
+                      const SizedBox(width: 8),
+                    ],
+                    buildReserveButton(),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 6),
             InkWell(
@@ -2004,12 +2422,16 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
                       color: const Color(0xFF2563EB),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      _showSteps ? 'Hide directions' : 'View turn-by-turn directions',
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF2563EB),
+                    Expanded(
+                      child: Text(
+                        _showSteps ? 'Hide directions' : 'View turn-by-turn directions',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2563EB),
+                        ),
                       ),
                     ),
                   ],
@@ -2051,7 +2473,11 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
                         Icons.trip_origin_rounded,
                         Colors.green,
                         'Start',
-                        'Depart from your current position',
+                        widget.originName != null
+                            ? 'Depart from ${widget.originName}'
+                            : (widget.isLiveGps
+                                ? 'Depart from your current position'
+                                : 'Depart from starting point'),
                       ),
                       const Divider(height: 8),
                       _stepRow(
@@ -2088,7 +2514,7 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
             '$tag: ',
             style: TextStyle(
               fontWeight: FontWeight.w800,
-              fontSize: 11,
+              fontSize: 12,
               color: color,
             ),
           ),
@@ -2097,7 +2523,7 @@ class _SelectedSpaceCardState extends State<_SelectedSpaceCard> {
           child: Text(
             desc,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               color: Color(0xFF334155),
               fontWeight: FontWeight.w500,
             ),
@@ -2175,7 +2601,7 @@ class _DrivingNavigationHUD extends StatelessWidget {
                             style: const TextStyle(
                               color: Color(0xFF4ADE80),
                               fontWeight: FontWeight.w800,
-                              fontSize: 12,
+                              fontSize: 14,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -2207,7 +2633,7 @@ class _DrivingNavigationHUD extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       color: Color(0xFF94A3B8),
-                                      fontSize: 11,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -2292,7 +2718,7 @@ class _DrivingNavigationHUD extends StatelessWidget {
                           const Text(
                             'km/h',
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF64748B),
                             ),
@@ -2321,7 +2747,7 @@ class _DrivingNavigationHUD extends StatelessWidget {
                               Text(
                                 '• ${progress.remainingDistanceKm.toStringAsFixed(1)} km left',
                                 style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF0F172A),
                                 ),
@@ -2334,7 +2760,7 @@ class _DrivingNavigationHUD extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 11.5,
+                              fontSize: 12,
                               color: Color(0xFF64748B),
                               fontWeight: FontWeight.w600,
                             ),
@@ -2405,13 +2831,13 @@ class _ArrivalCelebrationDialog extends StatelessWidget {
           Text(
             space.address,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+            style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
           ),
           const SizedBox(height: 12),
           const Text(
             'Please proceed to the security barrier or designated stall to present your Entry Pass.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 14),
           ),
         ],
       ),
@@ -2448,7 +2874,7 @@ class _StatusBadge extends StatelessWidget {
       child: Text(
         space.status,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w700,
           color: space.isAvailable
               ? const Color(0xFF166534)
@@ -2594,6 +3020,9 @@ class _RoutePlanningHeader extends StatelessWidget {
     required this.onModeChanged,
     required this.onClose,
     required this.onRecenter,
+    required this.onSelectOrigin,
+    this.customOriginName,
+    this.onResetToGps,
     this.onStartDriving,
     this.onSyncGps,
   });
@@ -2602,6 +3031,9 @@ class _RoutePlanningHeader extends StatelessWidget {
   final NavigationRouteData? routeData;
   final NavigationTransportMode transportMode;
   final bool isLiveGps;
+  final String? customOriginName;
+  final VoidCallback onSelectOrigin;
+  final VoidCallback? onResetToGps;
   final ValueChanged<NavigationTransportMode> onModeChanged;
   final VoidCallback onClose;
   final VoidCallback onRecenter;
@@ -2665,7 +3097,7 @@ class _RoutePlanningHeader extends StatelessWidget {
                     ),
                     onPressed: onStartDriving,
                     icon: const Icon(Icons.navigation_rounded, size: 14),
-                    label: const Text('Start', style: TextStyle(fontSize: 12)),
+                    label: const Text('Start', style: TextStyle(fontSize: 14)),
                   ),
                   const SizedBox(width: 4),
                 ],
@@ -2702,7 +3134,9 @@ class _RoutePlanningHeader extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: const Color(0xFF2563EB),
+                          color: customOriginName != null
+                              ? const Color(0xFFF97316)
+                              : const Color(0xFF2563EB),
                           width: 3.5,
                         ),
                       ),
@@ -2730,70 +3164,139 @@ class _RoutePlanningHeader extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Origin box
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                      // Origin box (interactive - allows custom input or live location)
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: onSelectOrigin,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFCBD5E1)),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                isLiveGps
-                                    ? 'Your location (Live GPS)'
-                                    : 'Your location (Starting point)',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0F172A),
-                                ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: customOriginName != null
+                                  ? const Color(0xFFEFF6FF)
+                                  : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: customOriginName != null
+                                    ? const Color(0xFF3B82F6)
+                                    : const Color(0xFFCBD5E1),
+                                width: customOriginName != null ? 1.5 : 1.0,
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isLiveGps
-                                    ? const Color(0xFFDCFCE7)
-                                    : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isLiveGps
-                                          ? const Color(0xFF16A34A)
-                                          : const Color(0xFF94A3B8),
-                                    ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        customOriginName ??
+                                            (isLiveGps
+                                                ? 'Your location (Live GPS)'
+                                                : 'Your location (Starting point)'),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: customOriginName != null
+                                              ? const Color(0xFF1E3A8A)
+                                              : const Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 1),
+                                      Text(
+                                        customOriginName != null
+                                            ? 'Custom origin • Tap to change'
+                                            : 'Tap to input custom starting point',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: customOriginName != null
+                                              ? const Color(0xFF2563EB)
+                                              : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: customOriginName != null
+                                        ? const Color(0xFFDBEAFE)
+                                        : (isLiveGps
+                                            ? const Color(0xFFDCFCE7)
+                                            : const Color(0xFFF1F5F9)),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: customOriginName != null
+                                              ? const Color(0xFF2563EB)
+                                              : (isLiveGps
+                                                  ? const Color(0xFF16A34A)
+                                                  : const Color(0xFF94A3B8)),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        customOriginName != null
+                                            ? 'Custom'
+                                            : (isLiveGps ? 'GPS' : 'Est.'),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: customOriginName != null
+                                              ? const Color(0xFF1D4ED8)
+                                              : (isLiveGps
+                                                  ? const Color(0xFF15803D)
+                                                  : const Color(0xFF64748B)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (customOriginName != null && onResetToGps != null) ...[
                                   const SizedBox(width: 4),
-                                  Text(
-                                    isLiveGps ? 'GPS' : 'Est.',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      color: isLiveGps
-                                          ? const Color(0xFF15803D)
-                                          : const Color(0xFF64748B),
+                                  Tooltip(
+                                    message: 'Reset to Live GPS',
+                                    child: InkWell(
+                                      onTap: onResetToGps,
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFEE2E2),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Icon(
+                                          Icons.close_rounded,
+                                          size: 13,
+                                          color: Color(0xFFDC2626),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -2820,7 +3323,7 @@ class _RoutePlanningHeader extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: Color(0xFF0F172A),
                                     ),
@@ -2831,7 +3334,7 @@ class _RoutePlanningHeader extends StatelessWidget {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 12,
                                         color: Color(0xFF64748B),
                                       ),
                                     ),
@@ -2845,13 +3348,17 @@ class _RoutePlanningHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Recenter icon button
+                // Swap / Change origin icon button
                 IconButton.filledTonal(
-                  tooltip: 'Recenter route',
-                  onPressed: onRecenter,
+                  tooltip: 'Change or swap starting point',
+                  onPressed: onSelectOrigin,
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFFF1F5F9),
-                    foregroundColor: const Color(0xFF0F172A),
+                    backgroundColor: customOriginName != null
+                        ? const Color(0xFFEFF6FF)
+                        : const Color(0xFFF1F5F9),
+                    foregroundColor: customOriginName != null
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF0F172A),
                     padding: const EdgeInsets.all(8),
                   ),
                   icon: const Icon(Icons.swap_vert_rounded, size: 22),
@@ -2908,7 +3415,7 @@ class _ModeItem extends StatelessWidget {
               Text(
                 eta.isNotEmpty ? eta : label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   color: isSelected ? const Color(0xFF0369A1) : const Color(0xFF64748B),
                 ),
@@ -2950,4 +3457,629 @@ class _DottedLinePainter extends CustomPainter {
   bool shouldRepaint(covariant _DottedLinePainter oldDelegate) =>
       oldDelegate.color != color;
 }
+
+class _CalambaLandmark {
+  const _CalambaLandmark({
+    required this.name,
+    required this.subtitle,
+    required this.point,
+    required this.icon,
+  });
+
+  final String name;
+  final String subtitle;
+  final LatLng point;
+  final IconData icon;
+}
+
+const List<_CalambaLandmark> _kCalambaLandmarks = [
+  _CalambaLandmark(
+    name: 'SM City Calamba',
+    subtitle: 'National Hwy, Brgy. Real, Calamba',
+    point: LatLng(14.2052, 121.1558),
+    icon: Icons.shopping_bag_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Calamba Crossing / Central Terminal',
+    subtitle: 'Central Transport Hub, Brgy. Real',
+    point: LatLng(14.2096, 121.1539),
+    icon: Icons.directions_bus_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Calamba City Hall Complex',
+    subtitle: 'Chipeco Ave, Poblacion, Calamba',
+    point: LatLng(14.2078, 121.1667),
+    icon: Icons.account_balance_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Turbina Bus Terminal',
+    subtitle: 'Pan-Philippine Hwy, Brgy. Turbina',
+    point: LatLng(14.1865, 121.1444),
+    icon: Icons.departure_board_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Canlubang IT & Commercial Center',
+    subtitle: 'Carmelray Industrial Park, Canlubang',
+    point: LatLng(14.2185, 121.1415),
+    icon: Icons.apartment_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Pansol Hot Springs Area',
+    subtitle: 'National Highway, Brgy. Pansol',
+    point: LatLng(14.1834, 121.1802),
+    icon: Icons.pool_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Colegio de San Juan de Letran',
+    subtitle: 'Ipil-ipil St, Brgy. Bucal, Calamba',
+    point: LatLng(14.1887, 121.1652),
+    icon: Icons.school_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Waltermart Calamba',
+    subtitle: 'National Hwy, Brgy. Real, Calamba',
+    point: LatLng(14.2045, 121.1505),
+    icon: Icons.storefront_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Rizal Shrine & Town Plaza',
+    subtitle: 'Mercado St, Poblacion 5, Calamba',
+    point: LatLng(14.2140, 121.1660),
+    icon: Icons.museum_rounded,
+  ),
+  _CalambaLandmark(
+    name: 'Calamba Medical Center',
+    subtitle: 'National Hwy, Crossing, Calamba',
+    point: LatLng(14.2081, 121.1582),
+    icon: Icons.local_hospital_rounded,
+  ),
+];
+
+class _StartingPointPickerSheet extends StatefulWidget {
+  const _StartingPointPickerSheet({
+    required this.allSpaces,
+    required this.onSelectOrigin,
+    required this.onSelectOnMap,
+    required this.onResetToGps,
+    this.currentSelectedSpace,
+    this.currentOrigin,
+    this.currentOriginName,
+    this.currentGpsLocation,
+  });
+
+  final List<ParkingSpace> allSpaces;
+  final ParkingSpace? currentSelectedSpace;
+  final LatLng? currentOrigin;
+  final String? currentOriginName;
+  final LatLng? currentGpsLocation;
+  final void Function(LatLng point, String name) onSelectOrigin;
+  final VoidCallback onSelectOnMap;
+  final VoidCallback onResetToGps;
+
+  @override
+  State<_StartingPointPickerSheet> createState() =>
+      _StartingPointPickerSheetState();
+}
+
+class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  LatLng? _pointFor(ParkingSpace space) {
+    final lat = space.latitude;
+    final lng = space.longitude;
+    if (lat == null || lng == null) return null;
+    return LatLng(lat, lng);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _query.trim().toLowerCase();
+    final matchingLandmarks = _kCalambaLandmarks.where((l) {
+      if (q.isEmpty) return true;
+      return l.name.toLowerCase().contains(q) ||
+          l.subtitle.toLowerCase().contains(q);
+    }).toList();
+
+    final otherSpaces = widget.allSpaces.where((s) {
+      if (widget.currentSelectedSpace != null &&
+          s.id == widget.currentSelectedSpace!.id) {
+        return false;
+      }
+      if (_pointFor(s) == null) return false;
+      if (q.isEmpty) return true;
+      return s.name.toLowerCase().contains(q) ||
+          s.address.toLowerCase().contains(q);
+    }).toList();
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(top: 10, bottom: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFCBD5E1),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 12, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Set Starting Point',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.currentSelectedSpace != null
+                            ? 'Route to: ${widget.currentSelectedSpace!.name}'
+                            : 'Choose where your trip begins',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Close',
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
+          ),
+          // Search box
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: TextField(
+              controller: _searchController,
+              autofocus: false,
+              textInputAction: TextInputAction.search,
+              onChanged: (val) => setState(() => _query = val),
+              decoration: InputDecoration(
+                hintText: 'Search location, landmark, or street...',
+                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
+                suffixIcon: _query.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _query = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: const Color(0xFFF1F5F9),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          // Scrollable list of options
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
+                // Quick Action: My Live Location
+                _buildQuickActionTile(
+                  icon: Icons.my_location_rounded,
+                  iconColor: const Color(0xFF16A34A),
+                  iconBgColor: const Color(0xFFDCFCE7),
+                  title: 'Your Location (Live GPS)',
+                  subtitle: widget.currentGpsLocation != null
+                      ? 'Real-time GPS • Calamba area'
+                      : 'Use device live location sensor',
+                  badge: 'GPS',
+                  badgeColor: const Color(0xFFDCFCE7),
+                  badgeTextColor: const Color(0xFF15803D),
+                  isSelected: widget.currentOrigin == null,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    widget.onResetToGps();
+                  },
+                ),
+                const SizedBox(height: 8),
+                // Quick Action: Pick on Map
+                _buildQuickActionTile(
+                  icon: Icons.touch_app_rounded,
+                  iconColor: const Color(0xFF0284C7),
+                  iconBgColor: const Color(0xFFE0F2FE),
+                  title: 'Choose on Map',
+                  subtitle: 'Tap anywhere on the map to set starting pin',
+                  badge: 'Map Tap',
+                  badgeColor: const Color(0xFFE0F2FE),
+                  badgeTextColor: const Color(0xFF0369A1),
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    widget.onSelectOnMap();
+                  },
+                ),
+                if (_query.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  // Custom input as starting location
+                  _buildQuickActionTile(
+                    icon: Icons.add_location_alt_rounded,
+                    iconColor: const Color(0xFF8B5CF6),
+                    iconBgColor: const Color(0xFFEDE9FE),
+                    title: 'Use custom starting point:',
+                    subtitle: '"${_query.trim()}"',
+                    badge: 'Custom',
+                    badgeColor: const Color(0xFFEDE9FE),
+                    badgeTextColor: const Color(0xFF6D28D9),
+                    isSelected: false,
+                    onTap: () {
+                      final name = _query.trim();
+                      final fallback = widget.currentGpsLocation ??
+                          const LatLng(14.2117, 121.1653);
+                      // Slight pseudo-hash offset so distinct text yields slightly different valid Calamba coords
+                      final hashOffset = (name.hashCode % 100) * 0.0001;
+                      final customPoint = LatLng(
+                        fallback.latitude - 0.004 + hashOffset,
+                        fallback.longitude - 0.003 - hashOffset,
+                      );
+                      Navigator.of(context).pop();
+                      widget.onSelectOrigin(customPoint, name);
+                    },
+                  ),
+                ],
+                const SizedBox(height: 16),
+                // Calamba Landmarks Section
+                if (matchingLandmarks.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8, left: 4),
+                    child: Text(
+                      'Calamba Landmarks & Hubs',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.grey.shade700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                  for (final landmark in matchingLandmarks) ...[
+                    _buildLandmarkTile(
+                      landmark: landmark,
+                      isSelected: widget.currentOriginName == landmark.name,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        widget.onSelectOrigin(landmark.point, landmark.name);
+                      },
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  const SizedBox(height: 14),
+                ],
+                // Registered Parking Spaces Section
+                if (otherSpaces.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8, left: 4),
+                    child: Text(
+                      'Registered Parking Spaces',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.grey.shade700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                  for (final space in otherSpaces) ...[
+                    _buildSpaceTile(
+                      space: space,
+                      isSelected: widget.currentOriginName == space.name,
+                      onTap: () {
+                        final pt = _pointFor(space);
+                        if (pt != null) {
+                          Navigator.of(context).pop();
+                          widget.onSelectOrigin(pt, space.name);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                ],
+                if (matchingLandmarks.isEmpty && otherSpaces.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.location_off_rounded,
+                              size: 40, color: Colors.grey.shade400),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No matching landmarks or spaces found',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'You can still select "Choose on Map" or tap the custom starting point option.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionTile({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    required String title,
+    required String subtitle,
+    required String badge,
+    required Color badgeColor,
+    required Color badgeTextColor,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isSelected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE2E8F0),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: badgeTextColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandmarkTile({
+    required _CalambaLandmark landmark,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE2E8F0),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(landmark.icon, size: 18, color: const Color(0xFF475569)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      landmark.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      landmark.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                const Icon(Icons.check_circle_rounded,
+                    color: Color(0xFF2563EB), size: 20)
+              else
+                const Icon(Icons.arrow_forward_ios_rounded,
+                    size: 13, color: Color(0xFF94A3B8)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpaceTile({
+    required ParkingSpace space,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE2E8F0),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.local_parking_rounded,
+                    size: 18, color: Color(0xFFD97706)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      space.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      space.address,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                const Icon(Icons.check_circle_rounded,
+                    color: Color(0xFF2563EB), size: 20)
+              else
+                const Icon(Icons.arrow_forward_ios_rounded,
+                    size: 13, color: Color(0xFF94A3B8)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 

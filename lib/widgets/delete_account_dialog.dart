@@ -134,13 +134,13 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                       style: TextStyle(
                         color: Color(0xFF991B1B),
                         fontWeight: FontWeight.w800,
-                        fontSize: 13,
+                        fontSize: 14,
                       ),
                     ),
                     SizedBox(height: 4),
                     Text(
                       'All your personal data, registered vehicles, active parking bookings, receipts, and saved preferences will be permanently wiped from the E-Parada system.',
-                      style: TextStyle(color: Color(0xFF7F1D1D), fontSize: 12, height: 1.4),
+                      style: TextStyle(color: Color(0xFF7F1D1D), fontSize: 14, height: 1.4),
                     ),
                   ],
                 ),
@@ -148,12 +148,12 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               const SizedBox(height: 16),
               Text(
                 'Account: ${widget.userEmail}',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               const SizedBox(height: 14),
               const Text(
                 'Enter your current password',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 6),
               TextField(
@@ -174,7 +174,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               const SizedBox(height: 14),
               const Text(
                 'Type DELETE below to confirm permanent deletion:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 6),
               TextField(
@@ -204,7 +204,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                           _errorMessage!,
                           style: TextStyle(
                             color: colors.error,
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

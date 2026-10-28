@@ -200,7 +200,7 @@ Authorized by E-Parada Automated Clearance & Billing
                         Text(
                           'Tax Invoice & Payment Certificate • $reference',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: Colors.grey.shade600,
                           ),
@@ -246,7 +246,7 @@ Authorized by E-Parada Automated Clearance & Billing
                                     child: Text(
                                       isPaid ? 'PAYMENT VERIFIED & SETTLED' : 'PAYMENT AWAITING SETTLEMENT',
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.w900,
                                         color: isPaid ? const Color(0xFF166534) : const Color(0xFF92400E),
                                       ),
@@ -259,7 +259,7 @@ Authorized by E-Parada Automated Clearance & Billing
                             Text(
                               paymentMethod.isNotEmpty ? paymentMethod.toUpperCase() : 'CASH',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w800,
                                 color: isPaid ? const Color(0xFF166534) : const Color(0xFF92400E),
                               ),
@@ -301,7 +301,7 @@ Authorized by E-Parada Automated Clearance & Billing
                                   const Text(
                                     'DIGITAL AUTHENTICITY SEAL',
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w900,
                                       color: AppPalette.yaleBlue,
                                       letterSpacing: 0.5,
@@ -319,7 +319,7 @@ Authorized by E-Parada Automated Clearance & Billing
                                   Text(
                                     'System Reg: EP-TAX-CALAMBA-2026',
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.grey.shade600,
                                     ),
@@ -416,7 +416,7 @@ Authorized by E-Parada Automated Clearance & Billing
                                   Text(
                                     'NET TOTAL SETTLED',
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w800,
                                       color: Colors.white70,
                                       letterSpacing: 0.5,
@@ -425,7 +425,7 @@ Authorized by E-Parada Automated Clearance & Billing
                                   Text(
                                     'Inclusive of 12% EVAT & Fees',
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 12,
                                       color: Colors.white54,
                                     ),
                                   ),
@@ -515,7 +515,7 @@ class _ReceiptSection extends StatelessWidget {
         Text(
           title.toUpperCase(),
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w900,
             color: AppPalette.yaleBlue,
             letterSpacing: 0.6,
@@ -553,7 +553,7 @@ class _ReceiptRow extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 color: Colors.grey.shade700,
                 fontWeight: FontWeight.w500,
               ),
@@ -566,7 +566,7 @@ class _ReceiptRow extends StatelessWidget {
               value,
               textAlign: TextAlign.end,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
                 color: highlightColor ?? const Color(0xFF0F172A),
               ),

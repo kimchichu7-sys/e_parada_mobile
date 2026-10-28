@@ -32,6 +32,11 @@ class OwnerReservation {
     required this.extensionReason,
     required this.extensionOwnerNotes,
     required this.hasPendingExtension,
+    this.downpaymentAmount,
+    this.downpaymentStatus = 'unpaid',
+    this.downpaymentPaidAt,
+    this.isDownpaymentPaid = false,
+    this.remainingBalance,
     this.cancellationReason = '',
   }) : backupReference =
             Validators.formatReservationNumber(backupReference, id: id);
@@ -66,9 +71,19 @@ class OwnerReservation {
   final String extensionReason;
   final String extensionOwnerNotes;
   final bool hasPendingExtension;
+  final double? downpaymentAmount;
+  final String downpaymentStatus;
+  final DateTime? downpaymentPaidAt;
+  final bool isDownpaymentPaid;
+  final double? remainingBalance;
   final String cancellationReason;
 
   bool get isPending => status == 'pending';
+  bool get isDownpaymentForfeited => downpaymentStatus == 'forfeited';
+  bool get isNoShowCancelled =>
+      status == 'cancelled' &&
+      (cancellationReason.toLowerCase().contains('no_show') ||
+          cancellationReason.toLowerCase().contains('no-show'));
 
   String get scheduleLabel {
     final end = endDate.isEmpty ? reservationDate : endDate;
@@ -130,6 +145,12 @@ class OwnerReservation {
       extensionReason: extension['reason']?.toString() ?? '',
       extensionOwnerNotes: extension['owner_notes']?.toString() ?? '',
       hasPendingExtension: json['has_pending_extension'] == true,
+      downpaymentAmount: _decimal(json['downpayment_amount']),
+      downpaymentStatus: json['downpayment_status']?.toString() ?? 'unpaid',
+      downpaymentPaidAt: DateTime.tryParse(json['downpayment_paid_at']?.toString() ?? ''),
+      isDownpaymentPaid: json['is_downpayment_paid'] == true ||
+          (json['downpayment_status']?.toString() == 'paid'),
+      remainingBalance: _decimal(json['remaining_balance']),
       cancellationReason: json['cancellation_reason']?.toString() ?? '',
     );
   }
@@ -140,6 +161,9 @@ class OwnerReservation {
     String? paymentStatus,
     bool? canCancel,
     bool? canMarkPaid,
+    String? downpaymentStatus,
+    bool? isDownpaymentPaid,
+    double? remainingBalance,
     String? cancellationReason,
   }) {
     return OwnerReservation(
@@ -173,6 +197,11 @@ class OwnerReservation {
       extensionReason: extensionReason,
       extensionOwnerNotes: extensionOwnerNotes,
       hasPendingExtension: hasPendingExtension,
+      downpaymentAmount: downpaymentAmount,
+      downpaymentStatus: downpaymentStatus ?? this.downpaymentStatus,
+      downpaymentPaidAt: downpaymentPaidAt,
+      isDownpaymentPaid: isDownpaymentPaid ?? this.isDownpaymentPaid,
+      remainingBalance: remainingBalance ?? this.remainingBalance,
       cancellationReason: cancellationReason ?? this.cancellationReason,
     );
   }

@@ -32,8 +32,7 @@ class CheckpointResult {
 
 class OwnerOperationsService {
   static const vehicleTypes = [
-    'Motorcycle/E-bicycle',
-    'E-tricycle / E-Quads(4 wheels)',
+    'Motorcycle',
     'Car',
     'SUV/MPV',
     'Pickup/Van',
@@ -68,6 +67,7 @@ class OwnerOperationsService {
     int? parkingSpaceId,
     required String name,
     required String address,
+    String? barangayName,
     required double latitude,
     required double longitude,
     required List<String> vehicleTypes,
@@ -80,12 +80,16 @@ class OwnerOperationsService {
     required int abandonedAfterHours,
     required List<List<String>> slotVehicleTypes,
     required List<UploadFileData> images,
+    UploadFileData? barangayClearance,
+    UploadFileData? taxDeclaration,
     bool isAvailable = true,
     String? unavailabilityReason,
   }) async {
     final fields = <String, String>{
       'space_name': name,
       'address': address,
+      if (barangayName != null && barangayName.trim().isNotEmpty)
+        'barangay_name': barangayName.trim(),
       'latitude': latitude.toString(),
       'longitude': longitude.toString(),
       'dimensions_sqm': dimensionsSquareMeters.toString(),
@@ -111,15 +115,21 @@ class OwnerOperationsService {
       }
     }
 
+    final fileParts = <UploadFilePart>[
+      ...images.map((image) => UploadFilePart(field: 'images[]', file: image)),
+      if (barangayClearance != null)
+        UploadFilePart(field: 'barangay_clearance', file: barangayClearance),
+      if (taxDeclaration != null)
+        UploadFilePart(field: 'tax_declaration', file: taxDeclaration),
+    ];
+
     final response = await ApiClient.postMultipart(
       parkingSpaceId == null
           ? 'owner/parking-spaces'
           : 'owner/parking-spaces/$parkingSpaceId',
       headers: await _headers(),
       fields: fields,
-      fileParts: images
-          .map((image) => UploadFilePart(field: 'images[]', file: image))
-          .toList(growable: false),
+      fileParts: fileParts,
     );
     ApiClient.requireStatus(
       response,

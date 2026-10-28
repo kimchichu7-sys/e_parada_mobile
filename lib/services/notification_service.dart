@@ -85,7 +85,7 @@ class NotificationService {
       body: {
         'token': token,
         'platform': platform,
-        if (deviceName != null) 'device_name': deviceName,
+        'device_name': ?deviceName,
       },
     );
     ApiClient.requireStatus(response, const {200});

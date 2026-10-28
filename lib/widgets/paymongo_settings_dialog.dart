@@ -105,7 +105,7 @@ class _PaymongoSettingsDialogState extends State<PaymongoSettingsDialog> {
             children: [
               const Text(
                 'Gateway Environment',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 8),
               SegmentedButton<PayMongoEnvironment>(
@@ -134,7 +134,7 @@ class _PaymongoSettingsDialogState extends State<PaymongoSettingsDialog> {
               const SizedBox(height: 14),
               const Text(
                 'PayMongo Public Key (Optional override)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 6),
               TextField(
@@ -170,7 +170,7 @@ class _PaymongoSettingsDialogState extends State<PaymongoSettingsDialog> {
                         child: Text(
                           _testMessage!,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: _testSuccess ? const Color(0xFF166534) : colors.error,
                           ),

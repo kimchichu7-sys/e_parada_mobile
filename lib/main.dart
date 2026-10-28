@@ -123,7 +123,7 @@ class _ConfigurationErrorAppState extends State<_ConfigurationErrorApp> {
                           'Enter your server backend address or choose a preset below:',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: Colors.grey.shade700,
                           ),
                         ),
@@ -146,7 +146,7 @@ class _ConfigurationErrorAppState extends State<_ConfigurationErrorApp> {
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.red,
-                              fontSize: 12,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -158,7 +158,7 @@ class _ConfigurationErrorAppState extends State<_ConfigurationErrorApp> {
                           alignment: WrapAlignment.center,
                           children: [
                             ActionChip(
-                              label: const Text('Live Tunnel', style: TextStyle(fontSize: 12)),
+                              label: const Text('Live Tunnel', style: TextStyle(fontSize: 14)),
                               avatar: const Icon(Icons.cloud, size: 16),
                               onPressed: () {
                                 _controller.text =
@@ -166,7 +166,7 @@ class _ConfigurationErrorAppState extends State<_ConfigurationErrorApp> {
                               },
                             ),
                             ActionChip(
-                              label: const Text('Wi-Fi LAN', style: TextStyle(fontSize: 12)),
+                              label: const Text('Wi-Fi LAN', style: TextStyle(fontSize: 14)),
                               avatar: const Icon(Icons.wifi, size: 16),
                               onPressed: () {
                                 _controller.text =

@@ -48,7 +48,7 @@ class EParadaApp extends StatelessWidget {
                                   'Connection issue — trying to reach E-Parada server...',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),

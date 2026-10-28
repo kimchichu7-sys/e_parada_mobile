@@ -18,8 +18,7 @@ class VehicleListResult {
 class VehicleService {
   static VehicleCatalog? _catalog;
   static const vehicleTypes = [
-    'Motorcycle/E-bicycle',
-    'E-tricycle / E-Quads(4 wheels)',
+    'Motorcycle',
     'Car',
     'SUV/MPV',
     'Pickup/Van',
@@ -72,6 +71,12 @@ class VehicleService {
     required String vehicleModel,
     required UploadFileData vehiclePhoto,
     required UploadFileData vehiclePhotoBack,
+    UploadFileData? orPhoto,
+    UploadFileData? crPhoto,
+    UploadFileData? authorizationLetter,
+    DateTime? registrationExpiry,
+    bool isOwnerDriving = true,
+    String? registeredOwnerName,
   }) async {
     final token = await AuthService.requireToken();
     final response = await ApiClient.postMultipart(
@@ -84,10 +89,18 @@ class VehicleService {
         'vehicle_color': vehicleColor,
         'vehicle_model': vehicleModel,
         'vehicle_photo_consent': '1',
+        'is_owner_driving': isOwnerDriving ? '1' : '0',
+        if (registrationExpiry != null)
+          'registration_expiry': registrationExpiry.toIso8601String().substring(0, 10),
+        if (registeredOwnerName != null && registeredOwnerName.isNotEmpty)
+          'registered_owner_name': registeredOwnerName,
       },
       files: {
         'vehicle_photo': vehiclePhoto,
         'vehicle_photo_back': vehiclePhotoBack,
+        'or_photo': ?orPhoto,
+        'cr_photo': ?crPhoto,
+        'authorization_letter': ?authorizationLetter,
       },
     );
     ApiClient.requireStatus(response, const {201});

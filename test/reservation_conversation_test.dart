@@ -1,3 +1,4 @@
+import 'package:e_parada_mobile/models/conversation_message.dart';
 import 'package:e_parada_mobile/models/reservation_call.dart';
 import 'package:e_parada_mobile/models/reservation_conversation.dart';
 import 'package:e_parada_mobile/screens/reservation_conversation_screen.dart';
@@ -87,5 +88,21 @@ void main() {
     // Verify AppBar Call button and empty state call button
     expect(find.text('Call'), findsOneWidget);
     expect(find.byIcon(Icons.phone_in_talk_rounded), findsWidgets);
+  });
+
+  test('recognizes automated system message that driver has overstayed', () {
+    final message = ConversationMessage.fromJson({
+      'id': 101,
+      'sender_id': 7,
+      'body':
+          '⚠️ [AUTOMATED SYSTEM ALERT] Driver has overstayed at Calamba Central Parking. Scheduled parking ended at 08:30 PM. Grace period has expired. Overstay penalty charges (PHP 50.00/hr, current fee: PHP 50.00) are now active. Please retrieve vehicle or coordinate immediately.',
+      'created_at': '2026-08-20T20:46:00+08:00',
+    });
+
+    expect(message.isOverstayAlert, isTrue);
+    expect(message.isSystem, isTrue);
+    expect(message.senderName, 'E-Parada System');
+    expect(message.body, contains('Driver has overstayed'));
+    expect(message.body, contains('Overstay penalty charges'));
   });
 }

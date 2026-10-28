@@ -163,7 +163,7 @@ class _SupportScreenState extends State<SupportScreen> {
                       SizedBox(height: 4),
                       Text(
                         'Guides, step-by-step troubleshooting, and policy FAQs.',
-                        style: TextStyle(fontSize: 13),
+                        style: TextStyle(fontSize: 14),
                       ),
                     ],
                   ),
@@ -191,7 +191,7 @@ class _SupportScreenState extends State<SupportScreen> {
               ),
               subtitle: const Text(
                 'Submit an incident report for property damage, overcharges, or system bugs.',
-                style: TextStyle(color: Color(0xFF7F1D1D), fontSize: 12),
+                style: TextStyle(color: Color(0xFF7F1D1D), fontSize: 14),
               ),
               trailing: FilledButton(
                 style: FilledButton.styleFrom(
@@ -203,7 +203,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   context,
                   MaterialPageRoute(builder: (_) => const IncidentReportScreen()),
                 ),
-                child: const Text('File Report', style: TextStyle(fontSize: 12)),
+                child: const Text('File Report', style: TextStyle(fontSize: 14)),
               ),
             ),
           ),
@@ -247,7 +247,7 @@ class _SupportScreenState extends State<SupportScreen> {
                                   Expanded(
                                     child: Text(
                                       step,
-                                      style: const TextStyle(fontSize: 13, height: 1.4),
+                                      style: const TextStyle(fontSize: 14, height: 1.4),
                                     ),
                                   ),
                                 ],
@@ -305,7 +305,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   faq.question,
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                 ),
-                subtitle: Text(faq.category, style: const TextStyle(fontSize: 12)),
+                subtitle: Text(faq.category, style: const TextStyle(fontSize: 14)),
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),

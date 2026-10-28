@@ -41,7 +41,7 @@ class WelcomeScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF005CEE).withValues(alpha: 0.25),
+                    const Color(0xFF2F6AA8).withValues(alpha: 0.25),
                     Colors.transparent,
                   ],
                 ),
@@ -70,6 +70,294 @@ class WelcomeScreen extends StatelessWidget {
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final isLandscape = constraints.maxWidth > constraints.maxHeight;
+
+                Widget buildHeader() {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Subtle brand badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF122744),
+                          borderRadius: BorderRadius.circular(99),
+                          border: Border.all(
+                            color: const Color(0xFFA3C4EB).withValues(alpha: 0.25),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'SMART PARKING',
+                              style: TextStyle(
+                                color: Color(0xFFA3C4EB),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Server Connection Button
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.10),
+                          ),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.dns_outlined,
+                            color: Color(0xFFA3C4EB),
+                            size: 20,
+                          ),
+                          tooltip: 'Server Connection',
+                          onPressed: () => ServerConnectionDialog.show(context),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                Widget buildEmblem({double size = 84}) {
+                  return Container(
+                    width: size,
+                    height: size,
+                    padding: EdgeInsets.all(size * 0.16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF122744),
+                      borderRadius: BorderRadius.circular(size * 0.26),
+                      border: Border.all(
+                        color: const Color(0xFFA3C4EB).withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFDE70).withValues(alpha: 0.22),
+                          blurRadius: 26,
+                          spreadRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: const Color(0xFF2F6AA8).withValues(alpha: 0.30),
+                          blurRadius: 32,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      'assets/branding/eparada_general.png',
+                      fit: BoxFit.contain,
+                    ),
+                  );
+                }
+
+                Widget buildHeadline({double fontSize = 36}) {
+                  return Text(
+                    'Find Parking.\nMade Local.',
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      height: 1.15,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  );
+                }
+
+                Widget buildSubtitle({double fontSize = 15}) {
+                  return Text(
+                    'Book parking spaces, check availability, and manage your reservations with E-Parada.',
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      height: 1.5,
+                      color: const Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                }
+
+                Widget buildFeatureChips() {
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildFeatureChip(Icons.bolt_rounded, 'Real-Time Slots'),
+                      _buildFeatureChip(Icons.verified_rounded, 'Verified Spaces'),
+                      _buildFeatureChip(Icons.navigation_rounded, 'GPS Navigator'),
+                    ],
+                  );
+                }
+
+                Widget buildButtons() {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ── Primary Login Button ──
+                      Container(
+                        width: double.infinity,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF2F6AA8),
+                              Color(0xFF4A82C4),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF2F6AA8).withValues(alpha: 0.40),
+                              blurRadius: 18,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              );
+                            },
+                            child: const Center(
+                              child: Text(
+                                'Login',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // ── Secondary Create Account Button ──
+                      Container(
+                        width: double.infinity,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF122744),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: const Color(0xFFA3C4EB).withValues(alpha: 0.35),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                              );
+                            },
+                            child: const Center(
+                              child: Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  color: Color(0xFFA3C4EB),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                if (isLandscape) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(28, 16, 28, 20),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 36,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildHeader(),
+                          const SizedBox(height: 16),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Left Column: Branding and Features
+                              Expanded(
+                                flex: 6,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        buildEmblem(size: 60),
+                                        const SizedBox(width: 16),
+                                        Expanded(child: buildHeadline(fontSize: 26)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    buildSubtitle(fontSize: 13),
+                                    const SizedBox(height: 14),
+                                    buildFeatureChips(),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 32),
+                              // Right Column: Action Buttons
+                              Expanded(
+                                flex: 5,
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.03),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.08),
+                                    ),
+                                  ),
+                                  child: buildButtons(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // Portrait orientation
                 return SingleChildScrollView(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -79,228 +367,18 @@ class WelcomeScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // ── Top Header Bar ──
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Subtle brand badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF122744),
-                                    borderRadius: BorderRadius.circular(99),
-                                    border: Border.all(
-                                      color: const Color(0xFFA3C4EB).withValues(alpha: 0.25),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 7,
-                                        height: 7,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF10B981),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        'SMART PARKING',
-                                        style: TextStyle(
-                                          color: Color(0xFFA3C4EB),
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 1.1,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // Server Connection Button
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.06),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.10),
-                                    ),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.dns_outlined,
-                                      color: Color(0xFFA3C4EB),
-                                      size: 20,
-                                    ),
-                                    tooltip: 'Server Connection',
-                                    onPressed: () => ServerConnectionDialog.show(context),
-                                  ),
-                                ),
-                              ],
-                            ),
-
+                            buildHeader(),
                             const Spacer(),
-
-                            // ── Official E-Parada Monogram Hero Emblem ──
-                            Container(
-                              width: 84,
-                              height: 84,
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF122744),
-                                borderRadius: BorderRadius.circular(22),
-                                border: Border.all(
-                                  color: const Color(0xFFA3C4EB).withValues(alpha: 0.3),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFFFFDE70).withValues(alpha: 0.22),
-                                    blurRadius: 26,
-                                    spreadRadius: 2,
-                                  ),
-                                  BoxShadow(
-                                    color: const Color(0xFF005CEE).withValues(alpha: 0.30),
-                                    blurRadius: 32,
-                                    spreadRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              child: Image.asset(
-                                'assets/branding/eparada_general.png',
-                                fit: BoxFit.contain,
-                              ),
-                            ),
+                            buildEmblem(size: 84),
                             const SizedBox(height: 28),
-
-                            // ── Crisp High-Contrast Hero Headline ──
-                            const Text(
-                              'Find Parking.\nMade Local.',
-                              style: TextStyle(
-                                fontSize: 36,
-                                height: 1.15,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
+                            buildHeadline(fontSize: 36),
                             const SizedBox(height: 14),
-
-                            // ── Readable Subtitle ──
-                            const Text(
-                              'Book parking spaces, check availability, and manage your reservations with E-Parada.',
-                              style: TextStyle(
-                                fontSize: 15,
-                                height: 1.55,
-                                color: Color(0xFF94A3B8),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-
+                            buildSubtitle(fontSize: 15),
                             const SizedBox(height: 22),
-
-                            // ── Dashboard-Style Feature Pills ──
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                _buildFeatureChip(Icons.bolt_rounded, 'Real-Time Slots'),
-                                _buildFeatureChip(Icons.verified_rounded, 'Verified Spaces'),
-                                _buildFeatureChip(Icons.navigation_rounded, 'GPS Navigator'),
-                              ],
-                            ),
-
+                            buildFeatureChips(),
                             const Spacer(),
                             const SizedBox(height: 28),
-
-                            // ── Primary Login Button ──
-                            Container(
-                              width: double.infinity,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF005CEE),
-                                    Color(0xFF1E6FFF),
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF005CEE).withValues(alpha: 0.40),
-                                    blurRadius: 18,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(14),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                                    );
-                                  },
-                                  child: const Center(
-                                    child: Text(
-                                      'Login',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            // ── Secondary Create Account Button ──
-                            Container(
-                              width: double.infinity,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF122744),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: const Color(0xFFA3C4EB).withValues(alpha: 0.35),
-                                  width: 1.2,
-                                ),
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(14),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                                    );
-                                  },
-                                  child: const Center(
-                                    child: Text(
-                                      'Create Account',
-                                      style: TextStyle(
-                                        color: Color(0xFFA3C4EB),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            buildButtons(),
                           ],
                         ),
                       ),
@@ -334,7 +412,7 @@ class WelcomeScreen extends StatelessWidget {
             label,
             style: const TextStyle(
               color: Color(0xFFCBD5E1),
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),

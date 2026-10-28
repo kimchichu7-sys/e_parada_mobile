@@ -162,7 +162,7 @@ class _RebookSelectionDialogState extends State<RebookSelectionDialog> {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.amber.shade900,
                       fontWeight: FontWeight.w600,
-                      fontSize: 11,
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -242,7 +242,7 @@ class _RebookSelectionDialogState extends State<RebookSelectionDialog> {
                                   Text(
                                     alt.distanceLabel,
                                     style: const TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue,
                                     ),
@@ -408,7 +408,7 @@ class _Pill extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: color.shade800,
             ),

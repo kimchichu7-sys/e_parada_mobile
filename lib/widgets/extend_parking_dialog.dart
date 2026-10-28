@@ -184,7 +184,7 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
                           Text(
                             'CURRENT END TIME',
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: colors.onSurfaceVariant,
                               letterSpacing: 0.5,
@@ -193,7 +193,7 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
                           const SizedBox(height: 2),
                           Text(
                             '${widget.reservation.endDate.isNotEmpty ? widget.reservation.endDate : widget.reservation.reservationDate} at ${widget.reservation.endTime}',
-                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                           ),
                         ],
                       ),
@@ -209,7 +209,7 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
                           const Text(
                             'NEW END TIME',
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF166534),
                               letterSpacing: 0.5,
@@ -220,7 +220,7 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
                             '${_formatDate(_newEndDate)} ${_formatTime(_newEndTime)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w900,
-                              fontSize: 12,
+                              fontSize: 14,
                               color: Color(0xFF166534),
                             ),
                           ),
@@ -353,7 +353,7 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
                       child: Text(
                         'Estimated additional cost: ~₱${_estimatedExtraCost.toStringAsFixed(2)}',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: AppPalette.yaleBlue,
                         ),

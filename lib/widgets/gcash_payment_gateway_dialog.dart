@@ -218,7 +218,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                                 _isLiveGateway ? 'PayMongo Live' : 'PayMongo / GCash',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -226,7 +226,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                             const SizedBox(width: 6),
                             const Text(
                               'E-Parada',
-                              style: TextStyle(color: Colors.white70, fontSize: 11),
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
                             ),
                           ],
                         ),
@@ -258,13 +258,13 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
                           'Reservation: ${widget.reservationReference}',
-                          style: const TextStyle(fontSize: 11, color: Colors.black54),
+                          style: const TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     ),
@@ -390,7 +390,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
                     'PayMongo Checkout Window Active',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 14,
                       color: Color(0xFF1D4ED8),
                     ),
                   ),
@@ -399,12 +399,12 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
               SizedBox(height: 6),
               Text(
                 'Complete your payment in the PayMongo window opened in your browser.',
-                style: TextStyle(fontSize: 12, color: Colors.black87),
+                style: TextStyle(fontSize: 14, color: Colors.black87),
               ),
               SizedBox(height: 4),
               Text(
                 'Once your payment is authorized, return here and tap "I Have Completed Payment".',
-                style: TextStyle(fontSize: 11, color: Color(0xFF1E40AF), fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 12, color: Color(0xFF1E40AF), fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -482,7 +482,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
         const SizedBox(height: 6),
         const Text(
           'Enter your GCash MPIN (e.g. 1234) to authorize payment.',
-          style: TextStyle(fontSize: 12, color: Colors.black54),
+          style: TextStyle(fontSize: 14, color: Colors.black54),
         ),
         const SizedBox(height: 16),
         TextField(
@@ -551,7 +551,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
         Text(
           'Paid ₱${widget.totalAmount.toStringAsFixed(2)} to E-Parada Parking',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 13, color: Colors.black54),
+          style: const TextStyle(fontSize: 14, color: Colors.black54),
         ),
         const SizedBox(height: 14),
         Container(
@@ -564,7 +564,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
             children: [
               const Text(
                 'Payment Reference ID',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF166534)),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF166534)),
               ),
               const SizedBox(height: 2),
               SelectableText(

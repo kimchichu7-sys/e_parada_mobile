@@ -272,9 +272,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
                     sliver: SliverLayoutBuilder(
                       builder: (context, constraints) {
-                        final columns = constraints.crossAxisExtent >= 800
-                            ? 2
-                            : 1;
+                        final columns = constraints.crossAxisExtent >= 1100
+                            ? 3
+                            : (constraints.crossAxisExtent >= 700 ? 2 : 1);
                         return SliverGrid(
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
@@ -359,7 +359,7 @@ class _ActiveReservationBanner extends StatelessWidget {
                         : 'ACTIVE PARKING PASS',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.8,
                     ),
@@ -379,7 +379,7 @@ class _ActiveReservationBanner extends StatelessWidget {
                   reservation.backupReference,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -402,7 +402,7 @@ class _ActiveReservationBanner extends StatelessWidget {
             '${reservation.slotLabel} • ${reservation.plateNumber} (${reservation.vehicleType})',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -411,7 +411,7 @@ class _ActiveReservationBanner extends StatelessWidget {
             reservation.scheduleLabel,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 12,
+              fontSize: 14,
             ),
           ),
           const SizedBox(height: 14),
@@ -596,7 +596,7 @@ class _SavedSpacesCarousel extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w800,
-                                    fontSize: 13.5,
+                                    fontSize: 14,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -606,7 +606,7 @@ class _SavedSpacesCarousel extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: colors.onSurfaceVariant,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -618,7 +618,7 @@ class _SavedSpacesCarousel extends StatelessWidget {
                                       style: TextStyle(
                                         color: colors.primary,
                                         fontWeight: FontWeight.w700,
-                                        fontSize: 11.5,
+                                        fontSize: 12,
                                       ),
                                     ),
                                     if (space.latitude != null && space.longitude != null)
@@ -747,7 +747,7 @@ class _ParkingSpaceCard extends StatelessWidget {
                                         'Zoom',
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 10,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -872,8 +872,8 @@ class _ParkingSpaceCard extends StatelessWidget {
                 Expanded(
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppPalette.yaleBlue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colors.primary,
+                      foregroundColor: colors.onPrimary,
                     ),
                     onPressed: () {
                       Navigator.push(

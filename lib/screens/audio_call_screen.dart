@@ -686,7 +686,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                         Text(
                           'Your microphone is muted',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: colors.onErrorContainer,
                           ),
@@ -727,7 +727,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                         Text(
                           _muted ? 'Muted' : 'Mute',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: _muted ? FontWeight.bold : FontWeight.w500,
                             color: _muted ? colors.error : colors.onSurfaceVariant,
                           ),
@@ -764,7 +764,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                           Text(
                             _speakerOn ? 'Speaker ON' : 'Speaker',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               fontWeight: _speakerOn ? FontWeight.bold : FontWeight.w500,
                               color: _speakerOn ? colors.primary : colors.onSurfaceVariant,
                             ),
@@ -794,7 +794,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                         Text(
                           'End',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: colors.error,
                           ),

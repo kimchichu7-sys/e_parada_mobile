@@ -386,34 +386,40 @@ class _OwnerReservationsScreenState extends State<OwnerReservationsScreen> {
           else
             RefreshIndicator(
               onRefresh: _refresh,
-              child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                itemCount: _reservations!.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) => _ReservationCard(
-                  reservation: _reservations![index],
-                  disabled: _acting,
-                  onApprove: () => _approve(_reservations![index]),
-                  onReject: () => _reject(_reservations![index]),
-                  onCancel: () => _cancel(_reservations![index]),
-                  onMarkPaid: () => _markPaid(_reservations![index]),
-                  onApproveExtension: () =>
-                      _approveExtension(_reservations![index]),
-                  onRejectExtension: () =>
-                      _rejectExtension(_reservations![index]),
-                  onViewPaymentProof: () =>
-                      _viewPaymentProof(_reservations![index]),
-                  onReceipt: () => DigitalReceiptDialog.showForOwner(
-                    context,
-                    _reservations![index],
-                  ),
-                  onContact: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ReservationConversationScreen(
-                        reservationId: _reservations![index].id,
-                        otherPartyName: _reservations![index].driverName,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _reservations!.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) => _ReservationCard(
+                      reservation: _reservations![index],
+                      disabled: _acting,
+                      onApprove: () => _approve(_reservations![index]),
+                      onReject: () => _reject(_reservations![index]),
+                      onCancel: () => _cancel(_reservations![index]),
+                      onMarkPaid: () => _markPaid(_reservations![index]),
+                      onApproveExtension: () =>
+                          _approveExtension(_reservations![index]),
+                      onRejectExtension: () =>
+                          _rejectExtension(_reservations![index]),
+                      onViewPaymentProof: () =>
+                          _viewPaymentProof(_reservations![index]),
+                      onReceipt: () => DigitalReceiptDialog.showForOwner(
+                        context,
+                        _reservations![index],
+                      ),
+                      onContact: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ReservationConversationScreen(
+                            reservationId: _reservations![index].id,
+                            otherPartyName: _reservations![index].driverName,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -578,6 +584,39 @@ class _ReservationCard extends StatelessWidget {
                 subtitle: reservation.cancellationReason,
               ),
             ],
+            if (reservation.isNoShowCancelled) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.6)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.cancel_schedule_send_rounded, color: Colors.red, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Auto-Cancelled: 60-Minute No-Show',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red),
+                          ),
+                          Text(
+                            'Driver did not arrive within 60 mins. The 1-hr downpayment (PHP ${reservation.downpaymentAmount?.toStringAsFixed(2) ?? '0.00'}) is forfeited to you.',
+                            style: const TextStyle(fontSize: 12, color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (reservation.isPending ||
                 reservation.canCancel ||
                 reservation.canMarkPaid ||
@@ -593,18 +632,30 @@ class _ReservationCard extends StatelessWidget {
                   if (reservation.isPending)
                     FilledButton.icon(
                       onPressed: disabled ? null : onApprove,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                      ),
                       icon: const Icon(Icons.check_circle_outline),
                       label: const Text('Approve'),
                     ),
                   if (reservation.isPending)
                     OutlinedButton.icon(
                       onPressed: disabled ? null : onReject,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFEF4444),
+                        side: const BorderSide(color: Color(0xFFEF4444)),
+                      ),
                       icon: const Icon(Icons.block_outlined),
                       label: const Text('Reject'),
                     ),
                   if (reservation.canMarkPaid)
                     FilledButton.icon(
                       onPressed: disabled ? null : onMarkPaid,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                      ),
                       icon: const Icon(Icons.verified_outlined),
                       label: const Text('Verify payment'),
                     ),
@@ -621,8 +672,8 @@ class _ReservationCard extends StatelessWidget {
                       icon: const Icon(Icons.receipt_long_rounded),
                       label: const Text('View E-Receipt'),
                     ),
-                  if (reservation.status != 'rejected' &&
-                      reservation.status != 'cancelled')
+                  if (reservation.status == 'approved' &&
+                      reservation.timeOut == null)
                     OutlinedButton.icon(
                       onPressed: disabled ? null : onContact,
                       icon: const Icon(Icons.forum_outlined),
@@ -631,18 +682,29 @@ class _ReservationCard extends StatelessWidget {
                   if (reservation.hasPendingExtension)
                     FilledButton.icon(
                       onPressed: disabled ? null : onApproveExtension,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFF59E0B),
+                        foregroundColor: Colors.white,
+                      ),
                       icon: const Icon(Icons.more_time_outlined),
                       label: const Text('Approve extension'),
                     ),
                   if (reservation.hasPendingExtension)
                     OutlinedButton.icon(
                       onPressed: disabled ? null : onRejectExtension,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFEF4444),
+                        side: const BorderSide(color: Color(0xFFEF4444)),
+                      ),
                       icon: const Icon(Icons.timer_off_outlined),
                       label: const Text('Reject extension'),
                     ),
                   if (reservation.canCancel)
                     TextButton.icon(
                       onPressed: disabled ? null : onCancel,
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFEF4444),
+                      ),
                       icon: const Icon(Icons.cancel_outlined),
                       label: const Text('Cancel'),
                     ),
@@ -664,12 +726,12 @@ class _ReservationCard extends StatelessWidget {
   }
 
   static Color _statusColor(String status, ColorScheme colors) {
-    return switch (status) {
-      'approved' => Colors.blue,
-      'completed' => Colors.green,
-      'rejected' => colors.error,
-      'cancelled' => Colors.grey,
-      _ => Colors.amber.shade800,
+    return switch (status.toLowerCase()) {
+      'approved' => const Color(0xFF10B981),
+      'completed' => const Color(0xFF2563EB),
+      'rejected' => const Color(0xFFEF4444),
+      'cancelled' => const Color(0xFFEF4444),
+      _ => const Color(0xFFF59E0B),
     };
   }
 }

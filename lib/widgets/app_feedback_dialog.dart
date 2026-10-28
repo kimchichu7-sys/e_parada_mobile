@@ -65,7 +65,7 @@ class _AppFeedbackDialogState extends State<AppFeedbackDialog> {
           children: [
             const Text(
               'How was your experience using E-Parada?',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
             ),
             const SizedBox(height: 12),
             Row(

@@ -105,7 +105,7 @@ class _OwnerSpacesScreenState extends State<OwnerSpacesScreen> {
             children: [
               Text(
                 'Reporting “${space.name}” as unavailable will update its status and notify all drivers with active reservations so they can rebook or cancel.',
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -245,17 +245,23 @@ class _OwnerSpacesScreenState extends State<OwnerSpacesScreen> {
 
           return RefreshIndicator(
             onRefresh: _refresh,
-            child: ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: spaces.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) => _SpaceCard(
-                space: spaces[index],
-                onEdit: () => _openEditor(spaces[index]),
-                onDelete: () => _deleteSpace(spaces[index]),
-                onReportUnavailable: () => _reportUnavailable(spaces[index]),
-                onRestoreAvailable: () => _restoreAvailable(spaces[index]),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: spaces.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) => _SpaceCard(
+                    space: spaces[index],
+                    onEdit: () => _openEditor(spaces[index]),
+                    onDelete: () => _deleteSpace(spaces[index]),
+                    onReportUnavailable: () => _reportUnavailable(spaces[index]),
+                    onRestoreAvailable: () => _restoreAvailable(spaces[index]),
+                  ),
+                ),
               ),
             ),
           );
@@ -408,7 +414,7 @@ class _SpaceCard extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.red,
-                              fontSize: 13,
+                              fontSize: 14,
                             ),
                           ),
                           if (space.unavailabilityReason?.isNotEmpty == true) ...[
@@ -416,7 +422,7 @@ class _SpaceCard extends StatelessWidget {
                             Text(
                               space.unavailabilityReason!,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 14,
                                 color: colors.onSurface.withValues(alpha: 0.8),
                               ),
                             ),

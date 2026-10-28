@@ -258,7 +258,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                                   'Tap image to enlarge & examine',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -467,6 +467,11 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                   icon: Icons.location_on_outlined,
                   label: space.address,
                 ),
+                if (space.barangayName.isNotEmpty)
+                  _ReviewDetailRow(
+                    icon: Icons.holiday_village_outlined,
+                    label: 'Barangay: ${space.barangayName}',
+                  ),
                 if (space.latitude != null && space.longitude != null)
                   _ReviewDetailRow(
                     icon: Icons.my_location_outlined,
@@ -488,6 +493,46 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                 _ReviewDetailRow(
                   icon: Icons.square_foot_outlined,
                   label: '${space.dimensionsSqm.toStringAsFixed(1)} sqm',
+                ),
+                const Divider(height: 24),
+                Text(
+                  'KYC Documents',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (space.hasBarangayClearance)
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.verified_user_outlined),
+                        label: const Text('Barangay Clearance'),
+                        onPressed: () => _showPrivateImage(
+                          title: '${space.name} - Barangay Clearance',
+                          loader: () => AdminOperationsService.parkingSpaceBarangayClearance(space.id),
+                        ),
+                      ),
+                    if (space.hasTaxDeclaration)
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.receipt_long_outlined),
+                        label: const Text('Land Title / Tax Decl.'),
+                        onPressed: () => _showPrivateImage(
+                          title: '${space.name} - Land Title / Tax Declaration',
+                          loader: () => AdminOperationsService.parkingSpaceTaxDeclaration(space.id),
+                        ),
+                      ),
+                    if (!space.hasBarangayClearance && !space.hasTaxDeclaration)
+                      Text(
+                        'No barangay clearance or land title uploaded.',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 14,
+                        ),
+                      ),
+                  ],
                 ),
                 if (space.description.isNotEmpty) ...[
                   const Divider(height: 28),
@@ -631,6 +676,24 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                 loader: () => AdminOperationsService.vehiclePhotoBack(item.id),
               )
             : null,
+        onOrPhoto: item.hasOrPhoto
+            ? () => _showPrivateImage(
+                title: '${item.plateNumber} LTO Official Receipt (OR)',
+                loader: () => AdminOperationsService.vehicleOrPhoto(item.id),
+              )
+            : null,
+        onCrPhoto: item.hasCrPhoto
+            ? () => _showPrivateImage(
+                title: '${item.plateNumber} LTO Certificate of Registration (CR)',
+                loader: () => AdminOperationsService.vehicleCrPhoto(item.id),
+              )
+            : null,
+        onAuthorizationLetter: item.hasAuthorizationLetter
+            ? () => _showPrivateImage(
+                title: '${item.plateNumber} Owner Authorization Letter',
+                loader: () => AdminOperationsService.vehicleAuthorizationLetter(item.id),
+              )
+            : null,
         onApprove: () async {
           if (item.plateScanStatus == 'mismatch' ||
               item.plateScanStatus == 'not_detected') {
@@ -680,6 +743,18 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
     return _SpaceCard(
       space: space,
       onInspect: () => _inspectSpace(space),
+      onBarangayClearance: space.hasBarangayClearance
+          ? () => _showPrivateImage(
+              title: '${space.name} - Barangay Clearance',
+              loader: () => AdminOperationsService.parkingSpaceBarangayClearance(space.id),
+            )
+          : null,
+      onTaxDeclaration: space.hasTaxDeclaration
+          ? () => _showPrivateImage(
+              title: '${space.name} - Land Title / Tax Declaration',
+              loader: () => AdminOperationsService.parkingSpaceTaxDeclaration(space.id),
+            )
+          : null,
       onApprove: () => _approveSpace(space),
       onReject: () async {
         final reason = await _reasonDialog('Reject ${space.name}');
@@ -810,6 +885,9 @@ class _VehicleCard extends StatelessWidget {
     required this.vehicle,
     required this.onPhoto,
     required this.onPhotoBack,
+    this.onOrPhoto,
+    this.onCrPhoto,
+    this.onAuthorizationLetter,
     required this.onApprove,
     required this.onReject,
   });
@@ -817,11 +895,21 @@ class _VehicleCard extends StatelessWidget {
   final AdminVehicleReview vehicle;
   final VoidCallback? onPhoto;
   final VoidCallback? onPhotoBack;
+  final VoidCallback? onOrPhoto;
+  final VoidCallback? onCrPhoto;
+  final VoidCallback? onAuthorizationLetter;
   final VoidCallback onApprove;
   final VoidCallback onReject;
 
   @override
   Widget build(BuildContext context) {
+    final expiryStr = vehicle.registrationExpiry != null
+        ? 'LTO Expiry: ${vehicle.registrationExpiry!.year}-${vehicle.registrationExpiry!.month.toString().padLeft(2, '0')}-${vehicle.registrationExpiry!.day.toString().padLeft(2, '0')}'
+        : 'LTO Expiry: Not specified';
+    final ownershipStr = vehicle.isOwnerDriving
+        ? 'Ownership: Registered Owner driving'
+        : 'Ownership: Authorized Driver (Owner: ${vehicle.registeredOwnerName.isEmpty ? 'Not specified' : vehicle.registeredOwnerName})';
+
     return _ReviewCard(
       icon: Icons.directions_car_outlined,
       title: vehicle.plateNumber,
@@ -829,6 +917,8 @@ class _VehicleCard extends StatelessWidget {
       status: vehicle.status,
       details: [
         vehicle.description,
+        expiryStr,
+        ownershipStr,
         if (vehicle.reviewerName.isNotEmpty)
           'Reviewed by ${vehicle.reviewerName}',
         if (vehicle.notes.isNotEmpty) 'Notes: ${vehicle.notes}',
@@ -840,6 +930,26 @@ class _VehicleCard extends StatelessWidget {
       documentLabel: 'Vehicle front',
       secondaryDocumentAction: onPhotoBack,
       secondaryDocumentLabel: 'Vehicle back',
+      extraActions: [
+        if (onOrPhoto != null)
+          OutlinedButton.icon(
+            onPressed: onOrPhoto,
+            icon: const Icon(Icons.receipt_outlined),
+            label: const Text('LTO OR'),
+          ),
+        if (onCrPhoto != null)
+          OutlinedButton.icon(
+            onPressed: onCrPhoto,
+            icon: const Icon(Icons.description_outlined),
+            label: const Text('LTO CR'),
+          ),
+        if (onAuthorizationLetter != null)
+          OutlinedButton.icon(
+            onPressed: onAuthorizationLetter,
+            icon: const Icon(Icons.assignment_ind_outlined),
+            label: const Text('Auth Letter'),
+          ),
+      ],
     );
   }
 
@@ -863,7 +973,7 @@ class _VehicleCard extends StatelessWidget {
               style: TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.w700,
-                fontSize: 13,
+                fontSize: 14,
               ),
             ),
             const SizedBox(width: 8),
@@ -877,7 +987,7 @@ class _VehicleCard extends StatelessWidget {
                 'Quick approve ready',
                 style: TextStyle(
                   color: Colors.green,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -908,7 +1018,7 @@ class _VehicleCard extends StatelessWidget {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
                     fontWeight: FontWeight.w900,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -918,7 +1028,7 @@ class _VehicleCard extends StatelessWidget {
               'Plate characters in photo did not match $plateNumber. Admin manual checking recommended.',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onErrorContainer,
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -945,7 +1055,7 @@ class _VehicleCard extends StatelessWidget {
             style: TextStyle(
               color: Colors.amber.shade900,
               fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontSize: 14,
             ),
           ),
         ],
@@ -968,12 +1078,16 @@ class _SpaceCard extends StatelessWidget {
   const _SpaceCard({
     required this.space,
     required this.onInspect,
+    this.onBarangayClearance,
+    this.onTaxDeclaration,
     required this.onApprove,
     required this.onReject,
   });
 
   final AdminParkingSpaceReview space;
   final VoidCallback onInspect;
+  final VoidCallback? onBarangayClearance;
+  final VoidCallback? onTaxDeclaration;
   final VoidCallback onApprove;
   final VoidCallback onReject;
 
@@ -986,8 +1100,11 @@ class _SpaceCard extends StatelessWidget {
       status: space.status,
       details: [
         space.address,
+        if (space.barangayName.isNotEmpty) 'Barangay: ${space.barangayName}',
         '${space.activeSlots} active slot(s) | ${space.operatingHours}',
         '${space.dimensionsSqm.toStringAsFixed(1)} sqm | ${space.vehicleTypes.join(', ')}',
+        if (space.hasBarangayClearance || space.hasTaxDeclaration)
+          'KYC: ${[if (space.hasBarangayClearance) 'Brgy Clearance', if (space.hasTaxDeclaration) 'Tax Declaration'].join(', ')}',
         if (space.notes.isNotEmpty) 'Notes: ${space.notes}',
       ],
       previewImageUrl: space.imageUrls.isEmpty ? null : space.imageUrls.first,
@@ -995,6 +1112,20 @@ class _SpaceCard extends StatelessWidget {
       documentLabel: 'Inspect submission',
       primaryAction: space.status == 'pending' ? onApprove : null,
       secondaryAction: space.status == 'pending' ? onReject : null,
+      extraActions: [
+        if (onBarangayClearance != null)
+          OutlinedButton.icon(
+            onPressed: onBarangayClearance,
+            icon: const Icon(Icons.verified_user_outlined),
+            label: const Text('Clearance'),
+          ),
+        if (onTaxDeclaration != null)
+          OutlinedButton.icon(
+            onPressed: onTaxDeclaration,
+            icon: const Icon(Icons.receipt_long_outlined),
+            label: const Text('Tax Decl.'),
+          ),
+      ],
     );
   }
 }
@@ -1012,6 +1143,7 @@ class _ReviewCard extends StatelessWidget {
     this.documentLabel = 'View document',
     this.secondaryDocumentAction,
     this.secondaryDocumentLabel = 'View back',
+    this.extraActions,
     this.previewImageUrl,
     this.banner,
   });
@@ -1027,6 +1159,7 @@ class _ReviewCard extends StatelessWidget {
   final String documentLabel;
   final VoidCallback? secondaryDocumentAction;
   final String secondaryDocumentLabel;
+  final List<Widget>? extraActions;
   final String? previewImageUrl;
   final Widget? banner;
 
@@ -1093,6 +1226,7 @@ class _ReviewCard extends StatelessWidget {
             ],
             if (documentAction != null ||
                 secondaryDocumentAction != null ||
+                (extraActions != null && extraActions!.isNotEmpty) ||
                 primaryAction != null ||
                 secondaryAction != null) ...[
               const SizedBox(height: 10),
@@ -1112,6 +1246,7 @@ class _ReviewCard extends StatelessWidget {
                       icon: const Icon(Icons.flip_to_back_outlined),
                       label: Text(secondaryDocumentLabel),
                     ),
+                  ...?extraActions,
                   if (secondaryAction != null)
                     OutlinedButton.icon(
                       onPressed: secondaryAction,
@@ -1319,7 +1454,7 @@ class _InspectionImageViewerDialogState
                 '${(_currentScale * 100).round()}%',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
                 ),
@@ -1384,7 +1519,7 @@ class _InspectionImageViewerDialogState
                     Flexible(
                       child: Text(
                         'Pinch to zoom (up to 8x) • Drag to pan • Double-tap to quick zoom',
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

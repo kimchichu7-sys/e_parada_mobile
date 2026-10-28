@@ -12,6 +12,8 @@ class ReservationConversation {
     required this.otherPartyName,
     required this.otherPartyRole,
     required this.canCall,
+    this.canMessage = true,
+    this.isActive = true,
     required this.messages,
     this.activeCall,
   }) : reference =
@@ -25,6 +27,8 @@ class ReservationConversation {
   final String otherPartyName;
   final String otherPartyRole;
   final bool canCall;
+  final bool canMessage;
+  final bool isActive;
   final List<ConversationMessage> messages;
   final ReservationCall? activeCall;
 
@@ -50,6 +54,8 @@ class ReservationConversation {
       otherPartyName: otherParty['name']?.toString() ?? 'E-Parada user',
       otherPartyRole: otherParty['role']?.toString() ?? '',
       canCall: reservation['can_call'] == true,
+      canMessage: reservation['can_message'] == true,
+      isActive: reservation['is_active'] == true,
       activeCall: rawCall is Map
           ? ReservationCall.fromJson(Map<String, dynamic>.from(rawCall))
           : null,

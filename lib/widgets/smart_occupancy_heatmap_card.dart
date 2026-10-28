@@ -134,7 +134,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: Colors.white70,
-                              fontSize: 10,
+                              fontSize: 12,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.6,
                             ),
@@ -145,7 +145,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: _demandColor,
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -202,7 +202,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
                         _isAutoRefreshing ? 'LIVE AUTO-SYNC' : 'PAUSED',
                         style: TextStyle(
                           color: _isAutoRefreshing ? const Color(0xFF10B981) : Colors.white70,
-                          fontSize: 10,
+                          fontSize: 12,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -296,7 +296,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white70,
-                          fontSize: 10,
+                          fontSize: 12,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
                         ),
@@ -307,7 +307,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
                       'AI Predictive Model',
                       style: TextStyle(
                         color: AppPalette.powderBlue,
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -350,7 +350,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
               value,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -358,7 +358,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 9,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -380,7 +380,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
                 time,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w700),
+                style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -402,7 +402,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
             desc,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: barColor, fontSize: 8, fontWeight: FontWeight.w800),
+            style: TextStyle(color: barColor, fontSize: 12, fontWeight: FontWeight.w800),
           ),
         ],
       ),

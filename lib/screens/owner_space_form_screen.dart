@@ -33,10 +33,13 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
   final _dimensionsController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _unavailabilityReasonController = TextEditingController();
+  final _barangayController = TextEditingController();
 
   final Set<String> _vehicleTypes = <String>{};
   final List<List<String>> _slotVehicleTypes = <List<String>>[];
   final List<XFile> _images = <XFile>[];
+  XFile? _barangayClearance;
+  XFile? _taxDeclaration;
 
   GoogleMapController? _mapController;
   LatLng? _location;
@@ -63,6 +66,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
 
     _nameController.text = space.name;
     _addressController.text = space.address;
+    _barangayController.text = space.barangayName ?? '';
     _dimensionsController.text = space.dimensionsSquareMeters?.toString() ?? '';
     _descriptionController.text = space.description;
     _isAvailable = space.isAvailable;
@@ -103,6 +107,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
     _mapController?.dispose();
     _nameController.dispose();
     _addressController.dispose();
+    _barangayController.dispose();
     _dimensionsController.dispose();
     _descriptionController.dispose();
     _unavailabilityReasonController.dispose();
@@ -262,6 +267,44 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
     });
   }
 
+  void _applyToAllSlots(List<String> types) {
+    if (types.isEmpty) return;
+    setState(() {
+      for (final slotTypes in _slotVehicleTypes) {
+        slotTypes
+          ..clear()
+          ..addAll(types);
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Applied ${types.join(', ')} to all ${_slotVehicleTypes.length} slots'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _applyToSingleSlot(int slot, List<String> types) {
+    if (types.isEmpty) return;
+    setState(() {
+      _slotVehicleTypes[slot]
+        ..clear()
+        ..addAll(types);
+    });
+  }
+
+  void _setBulkSlotCount(int count) {
+    final target = count.clamp(1, 100);
+    setState(() {
+      while (_slotVehicleTypes.length < target) {
+        _slotVehicleTypes.add(List<String>.from(_vehicleTypes));
+      }
+      while (_slotVehicleTypes.length > target) {
+        _slotVehicleTypes.removeLast();
+      }
+    });
+  }
+
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
@@ -303,10 +346,11 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
         parkingSpaceId: widget.space?.id,
         name: _nameController.text.trim(),
         address: _addressController.text.trim(),
+        barangayName: _barangayController.text.trim(),
         latitude: _location!.latitude,
         longitude: _location!.longitude,
         vehicleTypes: _vehicleTypes.toList(growable: false),
-        dimensionsSquareMeters: double.parse(_dimensionsController.text.trim()),
+        dimensionsSquareMeters: double.tryParse(_dimensionsController.text.trim()) ?? 0.0,
         description: _descriptionController.text.trim(),
         isOpen24Hours: _open24Hours,
         openingTime: _formatTime(_openingTime),
@@ -315,6 +359,18 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
         abandonedAfterHours: _abandonedHours,
         slotVehicleTypes: _slotVehicleTypes,
         images: uploads,
+        barangayClearance: _barangayClearance != null
+            ? UploadFileData(
+                bytes: await _barangayClearance!.readAsBytes(),
+                filename: _barangayClearance!.name,
+              )
+            : null,
+        taxDeclaration: _taxDeclaration != null
+            ? UploadFileData(
+                bytes: await _taxDeclaration!.readAsBytes(),
+                filename: _taxDeclaration!.name,
+              )
+            : null,
         isAvailable: _isAvailable,
         unavailabilityReason:
             !_isAvailable ? _unavailabilityReasonController.text.trim() : null,
@@ -323,7 +379,20 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
       if (!mounted) return;
       Navigator.pop(context, message);
     } catch (error) {
-      if (mounted) setState(() => _errorMessage = error.toString());
+      if (mounted) {
+        final cleanMsg = error
+            .toString()
+            .replaceFirst('ApiException: ', '')
+            .replaceFirst('Exception: ', '');
+        setState(() => _errorMessage = cleanMsg);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(cleanMsg),
+            backgroundColor: Colors.red.shade700,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -347,6 +416,16 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             children: [
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _Notice(
+                    icon: Icons.error_outline,
+                    color: colors.error,
+                    title: 'Submission Error',
+                    message: _errorMessage!,
+                  ),
+                ),
               if (widget.space?.approvalStatus == 'rejected' &&
                   widget.space?.adminNotes?.isNotEmpty == true)
                 _Notice(
@@ -410,7 +489,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                         'Note: Marking this space unavailable notifies drivers with active reservations and offers them rebooking to nearby spaces or cancellation.',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colors.error,
-                          fontSize: 11,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -437,6 +516,15 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                       alignLabelWithHint: true,
                     ),
                     validator: _required,
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _barangayController,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Barangay Name',
+                      hintText: 'e.g., Barangay San Antonio',
+                    ),
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
@@ -576,6 +664,102 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                     'Set which registered vehicle types fit in each slot.',
                     style: theme.textTheme.bodyMedium,
                   ),
+                  const SizedBox(height: 10),
+                  // Quick Slot Count Multipliers
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      ActionChip(
+                        avatar: const Icon(Icons.add, size: 14),
+                        label: const Text('+5 Slots'),
+                        onPressed: () => _setBulkSlotCount(_slotVehicleTypes.length + 5),
+                      ),
+                      ActionChip(
+                        avatar: const Icon(Icons.add, size: 14),
+                        label: const Text('+10 Slots'),
+                        onPressed: () => _setBulkSlotCount(_slotVehicleTypes.length + 10),
+                      ),
+                      ActionChip(
+                        label: const Text('Set: 10'),
+                        onPressed: () => _setBulkSlotCount(10),
+                      ),
+                      ActionChip(
+                        label: const Text('Set: 20'),
+                        onPressed: () => _setBulkSlotCount(20),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Batch Slot Controls Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.brightness == Brightness.dark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFF0F9FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.brightness == Brightness.dark
+                            ? const Color(0xFF38BDF8).withValues(alpha: 0.3)
+                            : const Color(0xFFBAE6FD),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.select_all_rounded, size: 18, color: theme.colorScheme.primary),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Batch Controls (${_slotVehicleTypes.length} Slots)',
+                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                                ),
+                              ],
+                            ),
+                            TextButton.icon(
+                              onPressed: () => _applyToAllSlots(_vehicleTypes.toList()),
+                              icon: const Icon(Icons.done_all_rounded, size: 15),
+                              label: const Text('All Allowed', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'One-click assign vehicle permissions across all ${_slotVehicleTypes.length} slots:',
+                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            FilledButton.tonal(
+                              onPressed: () => _applyToAllSlots(_vehicleTypes.toList()),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              child: const Text('All Types', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                            ..._vehicleTypes.map((type) => ActionChip(
+                              label: Text('All = $type', style: const TextStyle(fontSize: 12)),
+                              onPressed: () => _applyToAllSlots([type]),
+                            )),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   // Visual Layout Bay Preview
                   Container(
@@ -596,7 +780,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
-                                fontSize: 12,
+                                fontSize: 14,
                               ),
                             ),
                           ],
@@ -625,14 +809,14 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w900,
-                                        fontSize: 11,
+                                        fontSize: 12,
                                       ),
                                     ),
                                     Text(
                                       _slotVehicleTypes[i].isNotEmpty ? _slotVehicleTypes[i].first : 'Any',
                                       style: const TextStyle(
                                         color: Color(0xFF94A3B8),
-                                        fontSize: 9,
+                                        fontSize: 12,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -652,9 +836,22 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                     return ExpansionTile(
                       tilePadding: EdgeInsets.zero,
                       childrenPadding: const EdgeInsets.only(bottom: 12),
-                      title: Text(
-                        'Slot ${index + 1}',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      title: Row(
+                        children: [
+                          Text(
+                            'Slot ${index + 1}',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () => _applyToSingleSlot(index, _vehicleTypes.toList()),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            child: const Text('Select All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
                       ),
                       subtitle: Text(supported.join(', ')),
                       children: [
@@ -794,6 +991,126 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                         ? 'Choosing new photos replaces the current gallery. Up to five JPG or PNG images.'
                         : 'Upload 1 to 5 clear JPG or PNG images of the actual parking area.',
                     style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              _Section(
+                title: 'Verification Documents',
+                icon: Icons.verified_user_outlined,
+                children: [
+                  Text(
+                    'As required for space provider compliance, upload your Barangay Clearance / Business Permit and Land Title / Real Property Tax Declaration.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    elevation: 0,
+                    color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.description_outlined, size: 18),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Barangay Clearance / Permit',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                              ),
+                              if (widget.isEditing && (widget.space?.hasBarangayClearance ?? false))
+                                const Chip(
+                                  label: Text('On File', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _barangayClearance != null
+                                ? 'Selected: ${_barangayClearance!.name}'
+                                : 'Upload clear document photo or scan',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: _saving
+                                ? null
+                                : () async {
+                                    final picked = await _picker.pickImage(
+                                      source: ImageSource.gallery,
+                                      imageQuality: 80,
+                                    );
+                                    if (picked != null && mounted) {
+                                      setState(() => _barangayClearance = picked);
+                                    }
+                                  },
+                            icon: const Icon(Icons.upload_file_outlined, size: 16),
+                            label: Text(_barangayClearance != null ? 'Change File' : 'Select Clearance'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Card(
+                    elevation: 0,
+                    color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.landscape_outlined, size: 18),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Land Title / Tax Declaration',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                              ),
+                              if (widget.isEditing && (widget.space?.hasTaxDeclaration ?? false))
+                                const Chip(
+                                  label: Text('On File', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _taxDeclaration != null
+                                ? 'Selected: ${_taxDeclaration!.name}'
+                                : 'Proof of ownership or legal tenancy',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: _saving
+                                ? null
+                                : () async {
+                                    final picked = await _picker.pickImage(
+                                      source: ImageSource.gallery,
+                                      imageQuality: 80,
+                                    );
+                                    if (picked != null && mounted) {
+                                      setState(() => _taxDeclaration = picked);
+                                    }
+                                  },
+                            icon: const Icon(Icons.upload_file_outlined, size: 16),
+                            label: Text(_taxDeclaration != null ? 'Change File' : 'Select Land Document'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),

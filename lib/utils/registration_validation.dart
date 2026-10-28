@@ -1,5 +1,9 @@
 class RegistrationValidation {
-  static const motorcycleType = 'Motorcycle/E-bicycle';
+  static const motorcycleType = 'Motorcycle';
+  static const legacyMotorcycleType = 'Motorcycle/E-bicycle';
+
+  static bool isMotorcycle(String vehicleType) =>
+      vehicleType == motorcycleType || vehicleType == legacyMotorcycleType;
 
   static const blockedEmailDomains = <String>{
     'mailinator.com',
@@ -55,7 +59,7 @@ class RegistrationValidation {
     }
 
     final normalized = normalizePlate(value ?? '', vehicleType);
-    final valid = vehicleType == motorcycleType
+    final valid = isMotorcycle(vehicleType)
         ? RegExp(
             r'^(?:[A-Z] \d{3} [A-Z]{2}|[A-Z]{2} \d{3} [A-Z]|\d [A-Z]{3} \d{2}|[A-Z] \d{4} [A-Z]|[A-Z] \d[A-Z] \d{3}|[A-Z] \d{2}[A-Z] \d{2})$',
           ).hasMatch(normalized)
@@ -65,7 +69,7 @@ class RegistrationValidation {
   }
 
   static String plateHint(String vehicleType) {
-    return vehicleType == motorcycleType
+    return isMotorcycle(vehicleType)
         ? 'Use A 123 BC, AB 123 C, 1 ABC 23, A 1234 C, A 1C 234, or A 12C 34.'
         : 'Use three letters and four digits, for example ABC 1234.';
   }
@@ -73,7 +77,7 @@ class RegistrationValidation {
   static String normalizePlate(String value, String vehicleType) {
     final compact = value.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
-    if (vehicleType == motorcycleType) {
+    if (isMotorcycle(vehicleType)) {
       final formats = <(RegExp, String Function(Match))>[
         (
           RegExp(r'^([A-Z])(\d{3})([A-Z]{2})$'),

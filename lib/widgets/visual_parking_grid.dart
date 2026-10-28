@@ -79,12 +79,12 @@ class _VisualParkingGridState extends State<VisualParkingGrid> {
                 ButtonSegment(
                   value: ParkingGridLayout.floorPlan,
                   icon: Icon(Icons.layers_outlined, size: 16),
-                  label: Text('Floor Plan', style: TextStyle(fontSize: 12)),
+                  label: Text('Floor Plan', style: TextStyle(fontSize: 14)),
                 ),
                 ButtonSegment(
                   value: ParkingGridLayout.compactGrid,
                   icon: Icon(Icons.grid_view_rounded, size: 16),
-                  label: Text('Grid', style: TextStyle(fontSize: 12)),
+                  label: Text('Grid', style: TextStyle(fontSize: 14)),
                 ),
               ],
               selected: {_layout},
@@ -174,7 +174,7 @@ class _VisualParkingGridState extends State<VisualParkingGrid> {
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       color: colors.primary,
-                      fontSize: 13,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -274,7 +274,7 @@ class _VisualParkingGridState extends State<VisualParkingGrid> {
                 Text(
                   'DRIVEWAY ENTRY & AISLE',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.1,
                     color: Colors.black,
@@ -365,7 +365,7 @@ class _VisualParkingGridState extends State<VisualParkingGrid> {
                 Text(
                   'PARKING EXIT AISLE',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
                     color: Colors.white70,
@@ -514,7 +514,7 @@ class _ParkingStallCard extends StatelessWidget {
                                   ? 'AVAILABLE'
                                   : 'UNSUPPORTED',
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.4,
                         color: textColor,
@@ -525,7 +525,7 @@ class _ParkingStallCard extends StatelessWidget {
                       Text(
                         slot.supportedVehicleTypes.join(', '),
                         style: TextStyle(
-                          fontSize: 9.5,
+                          fontSize: 12,
                           color: textColor.withValues(alpha: 0.75),
                         ),
                         maxLines: 1,
@@ -603,7 +603,7 @@ class _CompactSlotCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               slot.label,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
             ),
             Text(
               isSelected
@@ -614,7 +614,7 @@ class _CompactSlotCard extends StatelessWidget {
                           ? 'Available'
                           : 'Unsupported',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 color: isSelected
                     ? colors.primary
                     : isAvailable
@@ -651,7 +651,7 @@ class _LegendItem extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11.5,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),

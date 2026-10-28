@@ -80,7 +80,7 @@ class MapNavigationLauncher {
                             style: TextStyle(
                               color: colors.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                              fontSize: 14,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

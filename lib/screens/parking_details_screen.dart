@@ -204,9 +204,13 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
           _ParkingHeroImage(
             imageUrl: widget.imageUrl,
             title: widget.parkingName,
@@ -235,7 +239,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                 child: Text(
                   widget.status,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: isAvailable
                         ? const Color(0xFF166534)
@@ -329,7 +333,9 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
           ),
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 }
 
@@ -404,7 +410,7 @@ class _ParkingHeroImage extends StatelessWidget {
                         'Tap to Zoom',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

@@ -63,6 +63,14 @@ class AdminVehicleReview {
     required this.notes,
     required this.hasPhoto,
     required this.hasPhotoBack,
+    this.hasOrPhoto = false,
+    this.hasCrPhoto = false,
+    this.hasAuthorizationLetter = false,
+    this.registrationExpiry,
+    this.isOwnerDriving = true,
+    this.registeredOwnerName = '',
+    this.driverSubtype = '',
+    this.driverLicenseExpiry,
     required this.reviewerName,
     required this.createdAt,
   });
@@ -80,6 +88,14 @@ class AdminVehicleReview {
   final String notes;
   final bool hasPhoto;
   final bool hasPhotoBack;
+  final bool hasOrPhoto;
+  final bool hasCrPhoto;
+  final bool hasAuthorizationLetter;
+  final DateTime? registrationExpiry;
+  final bool isOwnerDriving;
+  final String registeredOwnerName;
+  final String driverSubtype;
+  final DateTime? driverLicenseExpiry;
   final String reviewerName;
   final DateTime? createdAt;
 
@@ -104,6 +120,14 @@ class AdminVehicleReview {
       notes: _text(json['verification_notes']),
       hasPhoto: json['has_photo'] == true,
       hasPhotoBack: json['has_photo_back'] == true,
+      hasOrPhoto: json['has_or_photo'] == true,
+      hasCrPhoto: json['has_cr_photo'] == true,
+      hasAuthorizationLetter: json['has_authorization_letter'] == true,
+      registrationExpiry: _date(json['registration_expiry']),
+      isOwnerDriving: json['is_owner_driving'] != false,
+      registeredOwnerName: _text(json['registered_owner_name']),
+      driverSubtype: _text(json['driver_subtype']),
+      driverLicenseExpiry: _date(json['driver_license_expiry']),
       reviewerName: _text(json['reviewer_name']),
       createdAt: _date(json['created_at']),
     );
@@ -117,10 +141,13 @@ class AdminParkingSpaceReview {
     required this.ownerEmail,
     required this.name,
     required this.address,
+    this.barangayName = '',
     required this.description,
     required this.latitude,
     required this.longitude,
     required this.imageUrls,
+    this.hasBarangayClearance = false,
+    this.hasTaxDeclaration = false,
     required this.dimensionsSqm,
     required this.vehicleTypes,
     required this.hourlyRates,
@@ -129,6 +156,7 @@ class AdminParkingSpaceReview {
     required this.isAvailable,
     required this.operatingHours,
     required this.activeSlots,
+    this.verifiedAt,
     required this.createdAt,
   });
 
@@ -137,10 +165,13 @@ class AdminParkingSpaceReview {
   final String ownerEmail;
   final String name;
   final String address;
+  final String barangayName;
   final String description;
   final double? latitude;
   final double? longitude;
   final List<String> imageUrls;
+  final bool hasBarangayClearance;
+  final bool hasTaxDeclaration;
   final double dimensionsSqm;
   final List<String> vehicleTypes;
   final Map<String, double> hourlyRates;
@@ -149,6 +180,7 @@ class AdminParkingSpaceReview {
   final bool isAvailable;
   final String operatingHours;
   final int activeSlots;
+  final DateTime? verifiedAt;
   final DateTime? createdAt;
 
   factory AdminParkingSpaceReview.fromJson(Map<String, dynamic> json) {
@@ -167,12 +199,15 @@ class AdminParkingSpaceReview {
       ownerEmail: _text(json['owner_email']),
       name: _text(json['space_name'], fallback: 'Parking space'),
       address: _text(json['address']),
+      barangayName: _text(json['barangay_name']),
       description: _text(json['description']),
       latitude: _decimal(json['latitude']),
       longitude: _decimal(json['longitude']),
       imageUrls: _strings(json['image_urls'])
           .map((url) => ApiConfig.resolveMediaUrl(url) ?? url)
           .toList(growable: false),
+      hasBarangayClearance: json['has_barangay_clearance'] == true,
+      hasTaxDeclaration: json['has_tax_declaration'] == true,
       dimensionsSqm: _decimal(json['dimensions_sqm']) ?? 0,
       vehicleTypes: _strings(json['vehicle_types']),
       hourlyRates: rates,
@@ -181,6 +216,7 @@ class AdminParkingSpaceReview {
       isAvailable: json['is_available'] == true,
       operatingHours: _text(json['operating_hours'], fallback: 'Not set'),
       activeSlots: _integer(json['active_slots']),
+      verifiedAt: _date(json['verified_at']),
       createdAt: _date(json['created_at']),
     );
   }

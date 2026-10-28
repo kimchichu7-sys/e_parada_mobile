@@ -93,9 +93,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           return RefreshIndicator(
             onRefresh: _refresh,
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
                 _AccountCard(user: user),
                 const SizedBox(height: 16),
                 _StatusCard(
@@ -388,7 +392,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-          );
+          ),
+        ),
+      );
         },
       ),
     );

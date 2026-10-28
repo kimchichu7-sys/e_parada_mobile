@@ -57,6 +57,10 @@ class OwnerParkingSpace {
     this.slots = const [],
     this.unavailabilityReason,
     this.unavailabilityReportedAt,
+    this.barangayName,
+    this.hasBarangayClearance = false,
+    this.hasTaxDeclaration = false,
+    this.verifiedAt,
   });
 
   final int id;
@@ -86,6 +90,10 @@ class OwnerParkingSpace {
   final List<OwnerParkingSlot> slots;
   final String? unavailabilityReason;
   final DateTime? unavailabilityReportedAt;
+  final String? barangayName;
+  final bool hasBarangayClearance;
+  final bool hasTaxDeclaration;
+  final DateTime? verifiedAt;
 
   factory OwnerParkingSpace.fromJson(Map<String, dynamic> json) {
     return OwnerParkingSpace(
@@ -122,6 +130,10 @@ class OwnerParkingSpace {
       unavailabilityReportedAt: DateTime.tryParse(
         json['unavailability_reported_at']?.toString() ?? '',
       ),
+      barangayName: json['barangay_name']?.toString(),
+      hasBarangayClearance: json['has_barangay_clearance'] == true,
+      hasTaxDeclaration: json['has_tax_declaration'] == true,
+      verifiedAt: DateTime.tryParse(json['verified_at']?.toString() ?? ''),
     );
   }
 

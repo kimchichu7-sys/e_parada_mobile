@@ -10,6 +10,12 @@ class Vehicle {
   final String? verificationNotes;
   final String photoUrl;
   final String photoBackUrl;
+  final String? orPhotoUrl;
+  final String? crPhotoUrl;
+  final String? authorizationLetterUrl;
+  final DateTime? registrationExpiry;
+  final bool isOwnerDriving;
+  final String? registeredOwnerName;
   final double? length;
   final double? width;
   final double? height;
@@ -25,6 +31,12 @@ class Vehicle {
     required this.plateScanStatus,
     required this.photoUrl,
     required this.photoBackUrl,
+    this.orPhotoUrl,
+    this.crPhotoUrl,
+    this.authorizationLetterUrl,
+    this.registrationExpiry,
+    this.isOwnerDriving = true,
+    this.registeredOwnerName,
     this.verificationNotes,
     this.length,
     this.width,
@@ -44,6 +56,17 @@ class Vehicle {
   }
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
+    DateTime? parsedExpiry;
+    final expiryRaw = json['registration_expiry']?.toString();
+    if (expiryRaw != null && expiryRaw.isNotEmpty) {
+      parsedExpiry = DateTime.tryParse(expiryRaw);
+    }
+
+    final isOwnerVal = json['is_owner_driving'];
+    final bool parsedIsOwner = isOwnerVal is bool
+        ? isOwnerVal
+        : (isOwnerVal == null || isOwnerVal.toString() == '1' || isOwnerVal.toString().toLowerCase() == 'true');
+
     return Vehicle(
       id: (json['id'] as num).toInt(),
       plateNumber: json['plate_number']?.toString() ?? '',
@@ -56,6 +79,12 @@ class Vehicle {
       verificationNotes: json['verification_notes']?.toString(),
       photoUrl: json['photo_url']?.toString() ?? '',
       photoBackUrl: json['photo_back_url']?.toString() ?? '',
+      orPhotoUrl: json['or_photo_url']?.toString(),
+      crPhotoUrl: json['cr_photo_url']?.toString(),
+      authorizationLetterUrl: json['authorization_letter_url']?.toString(),
+      registrationExpiry: parsedExpiry,
+      isOwnerDriving: parsedIsOwner,
+      registeredOwnerName: json['registered_owner_name']?.toString(),
       length: (json['length'] as num?)?.toDouble() ?? (json['length_m'] as num?)?.toDouble(),
       width: (json['width'] as num?)?.toDouble() ?? (json['width_m'] as num?)?.toDouble(),
       height: (json['height'] as num?)?.toDouble() ?? (json['height_m'] as num?)?.toDouble(),

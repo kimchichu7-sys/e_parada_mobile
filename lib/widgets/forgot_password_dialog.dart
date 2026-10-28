@@ -109,7 +109,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                 ),
                 Text(
                   'Receive a recovery link via email',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey),
                 ),
               ],
             ),
@@ -149,7 +149,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                           child: Text(
                             _errorMessage!,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               color: theme.colorScheme.error,
                               fontWeight: FontWeight.w600,
                             ),
@@ -184,7 +184,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                           child: Text(
                             _successMessage!,
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               color: Color(0xFF16A34A),
                               fontWeight: FontWeight.w600,
                             ),
@@ -197,7 +197,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
 
                 const Text(
                   'Enter the email address associated with your E-Parada account, and we will send you a link to reset your password.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 14),
 

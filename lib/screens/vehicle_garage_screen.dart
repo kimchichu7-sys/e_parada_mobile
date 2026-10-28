@@ -205,7 +205,7 @@ class _VehiclePhoto extends StatelessWidget {
                 label,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -292,7 +292,7 @@ class _VehicleCard extends StatelessWidget {
                         _statusLabel(vehicle.verificationStatus),
                         style: TextStyle(
                           color: statusColor,
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -306,6 +306,59 @@ class _VehicleCard extends StatelessWidget {
                 Text(vehicle.vehicleType),
                 const SizedBox(height: 8),
                 _buildOcrBadge(context, vehicle.plateScanStatus),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (vehicle.registrationExpiry != null)
+                      Chip(
+                        avatar: const Icon(Icons.event_outlined, size: 14),
+                        label: Text(
+                          'Exp: ${vehicle.registrationExpiry!.year}-${vehicle.registrationExpiry!.month.toString().padLeft(2, '0')}-${vehicle.registrationExpiry!.day.toString().padLeft(2, '0')}',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    Chip(
+                      avatar: Icon(
+                        vehicle.isOwnerDriving ? Icons.person_outline : Icons.drive_eta_outlined,
+                        size: 14,
+                        color: vehicle.isOwnerDriving ? Colors.green.shade800 : Colors.amber.shade900,
+                      ),
+                      label: Text(
+                        vehicle.isOwnerDriving
+                            ? 'Owner-Driven'
+                            : 'Auth. Driver (${vehicle.registeredOwnerName ?? 'Non-owner'})',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: vehicle.isOwnerDriving ? Colors.green.shade900 : Colors.amber.shade900,
+                        ),
+                      ),
+                      backgroundColor: vehicle.isOwnerDriving
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.amber.withValues(alpha: 0.15),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    if (vehicle.orPhotoUrl != null && vehicle.orPhotoUrl!.isNotEmpty)
+                      const Chip(
+                        avatar: Icon(Icons.description_outlined, size: 14),
+                        label: Text('OR Attached', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    if (vehicle.crPhotoUrl != null && vehicle.crPhotoUrl!.isNotEmpty)
+                      const Chip(
+                        avatar: Icon(Icons.description_outlined, size: 14),
+                        label: Text('CR Attached', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                  ],
+                ),
                 if (vehicle.verificationNotes?.isNotEmpty == true) ...[
                   const SizedBox(height: 10),
                   Text(
@@ -373,7 +426,7 @@ class _VehicleCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -429,12 +482,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
   final _plateController = TextEditingController();
+  final _ownerNameController = TextEditingController();
   String _vehicleType = 'Car';
   String _vehicleMake = '';
   String _vehicleModel = '';
   String _vehicleColor = '';
   XFile? _frontPhoto;
   XFile? _backPhoto;
+  XFile? _orPhoto;
+  XFile? _crPhoto;
+  XFile? _authLetter;
+  DateTime? _registrationExpiry;
+  bool _isOwnerDriving = true;
   bool _consent = false;
   bool _loading = false;
   String? _error;
@@ -467,6 +526,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       return;
     }
 
+    if (!_isOwnerDriving && _ownerNameController.text.trim().isEmpty) {
+      setState(() {
+        _error = 'Please enter the registered owner\'s full name.';
+      });
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -492,6 +558,27 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           bytes: await _backPhoto!.readAsBytes(),
           filename: _backPhoto!.name,
         ),
+        orPhoto: _orPhoto != null
+            ? UploadFileData(
+                bytes: await _orPhoto!.readAsBytes(),
+                filename: _orPhoto!.name,
+              )
+            : null,
+        crPhoto: _crPhoto != null
+            ? UploadFileData(
+                bytes: await _crPhoto!.readAsBytes(),
+                filename: _crPhoto!.name,
+              )
+            : null,
+        authorizationLetter: _authLetter != null
+            ? UploadFileData(
+                bytes: await _authLetter!.readAsBytes(),
+                filename: _authLetter!.name,
+              )
+            : null,
+        registrationExpiry: _registrationExpiry,
+        isOwnerDriving: _isOwnerDriving,
+        registeredOwnerName: !_isOwnerDriving ? _ownerNameController.text.trim() : null,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -508,6 +595,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   @override
   void dispose() {
     _plateController.dispose();
+    _ownerNameController.dispose();
     super.dispose();
   }
 
@@ -594,13 +682,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       children: [
                         const Text(
                           'Tesseract OCR Plate Verification',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                         const SizedBox(height: 3),
                         Text(
                           'Ensure photos are clear and the license plate is directly readable. OCR extracts characters to cross-verify against Philippine LTO syntax (${RegistrationValidation.plateHint(_vehicleType)}).',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -631,6 +719,115 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.badge_outlined, size: 20, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'LTO Registration Documents',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Upload Official Receipt (OR) and Certificate of Registration (CR) to expedite verification.',
+                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _photoUploadCard(
+                          title: 'Official Receipt (OR)',
+                          subtitle: 'Latest LTO OR',
+                          file: _orPhoto,
+                          onTap: _loading ? null : () => _pickPhoto((file) => _orPhoto = file),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _photoUploadCard(
+                          title: 'Cert. of Reg. (CR)',
+                          subtitle: 'LTO CR document',
+                          file: _crPhoto,
+                          onTap: _loading ? null : () => _pickPhoto((file) => _crPhoto = file),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.calendar_month_outlined),
+                    title: const Text('Registration Expiry Date', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    subtitle: Text(
+                      _registrationExpiry != null
+                          ? '${_registrationExpiry!.year}-${_registrationExpiry!.month.toString().padLeft(2, '0')}-${_registrationExpiry!.day.toString().padLeft(2, '0')}'
+                          : 'Not selected',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    trailing: OutlinedButton(
+                      onPressed: _loading
+                          ? null
+                          : () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: _registrationExpiry ?? DateTime.now().add(const Duration(days: 365)),
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2040),
+                              );
+                              if (picked != null && mounted) {
+                                setState(() => _registrationExpiry = picked);
+                              }
+                            },
+                      child: const Text('Select Date'),
+                    ),
+                  ),
+                  const Divider(),
+                  CheckboxListTile(
+                    value: _isOwnerDriving,
+                    onChanged: (val) => setState(() => _isOwnerDriving = val ?? true),
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: const Text(
+                      'I am the registered owner of this vehicle',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  if (!_isOwnerDriving) ...[
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _ownerNameController,
+                      decoration: const InputDecoration(
+                        labelText: "Registered Owner's Full Name",
+                        hintText: 'e.g., Juan Dela Cruz',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _photoUploadCard(
+                      title: 'Owner Authorization Letter / Deed of Sale',
+                      subtitle: 'Signed permission to operate',
+                      file: _authLetter,
+                      onTap: _loading ? null : () => _pickPhoto((file) => _authLetter = file),
+                    ),
+                  ],
+                ],
+              ),
             ),
             const SizedBox(height: 14),
             CheckboxListTile(
@@ -698,11 +895,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     const SizedBox(height: 6),
                     Text(
                       title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
+                      style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -742,7 +939,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                                   title,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -754,7 +951,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                             right: 8,
                             child: Text(
                               'Tap to change',
-                              style: TextStyle(color: Colors.white70, fontSize: 10),
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
                             ),
                           ),
                         ],

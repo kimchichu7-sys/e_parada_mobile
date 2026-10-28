@@ -52,7 +52,7 @@ class OfflineParkingPassDialog extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
-                          fontSize: 11.5,
+                          fontSize: 12,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -76,7 +76,7 @@ class OfflineParkingPassDialog extends StatelessWidget {
                 style: TextStyle(
                   color: colors.primary,
                   fontWeight: FontWeight.w800,
-                  fontSize: 13,
+                  fontSize: 14,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -122,7 +122,7 @@ class OfflineParkingPassDialog extends StatelessWidget {
                     const Text(
                       'PERMANENT BACKUP REFERENCE CODE',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: Colors.grey,
                         letterSpacing: 0.8,
@@ -144,7 +144,7 @@ class OfflineParkingPassDialog extends StatelessWidget {
               const SizedBox(height: 12),
               const Text(
                 'Show this screen or dictate the backup reference code to the parking attendant at the checkpoint if camera scanning is offline.',
-                style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.3),
+                style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.3),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 18),

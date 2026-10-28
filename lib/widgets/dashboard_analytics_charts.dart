@@ -36,6 +36,8 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
+    final isDark = theme.brightness == Brightness.dark;
+
     if (!widget.isOwnerOrAdmin) {
       return const SizedBox.shrink();
     }
@@ -45,10 +47,23 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 7-Day Revenue & Demand Trend Card
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        // 7-Day Revenue & Demand Trend Card (Emerald Theme)
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF09261B) : const Color(0xFFF0FDF4),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark ? const Color(0xFF065F46) : const Color(0xFFA7F3D0),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Column(
@@ -62,10 +77,10 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: colors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(Icons.bar_chart_rounded, color: colors.primary, size: 22),
+                          child: const Icon(Icons.bar_chart_rounded, color: Color(0xFF10B981), size: 22),
                         ),
                         const SizedBox(width: 12),
                         Column(
@@ -77,7 +92,7 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                             ),
                             Text(
                               'Tap any day bar for details',
-                              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
+                              style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -97,7 +112,7 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                             '+18.4% this week',
                             style: TextStyle(
                               color: Color(0xFF166534),
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -135,7 +150,7 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                           const SizedBox(width: 10),
                           Text(
                             '(${_dailyBookings[_selectedDayIndex]} bookings)',
-                            style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
+                            style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -162,7 +177,7 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                             Text(
                               '₱${(_dailyRevenue[index] / 1000).toStringAsFixed(1)}k',
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: 12,
                                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                                 color: isSelected ? colors.primary : colors.onSurfaceVariant,
                               ),
@@ -186,7 +201,7 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                             Text(
                               _days[index],
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                                 color: isSelected ? colors.primary : colors.onSurfaceVariant,
                               ),
@@ -203,10 +218,23 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
         ),
         const SizedBox(height: 16),
 
-        // Peak Parking Hours Distribution
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        // Peak Parking Hours Distribution (Indigo Theme)
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF13112E) : const Color(0xFFEEF2FF),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark ? const Color(0xFF4338CA) : const Color(0xFFC7D2FE),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Column(
@@ -217,10 +245,10 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.schedule_rounded, color: Colors.orange, size: 22),
+                      child: const Icon(Icons.schedule_rounded, color: Color(0xFF6366F1), size: 22),
                     ),
                     const SizedBox(width: 12),
                     const Column(
@@ -232,7 +260,7 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                         ),
                         Text(
                           'Occupancy trends by time of day',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -245,13 +273,13 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                     children: [
                       Text(
                         '${item['label']} (${item['time']})',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                       Text(
                         '${((item['pct'] as double) * 100).toInt()}% Capacity',
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          fontSize: 12,
+                          fontSize: 14,
                           color: item['color'] as Color,
                         ),
                       ),
@@ -275,10 +303,23 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
         ),
         const SizedBox(height: 16),
 
-        // Vehicle Category Distribution
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        // Vehicle Category Distribution (Sky Theme)
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF082333) : const Color(0xFFF0F9FF),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark ? const Color(0xFF0369A1) : const Color(0xFFBAE6FD),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Column(
@@ -289,10 +330,10 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.pie_chart_outline_rounded, color: Color(0xFF10B981), size: 22),
+                      child: const Icon(Icons.pie_chart_outline_rounded, color: Color(0xFF0EA5E9), size: 22),
                     ),
                     const SizedBox(width: 12),
                     const Column(
@@ -304,7 +345,7 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                         ),
                         Text(
                           'Distribution of parked vehicles',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -383,7 +424,7 @@ class _VehicleShareCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

@@ -58,7 +58,14 @@ Future<PaymentSelection?> showBillingPaymentDialog(
     durationLabel = '${reservation.totalHours} hrs (Estimated)';
   }
 
-  final totalDue = reservation.totalAmount ?? 0.0;
+  final totalGross = reservation.totalAmount ?? 0.0;
+  final downpaymentAmount = reservation.downpaymentAmount ?? 0.0;
+  final isDownpaymentPaid = reservation.isDownpaymentPaid;
+  final netDue = reservation.remainingBalance ??
+      (isDownpaymentPaid
+          ? (totalGross - downpaymentAmount).clamp(0.0, double.infinity)
+          : totalGross);
+  final payableAmount = isDownpaymentPaid ? netDue : totalGross;
   final hasOverstay = reservation.overstayMinutes > 0 || reservation.overstayAmount > 0;
 
   final accepted = await showDialog<bool>(
@@ -112,11 +119,11 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                         const SizedBox(height: 4),
                         Text(
                           '${reservation.backupReference}  •  ${reservation.slotLabel}',
-                          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
+                          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
                         ),
                         Text(
                           '${reservation.plateNumber} (${reservation.vehicleType})',
-                          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
+                          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
                         ),
                       ],
                     ),
@@ -124,7 +131,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                   const SizedBox(height: 14),
                   const Text(
                     'Billing Breakdown',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.3),
                   ),
                   const SizedBox(height: 8),
                   _buildBillingRow(
@@ -148,20 +155,35 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                       valueColor: colors.error,
                       icon: Icons.warning_amber_rounded,
                     ),
+                  if (isDownpaymentPaid && downpaymentAmount > 0) ...[
+                    _buildBillingRow(
+                      context: context,
+                      label: 'Gross Estimated Bill',
+                      value: 'PHP ${totalGross.toStringAsFixed(2)}',
+                      icon: Icons.receipt_outlined,
+                    ),
+                    _buildBillingRow(
+                      context: context,
+                      label: '1-Hour Downpayment (Paid)',
+                      value: '- PHP ${downpaymentAmount.toStringAsFixed(2)}',
+                      valueColor: const Color(0xFF10B981),
+                      icon: Icons.check_circle_rounded,
+                    ),
+                  ],
                   const Divider(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Total Payable Amount',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      Text(
+                        isDownpaymentPaid ? 'Net Exit Balance Due' : 'Total Payable Amount',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       Text(
-                        'PHP ${totalDue.toStringAsFixed(2)}',
+                        'PHP ${payableAmount.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
-                          color: colors.primary,
+                          color: const Color(0xFF10B981),
                         ),
                       ),
                     ],
@@ -169,7 +191,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                   const SizedBox(height: 18),
                   const Text(
                     'Select Settlement Method',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.3),
                   ),
                   const SizedBox(height: 8),
                   SegmentedButton<String>(
@@ -212,15 +234,15 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                                   'Cash Settlement',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     color: colors.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Hand PHP ${totalDue.toStringAsFixed(2)} cash directly to the space attendant or owner upon departure.',
+                                  'Hand PHP ${payableAmount.toStringAsFixed(2)} cash directly to the space attendant or owner upon departure.',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 14,
                                     color: colors.onSurfaceVariant,
                                   ),
                                 ),
@@ -260,7 +282,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                                           ? const Color(0xFF6EE7B7)
                                           : const Color(0xFF166534),
                                       fontWeight: FontWeight.w800,
-                                      fontSize: 13,
+                                      fontSize: 14,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -270,7 +292,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                                       color: Theme.of(context).brightness == Brightness.dark
                                           ? const Color(0xFFA7F3D0)
                                           : const Color(0xFF15803D),
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -285,7 +307,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                         width: double.infinity,
                         child: FilledButton.icon(
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF005CEE),
+                            backgroundColor: const Color(0xFF2F6AA8),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -295,7 +317,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                               context: context,
                               parkingSpaceName: reservation.parkingSpaceName,
                               reservationReference: reservation.backupReference,
-                              totalAmount: totalDue,
+                              totalAmount: payableAmount > 0 ? payableAmount : totalGross,
                               reservationId: reservation.id,
                             );
                             if (result != null && result.success) {
@@ -306,7 +328,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                           },
                           icon: const Icon(Icons.open_in_new_rounded, size: 18),
                           label: Text(
-                            'Pay via GCash / PayMongo (PHP ${totalDue.toStringAsFixed(2)})',
+                            'Pay via GCash / PayMongo (PHP ${payableAmount.toStringAsFixed(2)})',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -320,7 +342,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                             child: Text(
                               'OR ATTACH SCREENSHOT (OPTIONAL)',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: colors.onSurfaceVariant,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -375,7 +397,7 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                 method == 'cash'
                     ? 'Confirm Cash Payment'
                     : (gcashRef != null
-                        ? 'Confirm Settlement (₱${totalDue.toStringAsFixed(2)})'
+                        ? 'Confirm Settlement (₱${payableAmount.toStringAsFixed(2)})'
                         : 'Submit Payment Details'),
               ),
             ),
@@ -403,12 +425,12 @@ Widget _buildBillingRow({
       children: [
         Icon(icon, size: 16, color: colors.onSurfaceVariant),
         const SizedBox(width: 8),
-        Text(label, style: TextStyle(fontSize: 13, color: colors.onSurface)),
+        Text(label, style: TextStyle(fontSize: 14, color: colors.onSurface)),
         const Spacer(),
         Text(
           value,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             color: valueColor ?? colors.onSurface,
           ),

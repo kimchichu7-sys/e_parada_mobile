@@ -260,7 +260,9 @@ class _ReservationConversationScreenState
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
             child: Material(
-              color: Colors.green.shade600,
+              color: (conversation?.canCall ?? true)
+                  ? Colors.green.shade600
+                  : Colors.grey.shade400,
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
@@ -269,7 +271,7 @@ class _ReservationConversationScreenState
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          'Audio calling is available for active and confirmed reservations.',
+                          'Voice calling is closed because this reservation is no longer active.',
                         ),
                       ),
                     );
@@ -293,7 +295,7 @@ class _ReservationConversationScreenState
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -410,6 +412,37 @@ class _ReservationConversationScreenState
 
   Widget _buildComposer() {
     final colors = Theme.of(context).colorScheme;
+    if (_conversation != null && !_conversation!.canMessage) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerHighest.withValues(alpha: 0.6),
+          border: Border(
+            top: BorderSide(
+              color: colors.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.lock_outline_rounded, size: 20, color: colors.onSurfaceVariant),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Communication Channel Closed\nMessaging and calls are restricted to active ongoing bookings.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Material(
       elevation: 8,
       child: Column(
@@ -426,7 +459,7 @@ class _ReservationConversationScreenState
                     label: Text(
                       reply,
                       style: const TextStyle(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -509,6 +542,10 @@ class _MessageBubble extends StatelessWidget {
       );
     }
 
+    if (message.isOverstayAlert) {
+      return _OverstayAlertBubble(message: message);
+    }
+
     final colors = Theme.of(context).colorScheme;
     final time = message.createdAt?.toLocal();
     final timeLabel = time == null
@@ -548,6 +585,95 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OverstayAlertBubble extends StatelessWidget {
+  const _OverstayAlertBubble({required this.message});
+
+  final ConversationMessage message;
+
+  @override
+  Widget build(BuildContext context) {
+    final time = message.createdAt?.toLocal();
+    final timeLabel = time == null
+        ? ''
+        : '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 420),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF3C7),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.6),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD97706),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'AUTOMATED SYSTEM ALERT',
+                    style: TextStyle(
+                      color: Color(0xFF92400E),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                if (timeLabel.isNotEmpty)
+                  Text(
+                    timeLabel,
+                    style: const TextStyle(
+                      color: Color(0xFFB45309),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message.body,
+              style: const TextStyle(
+                color: Color(0xFF78350F),
+                fontSize: 13,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -630,7 +756,7 @@ class _CallLogBubble extends StatelessWidget {
                       Text(
                         callLog.durationText,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: colors.onSurfaceVariant,
                         ),
                       ),
@@ -665,7 +791,7 @@ class _CallLogBubble extends StatelessWidget {
                 textAlign: TextAlign.end,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: colors.onSurfaceVariant,
-                  fontSize: 10,
+                  fontSize: 12,
                 ),
               ),
             ],

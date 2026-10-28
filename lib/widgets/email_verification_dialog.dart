@@ -173,7 +173,7 @@ class _EmailVerificationDialogState extends State<EmailVerificationDialog> {
                       child: Text(
                         _statusMessage!,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: _isSuccess
                               ? const Color(0xFF059669)

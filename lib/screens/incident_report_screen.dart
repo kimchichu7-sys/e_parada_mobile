@@ -110,7 +110,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                   const Text(
                     'Incident Tracking ID:',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF166534),
                     ),
@@ -130,7 +130,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
             const SizedBox(height: 10),
             const Text(
               'Our support team will review the details and reach out within 24-48 hours.',
-              style: TextStyle(fontSize: 12, color: Colors.black54),
+              style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
           ],
         ),
@@ -263,7 +263,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                       children: [
                         const Text(
                           'Reservation Ref (if any)',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                         ),
                         const SizedBox(height: 6),
                         TextFormField(
@@ -283,7 +283,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                       children: [
                         const Text(
                           'Vehicle Plate (if any)',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                         ),
                         const SizedBox(height: 6),
                         TextFormField(
@@ -346,7 +346,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                         _evidencePhoto!.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                       ),
                     ),
                     IconButton(

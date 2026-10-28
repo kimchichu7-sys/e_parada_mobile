@@ -177,7 +177,7 @@ Issued via E-Parada Automated Clearance System
                                   'E-PARADA PASS',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w900,
-                                    fontSize: 12,
+                                    fontSize: 14,
                                     letterSpacing: 1,
                                     color: AppPalette.yaleBlue,
                                   ),
@@ -194,7 +194,7 @@ Issued via E-Parada Automated Clearance System
                                     style: TextStyle(
                                       color: Color(0xFF166534),
                                       fontWeight: FontWeight.w900,
-                                      fontSize: 10,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ),
@@ -285,7 +285,7 @@ Issued via E-Parada Automated Clearance System
                               child: Text(
                                 'Present this digital pass to the subdivision or condo security guard at the gate for barrier clearance.',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   color: Colors.amber.shade900,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -357,7 +357,7 @@ Issued via E-Parada Automated Clearance System
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: 8),
           Flexible(
@@ -365,7 +365,7 @@ Issued via E-Parada Automated Clearance System
               value,
               textAlign: TextAlign.right,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: isHighlight ? FontWeight.w900 : FontWeight.w700,
                 color: isHighlight ? AppPalette.yaleBlue : null,
               ),

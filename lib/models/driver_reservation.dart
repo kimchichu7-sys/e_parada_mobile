@@ -40,6 +40,13 @@ class DriverReservation {
     required this.canExtend,
     required this.canSubmitPayment,
     required this.canSubmitFeedback,
+    this.canPayDownpayment = false,
+    this.downpaymentAmount,
+    this.downpaymentStatus = 'unpaid',
+    this.downpaymentPaidAt,
+    this.downpaymentReference,
+    this.isDownpaymentPaid = false,
+    this.remainingBalance,
     this.cancellationReason = '',
     this.needsRebook = false,
     this.rebookReason = '',
@@ -87,12 +94,25 @@ class DriverReservation {
   final bool canExtend;
   final bool canSubmitPayment;
   final bool canSubmitFeedback;
+  final bool canPayDownpayment;
+  final double? downpaymentAmount;
+  final String downpaymentStatus;
+  final DateTime? downpaymentPaidAt;
+  final String? downpaymentReference;
+  final bool isDownpaymentPaid;
+  final double? remainingBalance;
   final String cancellationReason;
   final bool needsRebook;
   final String rebookReason;
   final bool canRebook;
   final String refundStatus;
   final double? refundAmount;
+
+  bool get isDownpaymentForfeited => downpaymentStatus == 'forfeited';
+  bool get isNoShowCancelled =>
+      status == 'cancelled' &&
+      (cancellationReason.toLowerCase().contains('no_show') ||
+          cancellationReason.toLowerCase().contains('no-show'));
 
   String get scheduleLabel =>
       '$reservationDate $startTime to $endDate $endTime';
@@ -192,6 +212,14 @@ class DriverReservation {
       canExtend: actions['can_extend'] == true,
       canSubmitPayment: actions['can_submit_payment'] == true,
       canSubmitFeedback: actions['can_submit_feedback'] == true,
+      canPayDownpayment: actions['can_pay_downpayment'] == true,
+      downpaymentAmount: _decimal(json['downpayment_amount']),
+      downpaymentStatus: json['downpayment_status']?.toString() ?? 'unpaid',
+      downpaymentPaidAt: DateTime.tryParse(json['downpayment_paid_at']?.toString() ?? ''),
+      downpaymentReference: json['downpayment_reference']?.toString(),
+      isDownpaymentPaid: json['is_downpayment_paid'] == true ||
+          (json['downpayment_status']?.toString() == 'paid'),
+      remainingBalance: _decimal(json['remaining_balance']),
       cancellationReason: json['cancellation_reason']?.toString() ?? '',
       needsRebook: json['needs_rebook'] == true,
       rebookReason: json['rebook_reason']?.toString() ?? '',

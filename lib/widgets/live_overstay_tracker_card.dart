@@ -174,7 +174,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                         'Add +$extraMinutes minutes to your reservation',
                         style: TextStyle(
                           color: AppPalette.powderBlue.withValues(alpha: 0.8),
-                          fontSize: 13,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -288,7 +288,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
           label,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 13,
+            fontSize: 14,
           ),
         ),
         Text(
@@ -412,7 +412,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                     statusTitle,
                     style: TextStyle(
                       color: accentColor,
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
                     ),
@@ -421,7 +421,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                     countdownLabel,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -481,7 +481,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                       statusTitle,
                       style: TextStyle(
                         color: accentColor,
-                        fontSize: 11,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.6,
                       ),
@@ -509,7 +509,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                     '+PHP ${_calculateOverstayFee(_now.difference(end!.add(Duration(minutes: widget.graceMinutes))).inMinutes + 1).toStringAsFixed(0)}',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -521,7 +521,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
             subtitle,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.75),
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -550,7 +550,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                       'Extension request under owner review...',
                       style: TextStyle(
                         color: AppPalette.naplesYellow,
-                        fontSize: 12,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -566,7 +566,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
                   'Quick Extend:',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -620,7 +620,7 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
           label,
           style: TextStyle(
             color: isCustom ? AppPalette.powderBlue : AppPalette.naplesYellow,
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: FontWeight.w800,
           ),
         ),

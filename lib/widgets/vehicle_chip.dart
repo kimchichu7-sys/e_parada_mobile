@@ -16,7 +16,7 @@ class VehicleChip extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 12,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
           color: Color(0xFF4338CA),
         ),
