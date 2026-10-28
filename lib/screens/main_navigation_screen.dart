@@ -164,6 +164,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (index) {
           setState(() => _selectedIndex = index);
         },

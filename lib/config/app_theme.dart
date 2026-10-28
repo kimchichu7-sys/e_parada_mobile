@@ -185,7 +185,7 @@ class AppTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 72,
+        height: 68,
         elevation: 8,
         backgroundColor: surface,
         shadowColor: AppPalette.yaleBlue.withValues(alpha: 0.2),
@@ -199,15 +199,16 @@ class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
-            fontSize: 14,
+            fontSize: 11.5,
             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            letterSpacing: -0.2,
             color: selected ? onSurface : onSurface.withValues(alpha: 0.65),
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            size: 26,
+            size: 22,
             color: selected ? onSurface : onSurface.withValues(alpha: 0.65),
           );
         }),

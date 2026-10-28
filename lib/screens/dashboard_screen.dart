@@ -131,7 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   itemCount: summary.metrics.length,
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 300,
-                    mainAxisExtent: 138,
+                    mainAxisExtent: 146,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
                   ),
@@ -396,7 +396,7 @@ class _MetricCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -425,6 +425,7 @@ class _MetricCard extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
+                height: 1.25,
                 color: palette.text,
               ),
             ),
