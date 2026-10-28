@@ -4,12 +4,33 @@ import '../models/parking_space.dart';
 
 enum ParkingSort { recommended, nearest, lowestPrice }
 
+bool isEVehicleType(String type) {
+  final lower = type.trim().toLowerCase();
+  return lower.startsWith('e-') ||
+      lower.contains('e-tricycle') ||
+      lower.contains('e-quad') ||
+      lower.contains('e-bicycle') ||
+      lower.contains('e-bike') ||
+      lower.contains('e-trike') ||
+      lower.contains('e-vehicle');
+}
+
+String normalizeVehicleType(String type) {
+  final trimmed = type.trim();
+  if (trimmed.toLowerCase() == 'motorcycle/e-bicycle') {
+    return 'Motorcycle';
+  }
+  return trimmed;
+}
+
 List<String> parkingVehicleTypes(Iterable<ParkingSpace> spaces) {
   final values = <String>{};
   for (final space in spaces) {
     for (final vehicle in space.supportedVehicles) {
-      final value = vehicle.trim();
-      if (value.isNotEmpty) values.add(value);
+      final normalized = normalizeVehicleType(vehicle);
+      if (normalized.isNotEmpty && !isEVehicleType(normalized)) {
+        values.add(normalized);
+      }
     }
   }
   final result = values.toList()..sort();
@@ -82,7 +103,10 @@ List<ParkingSpace> discoverParkingSpaces({
             normalizedVehicle == null ||
             normalizedVehicle.isEmpty ||
             space.supportedVehicles.any(
-              (vehicle) => vehicle.trim().toLowerCase() == normalizedVehicle,
+              (vehicle) {
+                final norm = normalizeVehicleType(vehicle).toLowerCase();
+                return norm == normalizedVehicle || vehicle.trim().toLowerCase() == normalizedVehicle;
+              },
             );
         final matchesAvailability = !openNowOnly || space.isOpenNow;
         final rate = parkingHourlyRate(space);

@@ -513,6 +513,12 @@ class _MapScreenState extends State<MapScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final unselectedBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final unselectedBorder = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+    final unselectedText = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
+    final unselectedIcon = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -522,10 +528,10 @@ class _MapScreenState extends State<MapScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF173B64) : Colors.white,
+            color: isSelected ? const Color(0xFF173B64) : unselectedBg,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? const Color(0xFF173B64) : const Color(0xFFCBD5E1),
+              color: isSelected ? const Color(0xFF173B64) : unselectedBorder,
               width: 1.1,
             ),
             boxShadow: isSelected
@@ -544,7 +550,7 @@ class _MapScreenState extends State<MapScreen> {
               Icon(
                 icon,
                 size: 14,
-                color: isSelected ? const Color(0xFFFFDE70) : const Color(0xFF64748B),
+                color: isSelected ? const Color(0xFFFFDE70) : unselectedIcon,
               ),
               const SizedBox(width: 5),
               Text(
@@ -552,7 +558,7 @@ class _MapScreenState extends State<MapScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                  color: isSelected ? Colors.white : const Color(0xFF334155),
+                  color: isSelected ? Colors.white : unselectedText,
                 ),
               ),
             ],
@@ -973,10 +979,12 @@ class _MapScreenState extends State<MapScreen> {
                                     _sort == ParkingSort.nearest
                                         ? 'Nearest Parking'
                                         : 'Available Nearby',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w800,
-                                      color: Color(0xFF0F172A),
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
                                 ),
@@ -1080,10 +1088,12 @@ class _MapScreenState extends State<MapScreen> {
                             _sort == ParkingSort.nearest
                                 ? 'Nearest Parking'
                                 : 'Available Nearby',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF0F172A),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ),
@@ -1127,8 +1137,17 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildSearchAndFilters(List<ParkingSpace> allSpaces) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final containerBg = isDark ? const Color(0xFF0A192C) : const Color(0xFFF8FAFC);
+    final fieldBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final hintColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final iconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: containerBg,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1136,6 +1155,12 @@ class _MapScreenState extends State<MapScreen> {
           TextField(
             controller: _searchController,
             textInputAction: TextInputAction.search,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            cursorColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF173B64),
             onChanged: (value) => setState(() {
               _query = value;
               if (_selectedSpace != null &&
@@ -1146,7 +1171,12 @@ class _MapScreenState extends State<MapScreen> {
             onSubmitted: (_) => _submitSearch(allSpaces),
             decoration: InputDecoration(
               hintText: 'Search location or parking space',
-              prefixIcon: const Icon(Icons.search),
+              hintStyle: TextStyle(
+                color: hintColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              prefixIcon: Icon(Icons.search, color: iconColor),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1160,7 +1190,7 @@ class _MapScreenState extends State<MapScreen> {
                           _selectedSpace = null;
                         });
                       },
-                      icon: const Icon(Icons.close_rounded),
+                      icon: Icon(Icons.close_rounded, color: iconColor),
                     ),
                   IconButton(
                     tooltip: 'Filters',
@@ -1168,16 +1198,33 @@ class _MapScreenState extends State<MapScreen> {
                     icon: Badge(
                       isLabelVisible: _activeFilterCount > 0,
                       label: Text('$_activeFilterCount'),
-                      child: const Icon(Icons.tune_rounded),
+                      child: Icon(
+                        Icons.tune_rounded,
+                        color: _activeFilterCount > 0
+                            ? const Color(0xFF38BDF8)
+                            : (isDark ? Colors.white : const Color(0xFF173B64)),
+                      ),
                     ),
                   ),
                 ],
               ),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: fieldBg,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: borderColor, width: 1.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF173B64),
+                  width: 1.5,
+                ),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(color: borderColor, width: 1.0),
               ),
             ),
           ),
@@ -2053,12 +2100,12 @@ class _FilterSheetState extends State<_FilterSheet> {
                   selected: _vehicleType == null,
                   onSelected: (_) => setState(() => _vehicleType = null),
                 ),
-                for (final vehicleType in widget.vehicleTypes)
+                for (final vehicleType in widget.vehicleTypes.where((v) => !isEVehicleType(v)))
                   ChoiceChip(
-                    label: Text(vehicleType),
-                    selected: _vehicleType == vehicleType,
+                    label: Text(normalizeVehicleType(vehicleType)),
+                    selected: _vehicleType == vehicleType || _vehicleType == normalizeVehicleType(vehicleType),
                     onSelected: (_) =>
-                        setState(() => _vehicleType = vehicleType),
+                        setState(() => _vehicleType = normalizeVehicleType(vehicleType)),
                   ),
               ],
             ),

@@ -148,9 +148,28 @@ class ParkingSpace {
           json['operating_hours']?.toString() ?? 'Hours unavailable',
       price: json['price']?.toString() ?? 'Rate not set',
       description: json['description']?.toString() ?? '',
-      supportedVehicles: (json['supported_vehicles'] as List<dynamic>? ?? [])
-          .map((item) => item.toString())
-          .toList(growable: false),
+      supportedVehicles: () {
+        final raw = (json['supported_vehicles'] as List<dynamic>? ?? [])
+            .map((item) => item.toString().trim());
+        final cleaned = <String>{};
+        for (final item in raw) {
+          final normalized = item.toLowerCase() == 'motorcycle/e-bicycle' ? 'Motorcycle' : item;
+          final lower = normalized.toLowerCase();
+          if (lower.startsWith('e-') ||
+              lower.contains('e-tricycle') ||
+              lower.contains('e-quad') ||
+              lower.contains('e-bicycle') ||
+              lower.contains('e-bike') ||
+              lower.contains('e-trike') ||
+              lower.contains('e-vehicle')) {
+            continue;
+          }
+          if (normalized.isNotEmpty) {
+            cleaned.add(normalized);
+          }
+        }
+        return cleaned.toList(growable: false);
+      }(),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       imageUrl: primaryImage,
