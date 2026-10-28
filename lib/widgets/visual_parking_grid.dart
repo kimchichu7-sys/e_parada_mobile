@@ -305,15 +305,15 @@ class _VisualParkingGridState extends State<VisualParkingGrid> {
 
                 // Center Driving Aisle Divider
                 Container(
-                  width: 32,
+                  width: 20,
                   height: 90,
-                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
                   alignment: Alignment.center,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        width: 4,
+                        width: 3,
                         height: 16,
                         decoration: BoxDecoration(
                           color: const Color(0xFFFDE047).withValues(alpha: 0.7),
@@ -322,7 +322,7 @@ class _VisualParkingGridState extends State<VisualParkingGrid> {
                       ),
                       const SizedBox(height: 6),
                       Container(
-                        width: 4,
+                        width: 3,
                         height: 16,
                         decoration: BoxDecoration(
                           color: const Color(0xFFFDE047).withValues(alpha: 0.7),
@@ -452,8 +452,9 @@ class _ParkingStallCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         splashColor: isAvailable ? Colors.white24 : Colors.transparent,
         child: Container(
-          height: 86,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          height: 90,
+          clipBehavior: Clip.antiAlias,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(8),
@@ -487,7 +488,7 @@ class _ParkingStallCard extends StatelessWidget {
                             slot.label,
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
-                              fontSize: 14,
+                              fontSize: 13,
                               color: textColor,
                             ),
                             maxLines: 1,
@@ -495,16 +496,16 @@ class _ParkingStallCard extends StatelessWidget {
                           ),
                         ),
                         if (isSelected)
-                          const Icon(Icons.check_circle_rounded, color: Color(0xFF38BDF8), size: 18)
+                          const Icon(Icons.check_circle_rounded, color: Color(0xFF38BDF8), size: 16)
                         else if (isOccupied)
-                          const Icon(Icons.directions_car_filled_rounded, color: Color(0xFFF87171), size: 16)
+                          const Icon(Icons.directions_car_filled_rounded, color: Color(0xFFF87171), size: 15)
                         else if (isAvailable)
-                          const Icon(Icons.local_parking_rounded, color: Color(0xFF4ADE80), size: 16)
+                          const Icon(Icons.local_parking_rounded, color: Color(0xFF4ADE80), size: 15)
                         else
-                          const Icon(Icons.not_interested_rounded, color: Color(0xFF94A3B8), size: 16),
+                          const Icon(Icons.not_interested_rounded, color: Color(0xFF94A3B8), size: 15),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       isSelected
                           ? 'SELECTED'
@@ -514,19 +515,22 @@ class _ParkingStallCard extends StatelessWidget {
                                   ? 'AVAILABLE'
                                   : 'UNSUPPORTED',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
+                        letterSpacing: 0.2,
                         color: textColor,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     if (slot.supportedVehicleTypes.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         slot.supportedVehicleTypes.join(', '),
                         style: TextStyle(
-                          fontSize: 12,
-                          color: textColor.withValues(alpha: 0.75),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w500,
+                          color: textColor.withValues(alpha: 0.8),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -563,6 +567,7 @@ class _CompactSlotCard extends StatelessWidget {
       onTap: isAvailable ? onTap : null,
       borderRadius: BorderRadius.circular(10),
       child: Container(
+        clipBehavior: Clip.antiAlias,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
@@ -604,6 +609,8 @@ class _CompactSlotCard extends StatelessWidget {
             Text(
               slot.label,
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             Text(
               isSelected
@@ -622,6 +629,8 @@ class _CompactSlotCard extends StatelessWidget {
                         : colors.error,
                 fontWeight: FontWeight.w600,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
