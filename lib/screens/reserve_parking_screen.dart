@@ -5,7 +5,6 @@ import '../models/vehicle.dart';
 import '../services/api_client.dart';
 import '../services/reservation_service.dart';
 import '../services/vehicle_service.dart';
-import '../widgets/smart_occupancy_heatmap_card.dart';
 import '../widgets/visual_parking_grid.dart';
 
 class ReserveParkingScreen extends StatefulWidget {
@@ -410,11 +409,6 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
                     _MessageCard(icon: Icons.info_outline, message: _error!),
                   ],
                   if (_availability != null) ...[
-                    const SizedBox(height: 20),
-                    SmartOccupancyHeatmapCard(
-                      slots: _availability!.slots,
-                      onRefreshRequested: _checkAvailability,
-                    ),
                     const SizedBox(height: 16),
                     VisualParkingGrid(
                       slots: _availability!.slots,
