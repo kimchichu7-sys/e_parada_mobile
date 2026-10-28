@@ -85,8 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       return reservations.firstWhere(
         (r) =>
-            (r.timeIn != null && r.timeOut == null) ||
-            (r.status == 'approved' && r.hasCredential),
+            r.status == 'approved' &&
+            ((r.timeIn != null && r.timeOut == null) || r.hasCredential),
       );
     } catch (_) {
       return null;
@@ -313,7 +313,9 @@ class _ActiveReservationBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCurrentlyParked =
-        reservation.timeIn != null && reservation.timeOut == null;
+        reservation.status == 'approved' &&
+        reservation.timeIn != null &&
+        reservation.timeOut == null;
 
     return Container(
       decoration: BoxDecoration(

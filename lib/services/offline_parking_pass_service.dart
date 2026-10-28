@@ -88,9 +88,8 @@ class OfflineParkingPassService {
   static Future<void> cacheReservations(List<DriverReservation> reservations) async {
     final active = reservations
         .where((r) =>
-            r.status == 'approved' ||
-            r.status == 'pending' ||
-            (r.timeIn != null && r.timeOut == null))
+            (r.status == 'approved' && r.timeOut == null) ||
+            r.status == 'pending')
         .map((r) => OfflinePassData.fromDriverReservation(r))
         .toList();
 

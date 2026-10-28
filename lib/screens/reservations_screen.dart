@@ -650,8 +650,7 @@ class _ReservationCard extends StatelessWidget {
               timeIn: reservation.timeIn,
               timeOut: reservation.timeOut,
             ),
-            if (reservation.status == 'approved' ||
-                (reservation.timeIn != null && reservation.timeOut == null)) ...[
+            if (reservation.status == 'approved' && reservation.timeOut == null) ...[
               const SizedBox(height: 10),
               LiveOverstayTrackerCard(
                 reservation: reservation,
@@ -678,7 +677,7 @@ class _ReservationCard extends StatelessWidget {
                 Icons.star_outline_rounded,
                 'Your feedback: ${reservation.feedbackRating}/5',
               ),
-            if (reservation.overstayStatus != 'normal')
+            if (reservation.status == 'approved' && reservation.overstayStatus != 'normal')
               _line(
                 Icons.warning_amber_outlined,
                 '${_title(reservation.overstayStatus)} | ${reservation.overstayMinutes} minutes | PHP ${reservation.overstayAmount.toStringAsFixed(2)}',
@@ -706,8 +705,7 @@ class _ReservationCard extends StatelessWidget {
                     icon: const Icon(Icons.near_me_outlined, size: 18),
                     label: const Text('Rebook Space', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
-                if ((reservation.status == 'approved' && reservation.hasCredential) ||
-                    (reservation.timeIn != null && reservation.timeOut == null && reservation.hasCredential))
+                if (reservation.status == 'approved' && reservation.timeOut == null && reservation.hasCredential)
                   FilledButton.icon(
                     onPressed: disabled ? null : onCredential,
                     style: FilledButton.styleFrom(
@@ -719,8 +717,7 @@ class _ReservationCard extends StatelessWidget {
                     icon: const Icon(Icons.qr_code_2, size: 18),
                     label: const Text('QR Code', style: TextStyle(fontWeight: FontWeight.w800)),
                   ),
-                if ((reservation.status == 'approved') ||
-                    (reservation.timeIn != null && reservation.timeOut == null))
+                if (reservation.status == 'approved' && reservation.timeOut == null)
                   FilledButton.icon(
                     onPressed: disabled
                         ? null
