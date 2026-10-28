@@ -674,8 +674,12 @@ class _ReservationCard extends StatelessWidget {
                     ),
                   if (reservation.status == 'approved' &&
                       reservation.timeOut == null)
-                    OutlinedButton.icon(
+                    FilledButton.icon(
                       onPressed: disabled ? null : onContact,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB), // Solid Blue
+                        foregroundColor: Colors.white,
+                      ),
                       icon: const Icon(Icons.forum_outlined),
                       label: const Text('Message driver'),
                     ),

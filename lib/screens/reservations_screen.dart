@@ -343,9 +343,14 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
               onPressed: () => Navigator.pop(dialogCtx, false),
               child: const Text('Maybe Later'),
             ),
-            FilledButton(
+            FilledButton.icon(
               onPressed: () => Navigator.pop(dialogCtx, true),
-              child: const Text('Rate Parking Space'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFEA580C),
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.star_rounded, size: 18),
+              label: const Text('Rate Parking Space'),
             ),
           ],
         ),
@@ -709,8 +714,8 @@ class _ReservationCard extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: disabled ? null : onCredential,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB), // Royal Blue
-                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFFFACC15), // Solid Yellow
+                      foregroundColor: const Color(0xFF0F172A), // Dark Slate for high contrast & readability
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
@@ -770,7 +775,7 @@ class _ReservationCard extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: disabled ? null : onExtend,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF4F46E5), // Indigo
+                      backgroundColor: const Color(0xFFEA580C), // Solid Orange
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -783,7 +788,7 @@ class _ReservationCard extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: disabled ? null : onContact,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C3AED), // Violet
+                      backgroundColor: const Color(0xFF2563EB), // Solid Blue
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -792,27 +797,27 @@ class _ReservationCard extends StatelessWidget {
                     label: const Text('Message Provider', style: TextStyle(fontWeight: FontWeight.w700)),
                   )
                 else if (reservation.status == 'completed')
-                  OutlinedButton.icon(
+                  FilledButton.icon(
                     onPressed: disabled ? null : onContact,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF7C3AED),
-                      side: const BorderSide(color: Color(0xFF7C3AED)),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB), // Solid Blue
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                    label: const Text('Messages (Read-Only)'),
+                    label: const Text('Messages (Read-Only)', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 if (reservation.canSubmitFeedback)
                   FilledButton.icon(
                     onPressed: disabled ? null : onFeedback,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFE11D48), // Rose
+                      backgroundColor: const Color(0xFFEA580C), // Solid Orange
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    icon: const Icon(Icons.rate_review_outlined, size: 18),
+                    icon: const Icon(Icons.star_rounded, size: 18),
                     label: const Text('Rate Parking', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 if (reservation.status == 'completed' ||

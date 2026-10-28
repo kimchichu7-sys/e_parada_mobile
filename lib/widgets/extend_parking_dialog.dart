@@ -378,7 +378,8 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
                     : const Icon(Icons.send_rounded, size: 18),
                 label: Text(_submitting ? 'Submitting...' : 'Request Extension'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppPalette.yaleBlue,
+                  backgroundColor: const Color(0xFFEA580C), // Solid Orange
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

@@ -429,15 +429,16 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
               ),
             ),
             if (widget.reservation.canExtend && !widget.reservation.extensionPending)
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: AppPalette.naplesYellow,
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFEA580C), // Solid Orange
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 onPressed: () => ExtendParkingDialog.show(context, widget.reservation),
-                child: const Text('Extend', style: TextStyle(fontWeight: FontWeight.w800)),
+                child: const Text('Extend', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
               ),
           ],
         ),

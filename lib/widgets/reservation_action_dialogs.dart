@@ -637,11 +637,16 @@ Future<FeedbackSelection?> showFeedbackDialog(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Back'),
           ),
-          FilledButton(
+          FilledButton.icon(
             onPressed: commentController.text.trim().isEmpty
                 ? null
                 : () => Navigator.pop(context, true),
-            child: const Text('Submit feedback'),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFEA580C),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.star_rounded, size: 18),
+            label: const Text('Submit Rating'),
           ),
         ],
       ),

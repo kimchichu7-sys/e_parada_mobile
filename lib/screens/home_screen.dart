@@ -424,10 +424,8 @@ class _ActiveReservationBanner extends StatelessWidget {
               if (reservation.hasCredential)
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: isCurrentlyParked
-                        ? const Color(0xFF065F46)
-                        : const Color(0xFF3730A3),
+                    backgroundColor: const Color(0xFFFACC15), // Solid Yellow
+                    foregroundColor: const Color(0xFF0F172A), // Dark Slate
                     elevation: 0,
                   ),
                   onPressed: () {
