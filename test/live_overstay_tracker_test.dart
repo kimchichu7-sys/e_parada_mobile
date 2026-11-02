@@ -14,6 +14,8 @@ void main() {
     double totalAmount = 100.0,
     double totalHours = 4.0,
     bool canExtend = true,
+    DateTime? timeIn = const _DefaultTimeIn(),
+    String cancellationReason = '',
   }) {
     return DriverReservation(
       id: 101,
@@ -36,7 +38,7 @@ void main() {
       totalAmount: totalAmount,
       paymentStatus: 'unpaid',
       paymentMethod: '',
-      timeIn: null,
+      timeIn: timeIn is _DefaultTimeIn ? DateTime(2026, 9, 10, 10, 0, 0) : timeIn,
       timeOut: null,
       feedbackRating: null,
       feedbackComment: '',
@@ -53,6 +55,7 @@ void main() {
       canExtend: canExtend,
       canSubmitPayment: false,
       canSubmitFeedback: false,
+      cancellationReason: cancellationReason,
     );
   }
 
@@ -77,7 +80,7 @@ void main() {
       ),
     );
 
-    expect(find.text('PARKING SESSION ACTIVE'), findsOneWidget);
+    expect(find.text('LIVE ACTIVE SESSION'), findsOneWidget);
     expect(find.textContaining('02h 30m 00s remaining'), findsOneWidget);
     expect(find.textContaining('Expires at 14:00'), findsOneWidget);
     expect(find.text('+30m'), findsOneWidget);
@@ -212,7 +215,62 @@ void main() {
       ),
     );
 
-    expect(find.text('PARKING SESSION ACTIVE'), findsOneWidget);
+    expect(find.text('LIVE ACTIVE SESSION'), findsOneWidget);
     expect(find.text('Extend'), findsOneWidget);
   });
+
+  testWidgets('LiveOverstayTrackerCard does not render overstay for auto-cancelled no-show reservation', (tester) async {
+    final res = buildReservation(
+      status: 'cancelled',
+      cancellationReason: 'no_show_auto_cancelled',
+      timeIn: null,
+    );
+    final mockNow = DateTime(2026, 9, 10, 15, 0, 0);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LiveOverstayTrackerCard(
+            reservation: res,
+            mockNow: mockNow,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('OVERSTAY ACTIVE'), findsNothing);
+    expect(find.textContaining('overstay'), findsNothing);
+    expect(find.textContaining('Est. overstay fee'), findsNothing);
+  });
+
+  testWidgets('LiveOverstayTrackerCard does not render overstay when vehicle never checked in past deadline', (tester) async {
+    final res = buildReservation(
+      reservationDate: '2026-09-10',
+      endDate: '2026-09-10',
+      startTime: '10:00',
+      endTime: '14:00',
+      timeIn: null, // Driver never checked in
+    );
+    // 1 hour past scheduled end, never checked in (no-show)
+    final mockNow = DateTime(2026, 9, 10, 15, 0, 0);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LiveOverstayTrackerCard(
+            reservation: res,
+            mockNow: mockNow,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.textContaining('OVERSTAY ACTIVE'), findsNothing);
+    expect(find.textContaining('overstay'), findsNothing);
+    expect(find.textContaining('Est. overstay fee'), findsNothing);
+  });
+}
+
+class _DefaultTimeIn {
+  const _DefaultTimeIn();
 }

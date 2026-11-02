@@ -71,7 +71,10 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
   DateTime? get _endDateTime => widget.reservation.scheduledEndDateTime;
 
   ParkingSessionPhase get _currentPhase {
-    if (widget.reservation.status == 'completed' || widget.reservation.status == 'cancelled') {
+    if (widget.reservation.status == 'completed' ||
+        widget.reservation.status == 'cancelled' ||
+        widget.reservation.status == 'rejected' ||
+        widget.reservation.isNoShowCancelled) {
       return ParkingSessionPhase.completed;
     }
 
@@ -84,6 +87,17 @@ class _LiveOverstayTrackerCardState extends State<LiveOverstayTrackerCard> {
 
     if (_now.isBefore(start)) {
       return ParkingSessionPhase.upcoming;
+    }
+
+    // A vehicle can only overstay if it actually checked in to the space!
+    // If the driver never checked in (timeIn == null), they are not occupying the space.
+    if (widget.reservation.timeIn == null) {
+      final noShowDeadline = start.add(const Duration(minutes: 60));
+      // If beyond the 60-min arrival window or past scheduled end: this is a no-show, NOT an overstay.
+      if (_now.isAfter(noShowDeadline) || _now.isAfter(end)) {
+        return ParkingSessionPhase.completed;
+      }
+      return ParkingSessionPhase.active;
     }
 
     if (_now.isBefore(end)) {

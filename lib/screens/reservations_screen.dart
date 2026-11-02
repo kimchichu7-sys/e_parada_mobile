@@ -655,7 +655,7 @@ class _ReservationCard extends StatelessWidget {
               timeIn: reservation.timeIn,
               timeOut: reservation.timeOut,
             ),
-            if (reservation.status == 'approved' && reservation.timeOut == null) ...[
+            if (reservation.status == 'approved' && reservation.timeOut == null && !reservation.isNoShowCancelled) ...[
               const SizedBox(height: 10),
               LiveOverstayTrackerCard(
                 reservation: reservation,
@@ -682,7 +682,7 @@ class _ReservationCard extends StatelessWidget {
                 Icons.star_outline_rounded,
                 'Your feedback: ${reservation.feedbackRating}/5',
               ),
-            if (reservation.status == 'approved' && reservation.overstayStatus != 'normal')
+            if (reservation.status == 'approved' && reservation.timeIn != null && reservation.overstayStatus != 'normal')
               _line(
                 Icons.warning_amber_outlined,
                 '${_title(reservation.overstayStatus)} | ${reservation.overstayMinutes} minutes | PHP ${reservation.overstayAmount.toStringAsFixed(2)}',
