@@ -70,14 +70,15 @@ class _FindScreenState extends State<FindScreen> {
     super.initState();
     FavoritesService.init();
 
-    // Default Arrive: Today + 1 hour, Exit: Today + 2 hours
+    // Default Arrive: Now + 15 min, Default Exit: Arrive + 2 hours
     final now = DateTime.now();
-    _arriveDate = DateTime(now.year, now.month, now.day);
-    _arriveTime = TimeOfDay(hour: (now.hour + 1) % 24, minute: 0);
+    final start = now.add(const Duration(minutes: 15));
+    _arriveDate = DateTime(start.year, start.month, start.day);
+    _arriveTime = TimeOfDay(hour: start.hour, minute: start.minute);
 
-    final exitDateTime = now.add(const Duration(hours: 2));
-    _exitDate = DateTime(exitDateTime.year, exitDateTime.month, exitDateTime.day);
-    _exitTime = TimeOfDay(hour: exitDateTime.hour, minute: 0);
+    final end = start.add(const Duration(hours: 2));
+    _exitDate = DateTime(end.year, end.month, end.day);
+    _exitTime = TimeOfDay(hour: end.hour, minute: end.minute);
 
     if (widget.initialSelectedSpace != null) {
       _selectedSpace = widget.initialSelectedSpace;
@@ -632,10 +633,6 @@ class _FindScreenState extends State<FindScreen> {
                       ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
                       : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueCyan))
                   : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)),
-          infoWindow: gmaps.InfoWindow(
-            title: space.name,
-            snippet: '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${space.availableSlotsCount} slots free',
-          ),
           onTap: () {
             setState(() {
               _selectedSpace = space;

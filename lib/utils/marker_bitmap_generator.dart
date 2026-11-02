@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 
@@ -18,7 +19,7 @@ class MarkerBitmapGenerator {
   /// Builds a unique cache key based on marker visual attributes
   static String _cacheKey(double price, bool isAvailable, bool isSelected) {
     final priceStr = price > 0 ? price.toStringAsFixed(2) : '0.00';
-    return '${priceStr}_${isAvailable}_$isSelected';
+    return 'v2_${priceStr}_${isAvailable}_$isSelected';
   }
 
   /// Creates or retrieves a custom price badge BitmapDescriptor matching the web pin style
@@ -26,8 +27,9 @@ class MarkerBitmapGenerator {
     required double price,
     required bool isAvailable,
     required bool isSelected,
-    double pixelRatio = 2.5,
+    double? pixelRatio,
   }) async {
+    final effectiveRatio = pixelRatio ?? (kIsWeb ? 1.0 : 2.0);
     final key = _cacheKey(price, isAvailable, isSelected);
     final cached = _cache[key];
     if (cached != null) {
@@ -39,7 +41,7 @@ class MarkerBitmapGenerator {
         price: price,
         isAvailable: isAvailable,
         isSelected: isSelected,
-        pixelRatio: pixelRatio,
+        pixelRatio: effectiveRatio,
       );
       _cache[key] = descriptor;
       return descriptor;
@@ -72,28 +74,28 @@ class MarkerBitmapGenerator {
     if (isSelected) {
       bgColor = goldBg;
       borderColor = const Color(0xFF173B64);
-      borderWidth = 2.5;
+      borderWidth = 2.0;
       textColor = const Color(0xFF173B64);
     } else if (!isAvailable) {
       bgColor = redBg;
       borderColor = const Color(0xFFFDA4AF);
-      borderWidth = 2.0;
+      borderWidth = 1.5;
       textColor = const Color(0xFFFECDD3);
     } else {
       bgColor = navyBg;
       borderColor = Colors.white;
-      borderWidth = 2.0;
+      borderWidth = 1.5;
       textColor = Colors.white;
     }
 
-    // 2. Format Price Text (e.g. "₱10.00" matching screenshot)
+    // 2. Format Price Text (e.g. "₱15" or "₱15.50" compact)
     final String amountText;
     if (!isAvailable) {
       amountText = 'Sold Out';
     } else if (price <= 0) {
       amountText = 'Free';
     } else {
-      amountText = '₱${price.toStringAsFixed(2)}';
+      amountText = price % 1 == 0 ? '₱${price.toInt()}' : '₱${price.toStringAsFixed(2)}';
     }
 
     // 3. Measure Text
@@ -103,19 +105,19 @@ class MarkerBitmapGenerator {
         text: amountText,
         style: TextStyle(
           color: textColor,
-          fontSize: 12.0,
+          fontSize: 11.5,
           fontWeight: FontWeight.w900,
           letterSpacing: -0.2,
         ),
       ),
     )..layout();
 
-    // 4. Dimensions & Layout
-    const double padH = 10.0;
-    const double pillHeight = 26.0;
-    const double pointerHeight = 5.5;
-    const double pointerWidth = 9.0;
-    const double shadowMargin = 4.0;
+    // 4. Compact Dimensions & Layout (Sleek Airbnb-style pin)
+    const double padH = 8.0;
+    const double pillHeight = 22.0;
+    const double pointerHeight = 4.5;
+    const double pointerWidth = 7.0;
+    const double shadowMargin = 3.0;
 
     final double pillWidth = textPainter.width + (padH * 2);
     final double totalWidth = pillWidth + (shadowMargin * 2);
@@ -130,8 +132,8 @@ class MarkerBitmapGenerator {
 
     // 5. Draw Shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.30)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
+      ..color = Colors.black.withValues(alpha: 0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
 
     final pillRect = Rect.fromLTWH(
       shadowMargin,
@@ -153,7 +155,7 @@ class MarkerBitmapGenerator {
       ..close();
 
     canvas.save();
-    canvas.translate(0, 1.5);
+    canvas.translate(0, 1.2);
     canvas.drawPath(shadowPath, shadowPaint);
     canvas.restore();
 
@@ -198,10 +200,10 @@ class MarkerBitmapGenerator {
 
   /// Calculates anchor offset so pointer tip touches coordinate precisely
   static Offset getMarkerAnchor() {
-    // Pill height = 26.0, Pointer = 5.5, Shadow margin = 4.0
-    // Tip Y = 4.0 + 26.0 + 5.5 = 35.5
-    // Total height = 26.0 + 5.5 + 8.0 = 39.5
-    // 35.5 / 39.5 ≈ 0.899
-    return const Offset(0.5, 0.899);
+    // Pill height = 22.0, Pointer = 4.5, Shadow margin = 3.0
+    // Tip Y = 3.0 + 22.0 + 4.5 = 29.5
+    // Total height = 22.0 + 4.5 + (3.0 * 2) = 32.5
+    // 29.5 / 32.5 ≈ 0.907
+    return const Offset(0.5, 0.907);
   }
 }
