@@ -184,7 +184,7 @@ class ParkingSpace {
     final primaryImage = urls.isNotEmpty ? urls.first : null;
 
     return ParkingSpace(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: _integer(json['id']),
       name: json['space_name']?.toString() ?? json['name']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
       status: json['status']?.toString() ?? 'Closed',
@@ -216,15 +216,15 @@ class ParkingSpace {
         }
         return cleaned.toList(growable: false);
       }(),
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
+      latitude: _decimal(json['latitude']),
+      longitude: _decimal(json['longitude']),
       imageUrl: primaryImage,
       imageUrls: urls,
-      maxHeight: (json['max_height'] as num?)?.toDouble() ?? (json['height_clearance'] as num?)?.toDouble(),
-      length: (json['length'] as num?)?.toDouble() ?? (json['slot_length'] as num?)?.toDouble(),
-      width: (json['width'] as num?)?.toDouble() ?? (json['slot_width'] as num?)?.toDouble(),
-      hourlyRate: (json['hourly_rate'] as num?)?.toDouble() ?? (json['rate'] as num?)?.toDouble(),
-      lowestHourlyRate: (json['lowest_hourly_rate'] as num?)?.toDouble() ?? (json['lowest_rate'] as num?)?.toDouble(),
+      maxHeight: _decimal(json['max_height'] ?? json['height_clearance']),
+      length: _decimal(json['length'] ?? json['slot_length']),
+      width: _decimal(json['width'] ?? json['slot_width']),
+      hourlyRate: _decimal(json['hourly_rate'] ?? json['rate']),
+      lowestHourlyRate: _decimal(json['lowest_hourly_rate'] ?? json['lowest_rate']),
       vehicleHourlyRates: () {
         final rates = <String, double>{};
         if (json['vehicle_hourly_rates'] is Map) {
@@ -240,5 +240,18 @@ class ParkingSpace {
         return rates;
       }(),
     );
+  }
+
+  static double? _decimal(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString().trim());
+  }
+
+  static int _integer(dynamic value, [int fallback = 0]) {
+    if (value == null) return fallback;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString().trim()) ?? fallback;
   }
 }

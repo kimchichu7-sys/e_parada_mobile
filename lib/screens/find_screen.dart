@@ -101,6 +101,21 @@ class _FindScreenState extends State<FindScreen> {
         _allSpaces = spaces;
       });
       _preloadMarkerBitmaps(spaces);
+
+      if (_currentLocation == null && _googleMapController != null && spaces.isNotEmpty) {
+        final firstWithCoords = spaces.firstWhere(
+          (s) => s.latitude != null && s.longitude != null,
+          orElse: () => spaces.first,
+        );
+        if (firstWithCoords.latitude != null && firstWithCoords.longitude != null) {
+          _googleMapController!.animateCamera(
+            gmaps.CameraUpdate.newLatLngZoom(
+              gmaps.LatLng(firstWithCoords.latitude!, firstWithCoords.longitude!),
+              14.5,
+            ),
+          );
+        }
+      }
       return spaces;
     });
   }
@@ -1195,6 +1210,20 @@ class _FindScreenState extends State<FindScreen> {
       onMapCreated: (ctrl) {
         _googleMapController = ctrl;
         _mapReady = true;
+        if (_currentLocation == null && spaces.isNotEmpty) {
+          final firstWithCoords = spaces.firstWhere(
+            (s) => s.latitude != null && s.longitude != null,
+            orElse: () => spaces.first,
+          );
+          if (firstWithCoords.latitude != null && firstWithCoords.longitude != null) {
+            ctrl.animateCamera(
+              gmaps.CameraUpdate.newLatLngZoom(
+                gmaps.LatLng(firstWithCoords.latitude!, firstWithCoords.longitude!),
+                14.5,
+              ),
+            );
+          }
+        }
       },
       myLocationEnabled: true,
       myLocationButtonEnabled: false,

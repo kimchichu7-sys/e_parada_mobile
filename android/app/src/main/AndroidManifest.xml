@@ -39,7 +39,7 @@
         </activity>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBbAXkXQAB7Cn5NzSgFspojnifYrVxJ-mM" />
+            android:value="AIzaSyD8LxmwsXU9D1pCMDNUUhpI6ZmnLfVzfoM" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="eparada_alerts" />
