@@ -41,4 +41,35 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Mon Insights'), findsOneWidget);
   });
+
+  testWidgets('DashboardAnalyticsCharts renders cleanly on narrow mobile viewports without overflow', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    final summary = DashboardSummary.fromJson({
+      'title': 'Owner Dashboard',
+      'subtitle': 'Manage your parking spaces and track earnings',
+      'role': 'parking_owner',
+      'metrics': [
+        {'key': 'total_revenue', 'label': 'Total Revenue', 'value': '₱15,400'},
+      ],
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: DashboardAnalyticsCharts(
+              summary: summary,
+              isOwnerOrAdmin: true,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('+18.4% this week'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

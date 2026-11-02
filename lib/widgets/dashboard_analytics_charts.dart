@@ -69,57 +69,117 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.bar_chart_rounded, color: Color(0xFF10B981), size: 22),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '7-Day Revenue & Demand',
-                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                            ),
-                            Text(
-                              'Tap any day bar for details',
-                              style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Container(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final badge = Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
+                        color: isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF059669) : const Color(0xFF86EFAC),
+                          width: 1,
+                        ),
                       ),
-                      child: const Row(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.trending_up_rounded, size: 14, color: Color(0xFF166534)),
-                          SizedBox(width: 4),
+                          Icon(
+                            Icons.trending_up_rounded,
+                            size: 14,
+                            color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF166534),
+                          ),
+                          const SizedBox(width: 4),
                           Text(
                             '+18.4% this week',
                             style: TextStyle(
-                              color: Color(0xFF166534),
+                              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF166534),
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    );
+
+                    final isNarrow = constraints.maxWidth < 430;
+
+                    if (isNarrow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.bar_chart_rounded, color: Color(0xFF10B981), size: 22),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      '7-Day Revenue & Demand',
+                                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                                    ),
+                                    Text(
+                                      'Tap any day bar for details',
+                                      style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          badge,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.bar_chart_rounded, color: Color(0xFF10B981), size: 22),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      '7-Day Revenue & Demand',
+                                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                                    ),
+                                    Text(
+                                      'Tap any day bar for details',
+                                      style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        badge,
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 18),
 
@@ -130,14 +190,19 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                     color: colors.surfaceContainerHighest.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Text(
                         '${_days[_selectedDayIndex]} Insights',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
                         children: [
                           Text(
                             '₱${_dailyRevenue[_selectedDayIndex].toStringAsFixed(2)}',
@@ -147,7 +212,6 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                               fontSize: 15,
                             ),
                           ),
-                          const SizedBox(width: 10),
                           Text(
                             '(${_dailyBookings[_selectedDayIndex]} bookings)',
                             style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant),
@@ -169,44 +233,52 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                       final isSelected = index == _selectedDayIndex;
                       final heightPct = _dailyRevenue[index] / maxRevenue;
 
-                      return GestureDetector(
-                        onTap: () => setState(() => _selectedDayIndex = index),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              '₱${(_dailyRevenue[index] / 1000).toStringAsFixed(1)}k',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                                color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedDayIndex = index),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '₱${(_dailyRevenue[index] / 1000).toStringAsFixed(1)}k',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                                    color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                                  ),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: 28,
-                              height: 90 * heightPct,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? colors.primary
-                                    : colors.primary.withValues(alpha: 0.35),
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                                border: isSelected
-                                    ? Border.all(color: Colors.white, width: 1.5)
-                                    : null,
+                              const SizedBox(height: 6),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: 24,
+                                height: 90 * heightPct,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? colors.primary
+                                      : colors.primary.withValues(alpha: 0.35),
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                                  border: isSelected
+                                      ? Border.all(color: Colors.white, width: 1.5)
+                                      : null,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _days[index],
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                                color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                              const SizedBox(height: 6),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _days[index],
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                                    color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }),
@@ -251,18 +323,20 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                       child: const Icon(Icons.schedule_rounded, color: Color(0xFF6366F1), size: 22),
                     ),
                     const SizedBox(width: 12),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Peak Parking Hours & Turnover',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                        ),
-                        Text(
-                          'Occupancy trends by time of day',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ],
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Peak Parking Hours & Turnover',
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                          ),
+                          Text(
+                            'Occupancy trends by time of day',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -271,10 +345,15 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${item['label']} (${item['time']})',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                      Expanded(
+                        child: Text(
+                          '${item['label']} (${item['time']})',
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         '${((item['pct'] as double) * 100).toInt()}% Capacity',
                         style: TextStyle(
@@ -336,18 +415,20 @@ class _DashboardAnalyticsChartsState extends State<DashboardAnalyticsCharts> {
                       child: const Icon(Icons.pie_chart_outline_rounded, color: Color(0xFF0EA5E9), size: 22),
                     ),
                     const SizedBox(width: 12),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Vehicle Type Breakdown',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                        ),
-                        Text(
-                          'Distribution of parked vehicles',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ],
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vehicle Type Breakdown',
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                          ),
+                          Text(
+                            'Distribution of parked vehicles',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
