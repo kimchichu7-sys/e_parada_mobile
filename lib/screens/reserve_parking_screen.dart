@@ -14,12 +14,22 @@ class ReserveParkingScreen extends StatefulWidget {
     required this.parkingName,
     required this.address,
     required this.price,
+    this.initialStartDate,
+    this.initialEndDate,
+    this.initialStartTime,
+    this.initialEndTime,
+    this.initialVehicleType,
   });
 
   final int parkingSpaceId;
   final String parkingName;
   final String address;
   final String price;
+  final DateTime? initialStartDate;
+  final DateTime? initialEndDate;
+  final TimeOfDay? initialStartTime;
+  final TimeOfDay? initialEndTime;
+  final String? initialVehicleType;
 
   @override
   State<ReserveParkingScreen> createState() => _ReserveParkingScreenState();
@@ -43,11 +53,11 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
   void initState() {
     super.initState();
     final initial = DateTime.now().add(const Duration(hours: 1));
-    _startDate = DateTime(initial.year, initial.month, initial.day);
-    _endDate = _startDate;
-    _startTime = TimeOfDay(hour: initial.hour, minute: 0);
-    _endTime = TimeOfDay(hour: (initial.hour + 1) % 24, minute: 0);
-    if (initial.hour == 23) {
+    _startDate = widget.initialStartDate ?? DateTime(initial.year, initial.month, initial.day);
+    _endDate = widget.initialEndDate ?? _startDate;
+    _startTime = widget.initialStartTime ?? TimeOfDay(hour: initial.hour, minute: 0);
+    _endTime = widget.initialEndTime ?? TimeOfDay(hour: (initial.hour + 1) % 24, minute: 0);
+    if (widget.initialStartDate == null && initial.hour == 23) {
       _endDate = _startDate.add(const Duration(days: 1));
     }
     _loadVehicles();
@@ -60,9 +70,17 @@ class _ReserveParkingScreenState extends State<ReserveParkingScreen> {
           .where((vehicle) => vehicle.isApproved)
           .toList();
       if (!mounted) return;
+      Vehicle? matchingVehicle;
+      if (widget.initialVehicleType != null && widget.initialVehicleType!.isNotEmpty) {
+        try {
+          matchingVehicle = approved.firstWhere(
+            (v) => v.vehicleType.toLowerCase() == widget.initialVehicleType!.toLowerCase(),
+          );
+        } catch (_) {}
+      }
       setState(() {
         _vehicles = approved;
-        _vehicle = approved.isEmpty ? null : approved.first;
+        _vehicle = matchingVehicle ?? (approved.isEmpty ? null : approved.first);
         _loading = false;
       });
       if (approved.isNotEmpty) await _checkAvailability();

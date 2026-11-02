@@ -5,13 +5,13 @@ import 'admin_operations_screen.dart';
 import 'admin_reservations_screen.dart';
 import 'admin_reviews_screen.dart';
 import 'dashboard_screen.dart';
-import 'home_screen.dart';
-import 'map_screen.dart';
+import 'find_screen.dart';
 import 'owner_checkpoint_screen.dart';
 import 'owner_reservations_screen.dart';
 import 'owner_spaces_screen.dart';
 import 'profile_screen.dart';
 import 'reservations_screen.dart';
+import 'vehicle_garage_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key, required this.user});
@@ -26,7 +26,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
   late final List<Widget> _pages = widget.user.isDriver
-      ? const [HomeScreen(), MapScreen(), ReservationsScreen(), ProfileScreen()]
+      ? const [
+          FindScreen(),
+          ReservationsScreen(),
+          VehicleGarageScreen(),
+          ProfileScreen(),
+        ]
       : widget.user.isParkingOwner
       ? [
           DashboardScreen(user: widget.user),
@@ -46,19 +51,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late final List<NavigationDestination> _destinations = widget.user.isDriver
       ? const [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Map',
+            icon: Icon(Icons.local_parking_outlined),
+            selectedIcon: Icon(Icons.local_parking_rounded),
+            label: 'Find',
           ),
           NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
-            label: 'Bookings',
+            label: 'Booking',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.directions_car_outlined),
+            selectedIcon: Icon(Icons.directions_car),
+            label: 'Garage',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

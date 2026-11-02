@@ -139,7 +139,7 @@ class ParkingSpace {
 
     return ParkingSpace(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      name: json['space_name']?.toString() ?? '',
+      name: json['space_name']?.toString() ?? json['name']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
       status: json['status']?.toString() ?? 'Closed',
       isOpenNow: json['is_open_now'] == true,
