@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../config/app_theme.dart';
 import '../models/admin_models.dart';
 import '../services/admin_operations_service.dart';
 
@@ -570,14 +571,33 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final appBarBg = isDark ? AppPalette.darkSurface : AppPalette.yaleBlue;
+    final appBarFg = isDark ? AppPalette.powderBlue : AppPalette.aliceBlue;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        backgroundColor: appBarBg,
+        foregroundColor: appBarFg,
+        elevation: 0,
+        scrolledUnderElevation: 4,
+        centerTitle: false,
+        iconTheme: IconThemeData(color: appBarFg),
+        actionsIconTheme: IconThemeData(color: appBarFg),
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.fact_check_outlined, size: 24),
-            SizedBox(width: 8),
-            Text('Admin Reviews'),
+            Icon(Icons.fact_check_outlined, size: 24, color: appBarFg),
+            const SizedBox(width: 8),
+            Text(
+              'Admin Reviews',
+              style: TextStyle(
+                color: appBarFg,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
+            ),
           ],
         ),
       ),

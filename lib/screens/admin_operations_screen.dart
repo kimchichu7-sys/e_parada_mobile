@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_theme.dart';
 import '../models/admin_models.dart';
 import '../services/admin_operations_service.dart';
 
@@ -70,20 +71,58 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final appBarBg = isDark ? AppPalette.darkSurface : AppPalette.yaleBlue;
+    final appBarFg = isDark ? AppPalette.powderBlue : AppPalette.aliceBlue;
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Row(
+          backgroundColor: appBarBg,
+          foregroundColor: appBarFg,
+          elevation: 0,
+          scrolledUnderElevation: 4,
+          centerTitle: false,
+          iconTheme: IconThemeData(color: appBarFg),
+          actionsIconTheme: IconThemeData(color: appBarFg),
+          title: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.admin_panel_settings_outlined, size: 24),
-              SizedBox(width: 8),
-              Text('Platform Operations'),
+              Icon(
+                Icons.admin_panel_settings_outlined,
+                size: 24,
+                color: appBarFg,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Platform Operations',
+                style: TextStyle(
+                  color: appBarFg,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
+              ),
             ],
           ),
-          bottom: const TabBar(
-            tabs: [
+          bottom: TabBar(
+            labelColor: AppPalette.naplesYellow,
+            unselectedLabelColor: isDark
+                ? AppPalette.powderBlue.withValues(alpha: 0.75)
+                : AppPalette.aliceBlue.withValues(alpha: 0.85),
+            indicatorColor: AppPalette.naplesYellow,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorWeight: 3,
+            labelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            tabs: const [
               Tab(icon: Icon(Icons.support_agent_outlined), text: 'Support'),
               Tab(icon: Icon(Icons.qr_code_scanner_outlined), text: 'QR logs'),
               Tab(icon: Icon(Icons.history_outlined), text: 'Audit'),
