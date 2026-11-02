@@ -85,6 +85,8 @@ class _MapScreenState extends State<MapScreen> {
         MarkerBitmapGenerator.getPriceMarker(
           price: rate,
           isAvailable: space.isAvailable,
+          isClosed: space.isClosed,
+          isSoldOut: space.isSoldOut,
           isSelected: false,
         ).then((bitmap) {
           _customMarkerBitmaps['${space.id}_false'] = bitmap;
@@ -95,6 +97,8 @@ class _MapScreenState extends State<MapScreen> {
         MarkerBitmapGenerator.getPriceMarker(
           price: rate,
           isAvailable: space.isAvailable,
+          isClosed: space.isClosed,
+          isSoldOut: space.isSoldOut,
           isSelected: true,
         ).then((bitmap) {
           _customMarkerBitmaps['${space.id}_true'] = bitmap;
@@ -1665,6 +1669,8 @@ class _MapScreenState extends State<MapScreen> {
           MarkerBitmapGenerator.getCachedMarker(
             price: rate,
             isAvailable: isAvailable,
+            isClosed: _selectedSpace!.isClosed,
+            isSoldOut: _selectedSpace!.isSoldOut,
             isSelected: true,
           );
 
@@ -1677,15 +1683,19 @@ class _MapScreenState extends State<MapScreen> {
               : const Offset(0.5, 1.0),
           icon: destIcon ??
               gmaps.BitmapDescriptor.defaultMarkerWithHue(
-                isAvailable
-                    ? gmaps.BitmapDescriptor.hueAzure
-                    : gmaps.BitmapDescriptor.hueRed,
+                _selectedSpace!.isSoldOut
+                    ? gmaps.BitmapDescriptor.hueRed
+                    : (_selectedSpace!.isClosed
+                        ? gmaps.BitmapDescriptor.hueViolet
+                        : gmaps.BitmapDescriptor.hueAzure),
               ),
           infoWindow: gmaps.InfoWindow(
             title: _selectedSpace!.name,
-            snippet: isAvailable
-                ? '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${_selectedSpace!.availableSlotsCount} slots free'
-                : 'Destination • Sold Out',
+            snippet: _selectedSpace!.isSoldOut
+                ? 'Sold Out'
+                : (_selectedSpace!.isClosed
+                    ? 'Closed • ${_selectedSpace!.operatingHours}'
+                    : '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${_selectedSpace!.availableSlotsCount} slots free'),
           ),
           onTap: () {
             final start = _effectiveOrigin(_selectedSpace!);
@@ -1797,6 +1807,8 @@ class _MapScreenState extends State<MapScreen> {
             MarkerBitmapGenerator.getCachedMarker(
               price: rate,
               isAvailable: space.isAvailable,
+              isClosed: space.isClosed,
+              isSoldOut: space.isSoldOut,
               isSelected: selected,
             );
 
@@ -1808,16 +1820,20 @@ class _MapScreenState extends State<MapScreen> {
                 ? MarkerBitmapGenerator.getMarkerAnchor()
                 : const Offset(0.5, 1.0),
             icon: customIcon ??
-                (space.isAvailable
-                    ? (selected
-                        ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
-                        : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet))
-                    : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)),
+                (space.isSoldOut
+                    ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)
+                    : (space.isClosed
+                        ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet)
+                        : (selected
+                            ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
+                            : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet)))),
             infoWindow: gmaps.InfoWindow(
               title: space.name,
-              snippet: space.isAvailable
-                  ? '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${space.availableSlotsCount} slots free'
-                  : 'Sold Out / Unavailable',
+              snippet: space.isSoldOut
+                  ? 'Sold Out'
+                  : (space.isClosed
+                      ? 'Closed • ${space.operatingHours}'
+                      : '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${space.availableSlotsCount} slots free'),
             ),
             onTap: () {
               _selectSpace(space, autoFit: true);

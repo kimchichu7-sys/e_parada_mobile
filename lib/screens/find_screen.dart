@@ -131,6 +131,8 @@ class _FindScreenState extends State<FindScreen> {
         MarkerBitmapGenerator.getPriceMarker(
           price: rate,
           isAvailable: space.isAvailable,
+          isClosed: space.isClosed,
+          isSoldOut: space.isSoldOut,
           isSelected: false,
         ).then((bitmap) {
           _customMarkerBitmaps['${space.id}_false'] = bitmap;
@@ -142,6 +144,8 @@ class _FindScreenState extends State<FindScreen> {
         MarkerBitmapGenerator.getPriceMarker(
           price: rate,
           isAvailable: space.isAvailable,
+          isClosed: space.isClosed,
+          isSoldOut: space.isSoldOut,
           isSelected: true,
         ).then((bitmap) {
           _customMarkerBitmaps['${space.id}_true'] = bitmap;
@@ -617,6 +621,8 @@ class _FindScreenState extends State<FindScreen> {
           MarkerBitmapGenerator.getCachedMarker(
             price: rate,
             isAvailable: space.isAvailable,
+            isClosed: space.isClosed,
+            isSoldOut: space.isSoldOut,
             isSelected: isSelected,
           );
 
@@ -628,11 +634,13 @@ class _FindScreenState extends State<FindScreen> {
               ? MarkerBitmapGenerator.getMarkerAnchor()
               : const Offset(0.5, 1.0),
           icon: customIcon ??
-              (space.isAvailable
-                  ? (isSelected
-                      ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
-                      : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueCyan))
-                  : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)),
+              (space.isSoldOut
+                  ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)
+                  : (space.isClosed
+                      ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet)
+                      : (isSelected
+                          ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
+                          : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueCyan)))),
           onTap: () {
             setState(() {
               _selectedSpace = space;
@@ -1386,13 +1394,19 @@ class _FindScreenState extends State<FindScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFDCFCE7),
+                            color: space.isSoldOut
+                                ? const Color(0xFFFFE4E6)
+                                : (space.isClosed ? const Color(0xFFF1F5F9) : const Color(0xFFDCFCE7)),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            '${space.availableSlotsCount} slots free',
-                            style: const TextStyle(
-                              color: Color(0xFF16A34A),
+                            space.isSoldOut
+                                ? 'Sold Out'
+                                : (space.isClosed ? 'Closed • ${space.operatingHours}' : '${space.availableSlotsCount} slots free'),
+                            style: TextStyle(
+                              color: space.isSoldOut
+                                  ? const Color(0xFFBE123C)
+                                  : (space.isClosed ? const Color(0xFF475569) : const Color(0xFF16A34A)),
                               fontWeight: FontWeight.w800,
                               fontSize: 10.5,
                             ),
@@ -1610,11 +1624,17 @@ class _FindScreenState extends State<FindScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${space.availableSlotsCount} bays open • ${space.operatingHours.isNotEmpty ? space.operatingHours : "Open 24/7"}',
-                            style: const TextStyle(
+                            space.isSoldOut
+                                ? 'Sold Out • ${space.operatingHours.isNotEmpty ? space.operatingHours : "Open 24/7"}'
+                                : (space.isClosed
+                                    ? 'Closed • ${space.operatingHours.isNotEmpty ? space.operatingHours : "Open 24/7"}'
+                                    : '${space.availableSlotsCount} bays open • ${space.operatingHours.isNotEmpty ? space.operatingHours : "Open 24/7"}'),
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF16A34A),
+                              color: space.isSoldOut
+                                  ? const Color(0xFFBE123C)
+                                  : (space.isClosed ? const Color(0xFF64748B) : const Color(0xFF16A34A)),
                             ),
                           ),
                         ],

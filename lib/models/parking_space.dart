@@ -12,9 +12,9 @@ class ParkingSpace {
     required this.price,
     required this.description,
     required this.supportedVehicles,
-    required this.latitude,
-    required this.longitude,
-    required this.imageUrl,
+    this.latitude,
+    this.longitude,
+    this.imageUrl,
     this.imageUrls = const [],
     this.maxHeight,
     this.length,
@@ -22,6 +22,11 @@ class ParkingSpace {
     this.hourlyRate,
     this.lowestHourlyRate,
     this.vehicleHourlyRates = const {},
+    this.totalSlots = 1,
+    this.availableSlots = 1,
+    this.isSoldOut = false,
+    this.openingTime,
+    this.closingTime,
   });
 
   final int id;
@@ -44,10 +49,16 @@ class ParkingSpace {
   final double? hourlyRate;
   final double? lowestHourlyRate;
   final Map<String, double> vehicleHourlyRates;
+  final int totalSlots;
+  final int availableSlots;
+  final bool isSoldOut;
+  final String? openingTime;
+  final String? closingTime;
 
-  bool get isAvailable => isOpenNow;
+  bool get isClosed => !isOpenNow && !isOpen24Hours;
+  bool get isAvailable => !isSoldOut;
 
-  int get availableSlotsCount => isAvailable ? 1 : 0;
+  int get availableSlotsCount => availableSlots;
 
   double getEffectiveRate({String? vehicleType}) {
     // 1. If a specific vehicle type is selected
@@ -225,6 +236,11 @@ class ParkingSpace {
       width: _decimal(json['width'] ?? json['slot_width']),
       hourlyRate: _decimal(json['hourly_rate'] ?? json['rate']),
       lowestHourlyRate: _decimal(json['lowest_hourly_rate'] ?? json['lowest_rate']),
+      totalSlots: _integer(json['total_slots'], 1),
+      availableSlots: _integer(json['available_slots'] ?? json['available_slots_count'], 1),
+      isSoldOut: json['is_sold_out'] == true,
+      openingTime: json['opening_time']?.toString(),
+      closingTime: json['closing_time']?.toString(),
       vehicleHourlyRates: () {
         final rates = <String, double>{};
         if (json['vehicle_hourly_rates'] is Map) {

@@ -9,28 +9,38 @@ class MarkerBitmapGenerator {
   /// Retrieves a pre-generated cached marker if available
   static gmaps.BitmapDescriptor? getCachedMarker({
     required double price,
-    required bool isAvailable,
+    bool isAvailable = true,
+    bool isClosed = false,
+    bool isSoldOut = false,
     required bool isSelected,
   }) {
-    final key = _cacheKey(price, isAvailable, isSelected);
+    final key = _cacheKey(price, isAvailable, isClosed, isSoldOut, isSelected);
     return _cache[key];
   }
 
   /// Builds a unique cache key based on marker visual attributes
-  static String _cacheKey(double price, bool isAvailable, bool isSelected) {
+  static String _cacheKey(
+    double price,
+    bool isAvailable,
+    bool isClosed,
+    bool isSoldOut,
+    bool isSelected,
+  ) {
     final priceStr = price > 0 ? price.toStringAsFixed(2) : '0.00';
-    return 'v2_${priceStr}_${isAvailable}_$isSelected';
+    return 'v3_${priceStr}_${isAvailable}_${isClosed}_${isSoldOut}_$isSelected';
   }
 
   /// Creates or retrieves a custom price badge BitmapDescriptor matching the web pin style
   static Future<gmaps.BitmapDescriptor> getPriceMarker({
     required double price,
-    required bool isAvailable,
+    bool isAvailable = true,
+    bool isClosed = false,
+    bool isSoldOut = false,
     required bool isSelected,
     double? pixelRatio,
   }) async {
     final effectiveRatio = pixelRatio ?? (kIsWeb ? 1.0 : 2.0);
-    final key = _cacheKey(price, isAvailable, isSelected);
+    final key = _cacheKey(price, isAvailable, isClosed, isSoldOut, isSelected);
     final cached = _cache[key];
     if (cached != null) {
       return cached;
@@ -40,6 +50,8 @@ class MarkerBitmapGenerator {
       final descriptor = await _drawPriceBadge(
         price: price,
         isAvailable: isAvailable,
+        isClosed: isClosed,
+        isSoldOut: isSoldOut,
         isSelected: isSelected,
         pixelRatio: effectiveRatio,
       );
@@ -49,22 +61,27 @@ class MarkerBitmapGenerator {
       // Fallback in case of rendering error
       return isSelected
           ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
-          : (isAvailable
-              ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueAzure)
-              : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed));
+          : (isSoldOut
+              ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)
+              : (isClosed
+                  ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet)
+                  : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueAzure)));
     }
   }
 
   static Future<gmaps.BitmapDescriptor> _drawPriceBadge({
     required double price,
     required bool isAvailable,
+    required bool isClosed,
+    required bool isSoldOut,
     required bool isSelected,
     required double pixelRatio,
   }) async {
     // 1. Color Palette matching e-parada web pin (.spot-pin)
-    const navyBg = Color(0xFF235282); // Web spot-pin background
-    const goldBg = Color(0xFFFFDE70); // Active gold
-    const redBg = Color(0xFF881337);  // Sold out burgundy
+    const navyBg = Color(0xFF235282);  // Web spot-pin background
+    const goldBg = Color(0xFFFFDE70);  // Active gold
+    const redBg = Color(0xFF881337);   // Sold out burgundy
+    const slateBg = Color(0xFF334155); // Closed slate grey
 
     final Color bgColor;
     final Color borderColor;
@@ -76,6 +93,16 @@ class MarkerBitmapGenerator {
       borderColor = const Color(0xFF173B64);
       borderWidth = 2.0;
       textColor = const Color(0xFF173B64);
+    } else if (isSoldOut) {
+      bgColor = redBg;
+      borderColor = const Color(0xFFFDA4AF);
+      borderWidth = 1.5;
+      textColor = const Color(0xFFFECDD3);
+    } else if (isClosed) {
+      bgColor = slateBg;
+      borderColor = const Color(0xFF94A3B8);
+      borderWidth = 1.5;
+      textColor = const Color(0xFFF1F5F9);
     } else if (!isAvailable) {
       bgColor = redBg;
       borderColor = const Color(0xFFFDA4AF);
@@ -88,10 +115,14 @@ class MarkerBitmapGenerator {
       textColor = Colors.white;
     }
 
-    // 2. Format Price Text (e.g. "₱15" or "₱15.50" compact)
+    // 2. Format Price Text (e.g. "₱15", "Closed", or "Sold Out")
     final String amountText;
-    if (!isAvailable) {
+    if (isSoldOut) {
       amountText = 'Sold Out';
+    } else if (isClosed) {
+      amountText = 'Closed';
+    } else if (!isAvailable) {
+      amountText = 'Unavailable';
     } else if (price <= 0) {
       amountText = 'Free';
     } else {
