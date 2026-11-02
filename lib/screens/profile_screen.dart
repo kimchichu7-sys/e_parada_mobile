@@ -8,7 +8,6 @@ import '../widgets/change_password_dialog.dart';
 import '../widgets/delete_account_dialog.dart';
 import '../widgets/paymongo_settings_dialog.dart';
 import 'incident_report_screen.dart';
-import 'vehicle_garage_screen.dart';
 import 'support_screen.dart';
 import 'welcome_screen.dart';
 
@@ -130,32 +129,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? 'Available for reservations'
                         : 'Waiting for approval',
                     approved: user.hasApprovedVehicle,
-                  ),
-                  const SizedBox(height: 18),
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.garage_outlined),
-                      title: Text(
-                        'My vehicles',
-                        style: TextStyle(
-                          color: tileTitleColor,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${user.remainingVehicleSlots} of 3 registration slots remaining',
-                      ),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const VehicleGarageScreen(),
-                          ),
-                        );
-                        if (mounted) await _refresh();
-                      },
-                    ),
                   ),
                   const SizedBox(height: 12),
                   _PermissionCard(
