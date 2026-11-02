@@ -251,7 +251,7 @@ class _OwnerSpacesScreenState extends State<OwnerSpacesScreen> {
                 constraints: const BoxConstraints(maxWidth: 800),
                 child: ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
                   itemCount: spaces.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) => _SpaceCard(
@@ -271,8 +271,11 @@ class _OwnerSpacesScreenState extends State<OwnerSpacesScreen> {
   }
 }
 
-class _SpaceCard extends StatelessWidget {
-  const _SpaceCard({
+typedef _SpaceCard = OwnerSpaceCard;
+
+class OwnerSpaceCard extends StatelessWidget {
+  const OwnerSpaceCard({
+    super.key,
     required this.space,
     required this.onEdit,
     required this.onDelete,
@@ -293,7 +296,7 @@ class _SpaceCard extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -314,7 +317,7 @@ class _SpaceCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
             ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,11 +337,18 @@ class _SpaceCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
-                      const SizedBox(height: 4),
-                      Text(space.address),
+                      const SizedBox(height: 3),
+                      Text(
+                        space.address,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -356,10 +366,10 @@ class _SpaceCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 _InfoChip(
                   icon: Icons.schedule_outlined,
@@ -373,21 +383,46 @@ class _SpaceCard extends StatelessWidget {
                   icon: Icons.pending_actions_outlined,
                   label: '${space.pendingReservationsCount} pending requests',
                 ),
-                _InfoChip(
-                  icon: Icons.verified_outlined,
-                  label: _approvalLabel(space.approvalStatus),
+                Builder(
+                  builder: (context) {
+                    final (label, color, bg, icon) =
+                        _approvalBadgeConfig(space.approvalStatus, colors);
+                    return _InfoChip(
+                      icon: icon,
+                      label: label,
+                      color: color,
+                      backgroundColor: bg,
+                    );
+                  },
                 ),
               ],
             ),
             if (space.vehicleTypes.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(
-                space.vehicleTypes.join(' • '),
-                style: Theme.of(context).textTheme.bodySmall,
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.directions_car_outlined,
+                    size: 14,
+                    color: colors.onSurfaceVariant.withValues(alpha: 0.75),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      space.vehicleTypes.join(' • '),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
             if (!space.isAvailable) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -436,7 +471,7 @@ class _SpaceCard extends StatelessWidget {
             ],
             if (space.approvalStatus == 'rejected' &&
                 space.adminNotes?.isNotEmpty == true) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -450,11 +485,11 @@ class _SpaceCard extends StatelessWidget {
                 ),
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Align(
-              alignment: Alignment.centerRight,
+              alignment: Alignment.centerLeft,
               child: Wrap(
-                alignment: WrapAlignment.end,
+                alignment: WrapAlignment.start,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 8,
                 runSpacing: 8,
@@ -467,25 +502,41 @@ class _SpaceCard extends StatelessWidget {
                         side: BorderSide(
                           color: Colors.red.withValues(alpha: 0.4),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        visualDensity: VisualDensity.compact,
+                        minimumSize: const Size(0, 36),
                       ),
-                      icon: const Icon(Icons.report_problem_outlined, size: 16),
-                      label: const Text('Report Unavailable'),
+                      icon: const Icon(Icons.report_problem_outlined, size: 15),
+                      label: const Text('Report Unavailable', style: TextStyle(fontSize: 13)),
                     )
                   else
                     FilledButton.tonalIcon(
                       onPressed: onRestoreAvailable,
-                      icon: const Icon(Icons.check_circle_outline, size: 16),
-                      label: const Text('Mark Available'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        visualDensity: VisualDensity.compact,
+                        minimumSize: const Size(0, 36),
+                      ),
+                      icon: const Icon(Icons.check_circle_outline, size: 15),
+                      label: const Text('Mark Available', style: TextStyle(fontSize: 13)),
                     ),
                   OutlinedButton.icon(
                     onPressed: onEdit,
-                    icon: const Icon(Icons.edit_outlined, size: 16),
-                    label: const Text('Edit'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      visualDensity: VisualDensity.compact,
+                      minimumSize: const Size(0, 36),
+                    ),
+                    icon: const Icon(Icons.edit_outlined, size: 15),
+                    label: const Text('Edit', style: TextStyle(fontSize: 13)),
                   ),
                   IconButton(
                     onPressed: onDelete,
                     tooltip: 'Delete parking space',
-                    icon: const Icon(Icons.delete_outline),
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
@@ -496,11 +547,29 @@ class _SpaceCard extends StatelessWidget {
     );
   }
 
-  static String _approvalLabel(String status) {
+  static (String label, Color color, Color bg, IconData icon) _approvalBadgeConfig(
+    String status,
+    ColorScheme colors,
+  ) {
     return switch (status) {
-      'approved' => 'Approved',
-      'rejected' => 'Changes required',
-      _ => 'Pending review',
+      'approved' => (
+        'Approved',
+        const Color(0xFF16A34A),
+        const Color(0xFF16A34A).withValues(alpha: 0.1),
+        Icons.verified_outlined,
+      ),
+      'rejected' => (
+        'Changes required',
+        colors.error,
+        colors.errorContainer.withValues(alpha: 0.3),
+        Icons.error_outline_rounded,
+      ),
+      _ => (
+        'Pending review',
+        const Color(0xFFD97706),
+        const Color(0xFFFEF3C7),
+        Icons.hourglass_empty_rounded,
+      ),
     };
   }
 }
@@ -522,24 +591,65 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w800),
+        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 13),
       ),
     );
   }
 }
 
 class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.icon, required this.label});
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    this.color,
+    this.backgroundColor,
+  });
 
   final IconData icon;
   final String label;
+  final Color? color;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      avatar: Icon(icon, size: 17),
-      label: Text(label),
-      visualDensity: VisualDensity.compact,
+    final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fg = color ??
+        (isDark
+            ? colors.onSurface.withValues(alpha: 0.85)
+            : const Color(0xFF334155));
+    final bg = backgroundColor ??
+        (isDark
+            ? colors.surfaceContainerHigh
+            : const Color(0xFFF1F5F9));
+    final borderCol = color != null
+        ? color!.withValues(alpha: 0.35)
+        : (isDark
+            ? colors.outlineVariant.withValues(alpha: 0.4)
+            : const Color(0xFFCBD5E1));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: borderCol, width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: fg),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
