@@ -13,34 +13,69 @@ import '../widgets/live_overstay_tracker_card.dart';
 import '../widgets/rebook_selection_dialog.dart';
 import '../widgets/reservation_action_dialogs.dart';
 import '../widgets/reservation_credential_dialog.dart';
+import 'find_screen.dart';
 import 'map_screen.dart';
 import 'reservation_conversation_screen.dart';
 
 class ReservationsScreen extends StatefulWidget {
-  const ReservationsScreen({super.key});
+  const ReservationsScreen({super.key, this.initialTabIndex = 0});
+
+  final int initialTabIndex;
 
   @override
   State<ReservationsScreen> createState() => _ReservationsScreenState();
 }
 
-class _ReservationsScreenState extends State<ReservationsScreen> {
+class _ReservationsScreenState extends State<ReservationsScreen>
+    with SingleTickerProviderStateMixin {
   List<DriverReservation>? _reservations;
   bool _loading = true;
   String? _errorMessage;
   bool _acting = false;
   Timer? _statusPollTimer;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, 2),
+    );
     _fetch();
   }
 
   @override
   void dispose() {
     _statusPollTimer?.cancel();
+    _tabController.dispose();
     super.dispose();
   }
+
+  List<DriverReservation> get _activeBookings =>
+      _reservations
+          ?.where((r) => r.status.trim().toLowerCase() == 'approved')
+          .toList() ??
+      [];
+
+  List<DriverReservation> get _pendingBookings =>
+      _reservations
+          ?.where((r) => r.status.trim().toLowerCase() == 'pending')
+          .toList() ??
+      [];
+
+  List<DriverReservation> get _historyBookings =>
+      _reservations
+          ?.where((r) {
+            final s = r.status.trim().toLowerCase();
+            return s == 'completed' ||
+                s == 'cancelled' ||
+                s == 'rejected' ||
+                (s != 'approved' && s != 'pending');
+          })
+          .toList() ??
+      [];
 
   void _checkPendingPoll(List<DriverReservation>? items) {
     final hasPending = items?.any((r) => r.status.toLowerCase() == 'pending') ?? false;
@@ -371,10 +406,228 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     );
   }
 
+  Widget _buildTab({
+    required String title,
+    required int count,
+    required Color badgeColor,
+    required IconData icon,
+  }) {
+    return Tab(
+      height: 48,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 6),
+          Text(title),
+          if (count > 0) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: badgeColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookingList({
+    required List<DriverReservation> items,
+    required IconData emptyIcon,
+    required String emptyTitle,
+    required String emptySubtitle,
+    bool showFindButton = false,
+  }) {
+    if (items.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primaryContainer
+                            .withValues(alpha: 0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        emptyIcon,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      emptyTitle,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      emptySubtitle,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (showFindButton) ...[
+                      const SizedBox(height: 20),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF173B64),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 22,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const FindScreen(),
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.search_rounded, size: 18),
+                        label: const Text(
+                          'Find Parking Spaces',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: items.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final reservation = items[index];
+              return _ReservationCard(
+                reservation: reservation,
+                disabled: _acting,
+                onCredential: () => _showCredential(reservation),
+                onReschedule: () => _reschedule(reservation),
+                onFeedback: () => _feedback(reservation),
+                onCancel: () => _cancel(reservation),
+                onExtend: () => _extend(reservation),
+                onRebook: () => _rebook(reservation),
+                onPay: () => _pay(reservation),
+                onReceipt: () =>
+                    DigitalReceiptDialog.showForDriver(context, reservation),
+                onContact: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ReservationConversationScreen(
+                      reservationId: reservation.id,
+                      otherPartyName: reservation.ownerName,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Reservations')),
+      appBar: AppBar(
+        title: const Text('My Bookings'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: Theme.of(context).appBarTheme.backgroundColor,
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: const Color(0xFFFACC15),
+              indicatorWeight: 3.5,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+              tabs: [
+                _buildTab(
+                  title: 'Active',
+                  count: _activeBookings.length,
+                  badgeColor: const Color(0xFF10B981),
+                  icon: Icons.local_parking_rounded,
+                ),
+                _buildTab(
+                  title: 'Pending',
+                  count: _pendingBookings.length,
+                  badgeColor: const Color(0xFFF59E0B),
+                  icon: Icons.hourglass_top_rounded,
+                ),
+                _buildTab(
+                  title: 'History',
+                  count: _historyBookings.length,
+                  badgeColor: const Color(0xFF64748B),
+                  icon: Icons.history_rounded,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           if (_loading && _reservations == null)
@@ -384,51 +637,35 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
               message: _errorMessage!,
               onRetry: _fetch,
             )
-          else if (_reservations == null || _reservations!.isEmpty)
-            _Message(
-              message: 'No reservations yet.',
-              onRetry: _fetch,
-            )
           else
-            RefreshIndicator(
-              onRefresh: _refresh,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _reservations!.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final reservation = _reservations![index];
-                      return _ReservationCard(
-                        reservation: reservation,
-                        disabled: _acting,
-                        onCredential: () => _showCredential(reservation),
-                        onReschedule: () => _reschedule(reservation),
-                        onFeedback: () => _feedback(reservation),
-                        onCancel: () => _cancel(reservation),
-                        onExtend: () => _extend(reservation),
-                        onRebook: () => _rebook(reservation),
-                        onPay: () => _pay(reservation),
-                        onReceipt: () =>
-                            DigitalReceiptDialog.showForDriver(context, reservation),
-                        onContact: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ReservationConversationScreen(
-                              reservationId: reservation.id,
-                              otherPartyName: reservation.ownerName,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+            TabBarView(
+              controller: _tabController,
+              children: [
+                _buildBookingList(
+                  items: _activeBookings,
+                  emptyIcon: Icons.local_parking_rounded,
+                  emptyTitle: 'No Active Bookings',
+                  emptySubtitle:
+                      'You do not have any ongoing or confirmed parking reservations.',
+                  showFindButton: true,
                 ),
-              ),
+                _buildBookingList(
+                  items: _pendingBookings,
+                  emptyIcon: Icons.hourglass_empty_rounded,
+                  emptyTitle: 'No Pending Requests',
+                  emptySubtitle:
+                      'All your parking reservation requests have been processed.',
+                  showFindButton: false,
+                ),
+                _buildBookingList(
+                  items: _historyBookings,
+                  emptyIcon: Icons.history_rounded,
+                  emptyTitle: 'No Past Transactions',
+                  emptySubtitle:
+                      'Completed, cancelled, and rejected parking transactions will appear here.',
+                  showFindButton: false,
+                ),
+              ],
             ),
           if (_acting)
             const Positioned.fill(
