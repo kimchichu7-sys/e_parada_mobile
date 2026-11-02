@@ -983,40 +983,49 @@ class _VehicleCard extends StatelessWidget {
   }
 
   Widget _buildScanBanner(BuildContext context, String status, String plateNumber) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (status == 'matched') {
       return Container(
+        width: double.infinity,
         margin: const EdgeInsets.only(top: 2, bottom: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
-          color: Colors.green.withValues(alpha: 0.12),
+          color: Colors.green.withValues(alpha: isDark ? 0.2 : 0.12),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
           children: [
-            const Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
-            const SizedBox(width: 6),
-            const Text(
-              'Photo scan: plate matched',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
+                SizedBox(width: 6),
+                Text(
+                  'Photo scan: plate matched',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.2),
+                color: Colors.green.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text(
                 'Quick approve ready',
                 style: TextStyle(
                   color: Colors.green,
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -1027,27 +1036,33 @@ class _VehicleCard extends StatelessWidget {
     }
 
     if (status == 'mismatch') {
+      final errorColor = Theme.of(context).colorScheme.error;
       return Container(
+        width: double.infinity,
         margin: const EdgeInsets.only(top: 2, bottom: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.45)),
+          border: Border.all(color: errorColor.withValues(alpha: 0.45)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.warning_amber_rounded, size: 18, color: Theme.of(context).colorScheme.error),
-                const SizedBox(width: 6),
-                Text(
-                  'Photo scan: mismatch detected',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
+                Icon(Icons.warning_amber_rounded, size: 18, color: errorColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Photo scan: mismatch detected',
+                    style: TextStyle(
+                      color: errorColor,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                    ),
+                    softWrap: true,
                   ),
                 ),
               ],
@@ -1057,34 +1072,47 @@ class _VehicleCard extends StatelessWidget {
               'Plate characters in photo did not match $plateNumber. Admin manual checking recommended.',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onErrorContainer,
-                fontSize: 14,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w500,
               ),
+              softWrap: true,
             ),
           ],
         ),
       );
     }
 
+    final amberFg = isDark ? Colors.amber.shade300 : Colors.amber.shade900;
+    final amberIcon = isDark ? Colors.amber.shade300 : Colors.amber.shade800;
+
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.only(top: 2, bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.15),
+        color: Colors.amber.withValues(alpha: isDark ? 0.2 : 0.15),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: (isDark ? Colors.amber.shade400 : Colors.amber.shade700).withValues(alpha: 0.35),
+        ),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, size: 16, color: Colors.amber.shade800),
-          const SizedBox(width: 6),
-          Text(
-            'Photo scan: ${_scanStatus(status)}',
-            style: TextStyle(
-              color: Colors.amber.shade900,
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
+          Padding(
+            padding: const EdgeInsets.only(top: 1.5),
+            child: Icon(Icons.info_outline, size: 16, color: amberIcon),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Photo scan: ${_scanStatus(status)}',
+              style: TextStyle(
+                color: amberFg,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+              softWrap: true,
             ),
           ),
         ],
