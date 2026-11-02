@@ -12,7 +12,6 @@ import '../widgets/app_network_image.dart';
 import '../widgets/favorite_space_button.dart';
 import '../widgets/image_preview_dialog.dart';
 import '../widgets/notification_action_button.dart';
-import '../widgets/offline_parking_pass_dialog.dart';
 import '../widgets/reservation_credential_dialog.dart';
 import 'interactive_map_screen.dart';
 import 'parking_details_screen.dart';
@@ -442,24 +441,6 @@ class _ActiveReservationBanner extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                ),
-                onPressed: () {
-                  OfflineParkingPassDialog.show(
-                    context,
-                    OfflinePassData.fromDriverReservation(reservation),
-                  );
-                },
-                icon: const Icon(Icons.cloud_off_rounded, size: 16),
-                label: const Text(
-                  'Offline Pass',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,

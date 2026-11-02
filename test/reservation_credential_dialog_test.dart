@@ -31,7 +31,24 @@ void main() {
     expect(find.byType(QrImageView), findsOneWidget);
     expect(find.text('RES-125'), findsOneWidget);
     expect(find.text('Calamba Test Parking'), findsOneWidget);
+    expect(find.text('Download QR Code'), findsOneWidget);
     expect(find.byTooltip('Copy backup reference'), findsOneWidget);
+  });
+
+  test('generateQrPassImageBytes produces valid PNG image bytes', () async {
+    final bytes = await generateQrPassImageBytes(
+      qrCode: 'EPARADA:99:TEST_QR',
+      backupReference: 'RES-99-TEST',
+      parkingSpaceName: 'SM City Calamba',
+    );
+
+    expect(bytes.isNotEmpty, true);
+    // Verify PNG magic numbers: 0x89 0x50 0x4E 0x47 (137, 80, 78, 71)
+    expect(bytes.length, greaterThan(100));
+    expect(bytes[0], 0x89);
+    expect(bytes[1], 0x50); // 'P'
+    expect(bytes[2], 0x4E); // 'N'
+    expect(bytes[3], 0x47); // 'G'
   });
 
   testWidgets(
