@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart' hide Path;
 import '../models/parking_space.dart';
 import '../services/api_service.dart';
 import '../services/route_navigation_service.dart';
+import '../utils/marker_bitmap_generator.dart';
 import '../utils/parking_discovery.dart';
 import '../widgets/app_network_image.dart';
 import '../widgets/favorite_space_button.dart';
@@ -73,6 +74,41 @@ class _MapScreenState extends State<MapScreen> {
   double? _maxHourlyRate;
   ParkingSort _sort = ParkingSort.recommended;
   bool _isMapFullscreen = false;
+  final Map<String, gmaps.BitmapDescriptor> _customMarkerBitmaps = {};
+
+  Future<void> _preloadMarkerBitmaps(List<ParkingSpace> spaces) async {
+    final futures = <Future<void>>[];
+    for (final space in spaces) {
+      final rate = space.getEffectiveRate(vehicleType: _vehicleFilter);
+
+      futures.add(
+        MarkerBitmapGenerator.getPriceMarker(
+          price: rate,
+          isAvailable: space.isAvailable,
+          isSelected: false,
+        ).then((bitmap) {
+          _customMarkerBitmaps['${space.id}_false'] = bitmap;
+        }),
+      );
+
+      futures.add(
+        MarkerBitmapGenerator.getPriceMarker(
+          price: rate,
+          isAvailable: space.isAvailable,
+          isSelected: true,
+        ).then((bitmap) {
+          _customMarkerBitmaps['${space.id}_true'] = bitmap;
+        }),
+      );
+    }
+
+    try {
+      await Future.wait(futures);
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (_) {}
+  }
 
   @override
   void initState() {
@@ -81,6 +117,7 @@ class _MapScreenState extends State<MapScreen> {
       _selectedSpace = widget.initialSelectedSpace;
     }
     _spacesFuture = widget.loadParkingSpaces().then((spaces) {
+      _preloadMarkerBitmaps(spaces);
       if (widget.focusedParkingSpaceId != null && _selectedSpace == null) {
         try {
           final found = spaces.firstWhere(
@@ -1624,20 +1661,30 @@ class _MapScreenState extends State<MapScreen> {
       final destPt = _pointFor(_selectedSpace!)!;
       final isAvailable = _selectedSpace!.isAvailable;
       final rate = _selectedSpace!.getEffectiveRate(vehicleType: _vehicleFilter);
+      final destIcon = _customMarkerBitmaps['${_selectedSpace!.id}_true'] ??
+          MarkerBitmapGenerator.getCachedMarker(
+            price: rate,
+            isAvailable: isAvailable,
+            isSelected: true,
+          );
 
       markers.add(
         gmaps.Marker(
           markerId: gmaps.MarkerId('selected_dest_${_selectedSpace!.id}'),
           position: gmaps.LatLng(destPt.latitude, destPt.longitude),
-          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            isAvailable
-                ? gmaps.BitmapDescriptor.hueAzure
-                : gmaps.BitmapDescriptor.hueRed,
-          ),
+          anchor: destIcon != null
+              ? MarkerBitmapGenerator.getMarkerAnchor()
+              : const Offset(0.5, 1.0),
+          icon: destIcon ??
+              gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                isAvailable
+                    ? gmaps.BitmapDescriptor.hueAzure
+                    : gmaps.BitmapDescriptor.hueRed,
+              ),
           infoWindow: gmaps.InfoWindow(
             title: _selectedSpace!.name,
             snippet: isAvailable
-                ? '₱${rate.toStringAsFixed(2)}/hr • ${_selectedSpace!.availableSlotsCount} slots free'
+                ? '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${_selectedSpace!.availableSlotsCount} slots free'
                 : 'Destination • Sold Out',
           ),
           onTap: () {
@@ -1745,20 +1792,31 @@ class _MapScreenState extends State<MapScreen> {
         if (pt == null) continue;
         final selected = _selectedSpace?.id == space.id;
         final rate = space.getEffectiveRate(vehicleType: _vehicleFilter);
+        final cacheKey = '${space.id}_$selected';
+        final customIcon = _customMarkerBitmaps[cacheKey] ??
+            MarkerBitmapGenerator.getCachedMarker(
+              price: rate,
+              isAvailable: space.isAvailable,
+              isSelected: selected,
+            );
 
         markers.add(
           gmaps.Marker(
             markerId: gmaps.MarkerId('parking_space_${space.id}'),
             position: gmaps.LatLng(pt.latitude, pt.longitude),
-            icon: space.isAvailable
-                ? (selected
-                    ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
-                    : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet))
-                : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed),
+            anchor: customIcon != null
+                ? MarkerBitmapGenerator.getMarkerAnchor()
+                : const Offset(0.5, 1.0),
+            icon: customIcon ??
+                (space.isAvailable
+                    ? (selected
+                        ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
+                        : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet))
+                    : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)),
             infoWindow: gmaps.InfoWindow(
               title: space.name,
               snippet: space.isAvailable
-                  ? '₱${rate.toStringAsFixed(2)}/hr • ${space.availableSlotsCount} slots free'
+                  ? '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${space.availableSlotsCount} slots free'
                   : 'Sold Out / Unavailable',
             ),
             onTap: () {

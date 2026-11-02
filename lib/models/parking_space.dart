@@ -19,6 +19,9 @@ class ParkingSpace {
     this.maxHeight,
     this.length,
     this.width,
+    this.hourlyRate,
+    this.lowestHourlyRate,
+    this.vehicleHourlyRates = const {},
   });
 
   final int id;
@@ -38,16 +41,59 @@ class ParkingSpace {
   final double? maxHeight;
   final double? length;
   final double? width;
+  final double? hourlyRate;
+  final double? lowestHourlyRate;
+  final Map<String, double> vehicleHourlyRates;
 
   bool get isAvailable => isOpenNow;
 
   int get availableSlotsCount => isAvailable ? 1 : 0;
 
   double getEffectiveRate({String? vehicleType}) {
+    // 1. If a specific vehicle type is selected
+    if (vehicleType != null &&
+        vehicleType.isNotEmpty &&
+        vehicleType.trim().toLowerCase() != 'all' &&
+        vehicleType.trim().toLowerCase() != 'all vehicle types') {
+      final normalizedQuery = vehicleType.trim().toLowerCase();
+
+      // Direct / exact key check
+      for (final entry in vehicleHourlyRates.entries) {
+        if (entry.key.trim().toLowerCase() == normalizedQuery && entry.value > 0) {
+          return entry.value;
+        }
+      }
+
+      // Substring / partial key check (e.g. "SUV" <-> "SUV/MPV", "Car" <-> "Car/Sedan")
+      for (final entry in vehicleHourlyRates.entries) {
+        final k = entry.key.trim().toLowerCase();
+        if ((k.contains(normalizedQuery) || normalizedQuery.contains(k)) && entry.value > 0) {
+          return entry.value;
+        }
+      }
+    }
+
+    // 2. If "All vehicle types" or not found: Return the lowest price for this space
+    if (lowestHourlyRate != null && lowestHourlyRate! > 0) {
+      return lowestHourlyRate!;
+    }
+
+    if (vehicleHourlyRates.isNotEmpty) {
+      final validRates = vehicleHourlyRates.values.where((r) => r > 0).toList();
+      if (validRates.isNotEmpty) {
+        return validRates.reduce((a, b) => a < b ? a : b);
+      }
+    }
+
+    if (hourlyRate != null && hourlyRate! > 0) {
+      return hourlyRate!;
+    }
+
     final match = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(price);
     if (match != null) {
       return double.tryParse(match.group(1) ?? '') ?? 0.0;
     }
+
     return 0.0;
   }
 
@@ -177,6 +223,22 @@ class ParkingSpace {
       maxHeight: (json['max_height'] as num?)?.toDouble() ?? (json['height_clearance'] as num?)?.toDouble(),
       length: (json['length'] as num?)?.toDouble() ?? (json['slot_length'] as num?)?.toDouble(),
       width: (json['width'] as num?)?.toDouble() ?? (json['slot_width'] as num?)?.toDouble(),
+      hourlyRate: (json['hourly_rate'] as num?)?.toDouble() ?? (json['rate'] as num?)?.toDouble(),
+      lowestHourlyRate: (json['lowest_hourly_rate'] as num?)?.toDouble() ?? (json['lowest_rate'] as num?)?.toDouble(),
+      vehicleHourlyRates: () {
+        final rates = <String, double>{};
+        if (json['vehicle_hourly_rates'] is Map) {
+          (json['vehicle_hourly_rates'] as Map).forEach((k, v) {
+            if (v != null) {
+              final parsed = (v is num) ? v.toDouble() : double.tryParse(v.toString());
+              if (parsed != null && parsed >= 0) {
+                rates[k.toString().trim()] = parsed;
+              }
+            }
+          });
+        }
+        return rates;
+      }(),
     );
   }
 }

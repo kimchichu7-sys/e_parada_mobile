@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/parking_space.dart';
 import '../services/api_service.dart';
 import '../services/favorites_service.dart';
+import '../utils/marker_bitmap_generator.dart';
 import '../utils/parking_discovery.dart';
 import '../widgets/app_network_image.dart';
 import '../widgets/favorite_space_button.dart';
@@ -62,6 +63,7 @@ class _FindScreenState extends State<FindScreen> {
   bool _locationPermissionGranted = false;
   bool _mapReady = false;
   bool _showSearchHereButton = false;
+  final Map<String, gmaps.BitmapDescriptor> _customMarkerBitmaps = {};
 
   @override
   void initState() {
@@ -98,8 +100,45 @@ class _FindScreenState extends State<FindScreen> {
       setState(() {
         _allSpaces = spaces;
       });
+      _preloadMarkerBitmaps(spaces);
       return spaces;
     });
+  }
+
+  Future<void> _preloadMarkerBitmaps(List<ParkingSpace> spaces) async {
+    final futures = <Future<void>>[];
+    for (final space in spaces) {
+      final rate = space.getEffectiveRate(vehicleType: _selectedVehicleType);
+
+      // Unselected state
+      futures.add(
+        MarkerBitmapGenerator.getPriceMarker(
+          price: rate,
+          isAvailable: space.isAvailable,
+          isSelected: false,
+        ).then((bitmap) {
+          _customMarkerBitmaps['${space.id}_false'] = bitmap;
+        }),
+      );
+
+      // Selected state
+      futures.add(
+        MarkerBitmapGenerator.getPriceMarker(
+          price: rate,
+          isAvailable: space.isAvailable,
+          isSelected: true,
+        ).then((bitmap) {
+          _customMarkerBitmaps['${space.id}_true'] = bitmap;
+        }),
+      );
+    }
+
+    try {
+      await Future.wait(futures);
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (_) {}
   }
 
   Future<void> _checkLocationServices() async {
@@ -256,7 +295,7 @@ class _FindScreenState extends State<FindScreen> {
   }
 
   double _calculateEstimatedTotal(ParkingSpace space) {
-    final hourly = parkingHourlyRate(space) ?? 20.0;
+    final hourly = space.getEffectiveRate(vehicleType: _selectedVehicleType);
     final hours = _calculateDurationHours();
     return hourly * hours;
   }
@@ -350,6 +389,7 @@ class _FindScreenState extends State<FindScreen> {
 
   void _applyFilters() {
     FocusScope.of(context).unfocus();
+    _preloadMarkerBitmaps(_allSpaces);
     final count = _getFilteredSpaces().length;
     _showToast('Filters applied: $count parking space${count == 1 ? '' : 's'} available');
     if (_selectedSpace != null && !_getFilteredSpaces().contains(_selectedSpace)) {
@@ -446,20 +486,31 @@ class _FindScreenState extends State<FindScreen> {
       if (pt == null) continue;
 
       final isSelected = _selectedSpace?.id == space.id;
-      final rate = parkingHourlyRate(space) ?? 20.0;
+      final rate = space.getEffectiveRate(vehicleType: _selectedVehicleType);
+      final cacheKey = '${space.id}_$isSelected';
+      final customIcon = _customMarkerBitmaps[cacheKey] ??
+          MarkerBitmapGenerator.getCachedMarker(
+            price: rate,
+            isAvailable: space.isAvailable,
+            isSelected: isSelected,
+          );
 
       markers.add(
         gmaps.Marker(
           markerId: gmaps.MarkerId('space_${space.id}'),
           position: gmaps.LatLng(pt.latitude, pt.longitude),
-          icon: space.isAvailable
-              ? (isSelected
-                  ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
-                  : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueCyan))
-              : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed),
+          anchor: customIcon != null
+              ? MarkerBitmapGenerator.getMarkerAnchor()
+              : const Offset(0.5, 1.0),
+          icon: customIcon ??
+              (space.isAvailable
+                  ? (isSelected
+                      ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
+                      : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueCyan))
+                  : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)),
           infoWindow: gmaps.InfoWindow(
             title: space.name,
-            snippet: '₱${rate.toStringAsFixed(0)}/hr • ${space.availableSlotsCount} slots free',
+            snippet: '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${space.availableSlotsCount} slots free',
           ),
           onTap: () {
             setState(() {
@@ -889,6 +940,7 @@ class _FindScreenState extends State<FindScreen> {
                             setState(() {
                               _selectedVehicleType = (val == null || val == 'All') ? '' : val;
                             });
+                            _preloadMarkerBitmaps(_allSpaces);
                           },
                         ),
                       ),

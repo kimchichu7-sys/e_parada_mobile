@@ -14,7 +14,7 @@ void main() {
     double totalAmount = 100.0,
     double totalHours = 4.0,
     bool canExtend = true,
-    DateTime? timeIn = const _DefaultTimeIn(),
+    Object? timeIn = const _DefaultTimeIn(),
     String cancellationReason = '',
   }) {
     return DriverReservation(
@@ -38,7 +38,7 @@ void main() {
       totalAmount: totalAmount,
       paymentStatus: 'unpaid',
       paymentMethod: '',
-      timeIn: timeIn is _DefaultTimeIn ? DateTime(2026, 9, 10, 10, 0, 0) : timeIn,
+      timeIn: timeIn is DateTime ? timeIn : (timeIn is _DefaultTimeIn ? DateTime(2026, 9, 10, 10, 0, 0) : null),
       timeOut: null,
       feedbackRating: null,
       feedbackComment: '',

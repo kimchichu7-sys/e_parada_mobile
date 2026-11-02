@@ -37,7 +37,9 @@ List<String> parkingVehicleTypes(Iterable<ParkingSpace> spaces) {
   return result;
 }
 
-double? parkingHourlyRate(ParkingSpace space) {
+double? parkingHourlyRate(ParkingSpace space, {String? vehicleType}) {
+  final rate = space.getEffectiveRate(vehicleType: vehicleType);
+  if (rate > 0) return rate;
   final match = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(space.price);
   return match == null ? null : double.tryParse(match.group(1)!);
 }

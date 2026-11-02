@@ -44,4 +44,36 @@ void main() {
     expect(space.imageUrl, isNotNull);
     expect(space.imageUrl, contains('storage/parking_spaces/tung_tung.jpg'));
   });
+
+  test('returns specific vehicle rate if chosen or lowest price if All vehicle types', () {
+    final space = ParkingSpace.fromJson({
+      'id': 10,
+      'space_name': 'Calamba Doctors Parking',
+      'address': 'Calamba Doctors Hospital',
+      'status': 'Open',
+      'is_open_now': true,
+      'price': 'PHP 15.00/hr',
+      'lowest_hourly_rate': 15.0,
+      'hourly_rate': 15.0,
+      'vehicle_hourly_rates': {
+        'Motorcycle': 15.0,
+        'Car': 30.0,
+        'SUV/MPV': 45.0,
+        'Van': 50.0,
+      },
+    });
+
+    // Specific vehicle chosen
+    expect(space.getEffectiveRate(vehicleType: 'Car'), 30.0);
+    expect(space.getEffectiveRate(vehicleType: 'Motorcycle'), 15.0);
+    expect(space.getEffectiveRate(vehicleType: 'SUV/MPV'), 45.0);
+    expect(space.getEffectiveRate(vehicleType: 'SUV'), 45.0);
+
+    // All vehicle types -> Lowest price in that parking space
+    expect(space.getEffectiveRate(vehicleType: 'All'), 15.0);
+    expect(space.getEffectiveRate(vehicleType: 'All Vehicle Types'), 15.0);
+    expect(space.getEffectiveRate(vehicleType: ''), 15.0);
+    expect(space.getEffectiveRate(vehicleType: null), 15.0);
+  });
 }
+
