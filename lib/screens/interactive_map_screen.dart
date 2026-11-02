@@ -3717,13 +3717,21 @@ class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
           s.address.toLowerCase().contains(q);
     }).toList();
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final searchBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+    final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final subtextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final dividerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -3734,7 +3742,7 @@ class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
             height: 4,
             margin: const EdgeInsets.only(top: 10, bottom: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFCBD5E1),
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -3747,12 +3755,12 @@ class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Set Starting Point',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
+                          color: textColor,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -3760,9 +3768,9 @@ class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
                         widget.currentSelectedSpace != null
                             ? 'Route to: ${widget.currentSelectedSpace!.name}'
                             : 'Choose where your trip begins',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: subtextColor,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -3773,7 +3781,7 @@ class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
                 IconButton(
                   tooltip: 'Close',
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  icon: Icon(Icons.close_rounded, color: subtextColor),
                 ),
               ],
             ),
@@ -3785,13 +3793,23 @@ class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
               controller: _searchController,
               autofocus: false,
               textInputAction: TextInputAction.search,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+              cursorColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF173B64),
               onChanged: (val) => setState(() => _query = val),
               decoration: InputDecoration(
                 hintText: 'Search location, landmark, or street...',
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
+                hintStyle: TextStyle(
+                  color: subtextColor,
+                  fontSize: 14,
+                ),
+                prefixIcon: Icon(Icons.search_rounded, color: subtextColor),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18),
+                        icon: Icon(Icons.clear_rounded, size: 18, color: subtextColor),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _query = '');
@@ -3799,16 +3817,20 @@ class _StartingPointPickerSheetState extends State<_StartingPointPickerSheet> {
                       )
                     : null,
                 filled: true,
-                fillColor: const Color(0xFFF1F5F9),
+                fillColor: searchBg,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
+                  borderSide: isDark ? const BorderSide(color: Color(0xFF334155)) : BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: isDark ? const BorderSide(color: Color(0xFF334155)) : BorderSide.none,
                 ),
               ),
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          Divider(height: 1, color: dividerColor),
           // Scrollable list of options
           Expanded(
             child: ListView(

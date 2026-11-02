@@ -735,10 +735,26 @@ class _FindScreenState extends State<FindScreen> {
   // Top Filter Header (Deep Navy #1E3A4C / #173B64 with #FFDE70 Gold Accents)
   // ---------------------------------------------------------------------------
   Widget _buildTopFilterHeader() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final headerBg = isDark ? const Color(0xFF0A192C) : const Color(0xFF1E3A4C);
+    final searchBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final searchBorder = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+    final searchTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final searchHintColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final searchIconColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF1E3A4C);
+    final cursorColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF173B64);
+    final closeIconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
+    final chipBg = isDark ? const Color(0xFF1E293B) : const Color(0xFF28495D);
+    final chipBorder = isDark ? const Color(0xFF334155) : const Color(0xFF475569);
+    final chipDropdownBg = isDark ? const Color(0xFF1E293B) : const Color(0xFF1E3A4C);
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E3A4C), // Brand Deep Navy from Web screenshot
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: headerBg,
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 6,
@@ -753,14 +769,14 @@ class _FindScreenState extends State<FindScreen> {
           // Row 1: Search Bar + View Toggle & Favorites
           Row(
             children: [
-              // Search text input (High contrast white pill with dark slate text)
+              // Search text input (Adapts to light & dark theme)
               Expanded(
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: searchBg,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
+                    border: Border.all(color: searchBorder, width: 1.2),
                     boxShadow: const [
                       BoxShadow(
                         color: Colors.black12,
@@ -782,16 +798,16 @@ class _FindScreenState extends State<FindScreen> {
                         child: TextField(
                           controller: _searchController,
                           textInputAction: TextInputAction.search,
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A), // Dark slate text: 100% visible on white!
+                          style: TextStyle(
+                            color: searchTextColor,
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
                           ),
-                          cursorColor: const Color(0xFF173B64),
-                          decoration: const InputDecoration(
+                          cursorColor: cursorColor,
+                          decoration: InputDecoration(
                             hintText: 'Address, Place or Event...',
                             hintStyle: TextStyle(
-                              color: Color(0xFF94A3B8),
+                              color: searchHintColor,
                               fontSize: 13,
                               fontWeight: FontWeight.normal,
                             ),
@@ -813,22 +829,22 @@ class _FindScreenState extends State<FindScreen> {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
                           },
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 4.0),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
                             child: Icon(
                               Icons.close_rounded,
-                              color: Color(0xFF64748B),
+                              color: closeIconColor,
                               size: 18,
                             ),
                           ),
                         ),
                       GestureDetector(
                         onTap: () => _searchAndMoveToPlace(_searchController.text),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: Icon(
                             Icons.search_rounded,
-                            color: Color(0xFF1E3A4C),
+                            color: searchIconColor,
                             size: 20,
                           ),
                         ),
@@ -853,10 +869,14 @@ class _FindScreenState extends State<FindScreen> {
                       height: 44,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
-                        color: _onlyFavorites ? const Color(0xFFFFDE70) : const Color(0xFF28495D),
+                        color: _onlyFavorites
+                            ? const Color(0xFFFFDE70)
+                            : chipBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _onlyFavorites ? const Color(0xFFFFDE70) : const Color(0xFF475569),
+                          color: _onlyFavorites
+                              ? const Color(0xFFFFDE70)
+                              : chipBorder,
                         ),
                       ),
                       child: Row(
@@ -891,9 +911,9 @@ class _FindScreenState extends State<FindScreen> {
                 height: 44,
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF28495D),
+                  color: chipBg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF475569)),
+                  border: Border.all(color: chipBorder),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -928,9 +948,9 @@ class _FindScreenState extends State<FindScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF28495D),
+                      color: chipBg,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFF475569)),
+                      border: Border.all(color: chipBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -986,9 +1006,9 @@ class _FindScreenState extends State<FindScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF28495D),
+                      color: chipBg,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFF475569)),
+                      border: Border.all(color: chipBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1042,9 +1062,9 @@ class _FindScreenState extends State<FindScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF28495D),
+                    color: chipBg,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF475569)),
+                    border: Border.all(color: chipBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1062,7 +1082,7 @@ class _FindScreenState extends State<FindScreen> {
                       DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedVehicleType.isEmpty ? 'All' : _selectedVehicleType,
-                          dropdownColor: const Color(0xFF1E3A4C),
+                          dropdownColor: chipDropdownBg,
                           icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
                           isDense: true,
                           style: const TextStyle(
