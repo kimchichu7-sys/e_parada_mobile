@@ -74,7 +74,14 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Platform Operations'),
+          title: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.admin_panel_settings_outlined, size: 24),
+              SizedBox(width: 8),
+              Text('Platform Operations'),
+            ],
+          ),
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.support_agent_outlined), text: 'Support'),

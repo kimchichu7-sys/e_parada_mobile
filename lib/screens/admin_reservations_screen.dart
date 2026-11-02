@@ -157,7 +157,14 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reservation Monitor'),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.receipt_long_outlined, size: 24),
+            SizedBox(width: 8),
+            Text('Reservation Monitor'),
+          ],
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(54),
           child: SizedBox(

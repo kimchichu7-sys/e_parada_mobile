@@ -17,11 +17,19 @@ void main() {
     expect(light.brightness, Brightness.light);
     expect(light.scaffoldBackgroundColor, AppPalette.aliceBlue);
     expect(light.colorScheme.primary, AppPalette.yaleBlue);
+    expect(light.appBarTheme.backgroundColor, AppPalette.yaleBlue);
+    expect(light.appBarTheme.foregroundColor, AppPalette.aliceBlue);
+    expect(light.appBarTheme.titleTextStyle?.color, AppPalette.aliceBlue);
+    expect(light.tabBarTheme.labelColor, AppPalette.naplesYellow);
 
     final dark = AppTheme.darkTheme;
     expect(dark.brightness, Brightness.dark);
     expect(dark.scaffoldBackgroundColor, AppPalette.darkBg);
     expect(dark.colorScheme.primary, AppPalette.powderBlue);
+    expect(dark.appBarTheme.backgroundColor, AppPalette.darkSurface);
+    expect(dark.appBarTheme.foregroundColor, AppPalette.powderBlue);
+    expect(dark.appBarTheme.titleTextStyle?.color, AppPalette.powderBlue);
+    expect(dark.tabBarTheme.labelColor, AppPalette.naplesYellow);
   });
 
   test('themeNotifier updates with setThemeMode', () async {

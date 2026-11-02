@@ -571,7 +571,16 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Reviews')),
+      appBar: AppBar(
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.fact_check_outlined, size: 24),
+            SizedBox(width: 8),
+            Text('Admin Reviews'),
+          ],
+        ),
+      ),
       body: Stack(
         children: [
           Column(

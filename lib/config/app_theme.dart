@@ -116,6 +116,7 @@ class AppTheme {
     final accent = dark ? AppPalette.powderBlue : AppPalette.yaleBlue;
     final onAccent = dark ? AppPalette.yaleBlue : Colors.white;
     final headerColor = dark ? AppPalette.powderBlue : AppPalette.yaleBlue;
+    final appBarForeground = dark ? AppPalette.powderBlue : AppPalette.aliceBlue;
 
     // Typography: body 14-16sp, headers 18-22sp bold (panel readability mandate).
     final textTheme = TextTheme(
@@ -174,15 +175,17 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: dark ? AppPalette.darkSurface : AppPalette.yaleBlue,
-        foregroundColor: headerColor,
+        foregroundColor: appBarForeground,
         elevation: 0,
         scrolledUnderElevation: 4,
         shadowColor: Colors.black.withValues(alpha: 0.25),
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         toolbarHeight: 60,
+        iconTheme: IconThemeData(color: appBarForeground),
+        actionsIconTheme: IconThemeData(color: appBarForeground),
         titleTextStyle: TextStyle(
-          color: headerColor,
+          color: appBarForeground,
           fontSize: 20,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.2,
@@ -319,8 +322,10 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       tabBarTheme: TabBarThemeData(
-        labelColor: onSurface,
-        unselectedLabelColor: onSurface.withValues(alpha: 0.6),
+        labelColor: AppPalette.naplesYellow,
+        unselectedLabelColor: dark
+            ? AppPalette.powderBlue.withValues(alpha: 0.7)
+            : AppPalette.aliceBlue.withValues(alpha: 0.75),
         indicatorColor: AppPalette.naplesYellow,
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: hairline,
