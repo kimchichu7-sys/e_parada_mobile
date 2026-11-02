@@ -27,7 +27,7 @@ class MarkerBitmapGenerator {
     bool isSelected,
   ) {
     final priceStr = price > 0 ? price.toStringAsFixed(2) : '0.00';
-    return 'v3_${priceStr}_${isAvailable}_${isClosed}_${isSoldOut}_$isSelected';
+    return 'v5_${priceStr}_${isAvailable}_${isClosed}_${isSoldOut}_$isSelected';
   }
 
   /// Creates or retrieves a custom price badge BitmapDescriptor matching the web pin style
@@ -91,27 +91,27 @@ class MarkerBitmapGenerator {
     if (isSelected) {
       bgColor = goldBg;
       borderColor = const Color(0xFF173B64);
-      borderWidth = 2.0;
+      borderWidth = 2.4;
       textColor = const Color(0xFF173B64);
     } else if (isSoldOut) {
       bgColor = redBg;
       borderColor = const Color(0xFFFDA4AF);
-      borderWidth = 1.5;
+      borderWidth = 1.8;
       textColor = const Color(0xFFFECDD3);
     } else if (isClosed) {
       bgColor = slateBg;
       borderColor = const Color(0xFF94A3B8);
-      borderWidth = 1.5;
+      borderWidth = 1.8;
       textColor = const Color(0xFFF1F5F9);
     } else if (!isAvailable) {
       bgColor = redBg;
       borderColor = const Color(0xFFFDA4AF);
-      borderWidth = 1.5;
+      borderWidth = 1.8;
       textColor = const Color(0xFFFECDD3);
     } else {
       bgColor = navyBg;
       borderColor = Colors.white;
-      borderWidth = 1.5;
+      borderWidth = 1.8;
       textColor = Colors.white;
     }
 
@@ -129,26 +129,30 @@ class MarkerBitmapGenerator {
       amountText = price % 1 == 0 ? '₱${price.toInt()}' : '₱${price.toStringAsFixed(2)}';
     }
 
-    // 3. Measure Text
+    // 3. Measure Text with enlarged legible font sizes
+    final double fontSize = amountText.length <= 4
+        ? (isSelected ? 14.5 : 13.5)
+        : (isSelected ? 13.0 : 12.0);
+
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
       text: TextSpan(
         text: amountText,
         style: TextStyle(
           color: textColor,
-          fontSize: 11.5,
+          fontSize: fontSize,
           fontWeight: FontWeight.w900,
           letterSpacing: -0.2,
         ),
       ),
     )..layout();
 
-    // 4. Compact Dimensions & Layout (Sleek Airbnb-style pin)
-    const double padH = 8.0;
-    const double pillHeight = 22.0;
-    const double pointerHeight = 4.5;
-    const double pointerWidth = 7.0;
-    const double shadowMargin = 3.0;
+    // 4. Enlarged, readable badge dimensions (comfortable tap size and visibility)
+    final double padH = amountText.length <= 4 ? 10.0 : 9.0;
+    final double pillHeight = isSelected ? 30.0 : 26.5;
+    final double pointerHeight = isSelected ? 6.0 : 5.0;
+    final double pointerWidth = isSelected ? 9.0 : 8.0;
+    const double shadowMargin = 3.5;
 
     final double pillWidth = textPainter.width + (padH * 2);
     final double totalWidth = pillWidth + (shadowMargin * 2);
@@ -163,8 +167,8 @@ class MarkerBitmapGenerator {
 
     // 5. Draw Shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.25)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
+      ..color = Colors.black.withValues(alpha: 0.28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.2);
 
     final pillRect = Rect.fromLTWH(
       shadowMargin,
@@ -174,7 +178,7 @@ class MarkerBitmapGenerator {
     );
     final pillRRect = RRect.fromRectAndRadius(
       pillRect,
-      const Radius.circular(pillHeight / 2),
+      Radius.circular(pillHeight / 2),
     );
     final centerX = shadowMargin + (pillWidth / 2);
 
@@ -230,11 +234,16 @@ class MarkerBitmapGenerator {
   }
 
   /// Calculates anchor offset so pointer tip touches coordinate precisely
-  static Offset getMarkerAnchor() {
-    // Pill height = 22.0, Pointer = 4.5, Shadow margin = 3.0
-    // Tip Y = 3.0 + 22.0 + 4.5 = 29.5
-    // Total height = 22.0 + 4.5 + (3.0 * 2) = 32.5
-    // 29.5 / 32.5 ≈ 0.907
-    return const Offset(0.5, 0.907);
+  static Offset getMarkerAnchor({bool isSelected = false}) {
+    if (isSelected) {
+      // Pill height = 30.0, Pointer = 6.0, Shadow margin = 3.5
+      // Tip Y = 3.5 + 30.0 + 6.0 = 39.5
+      // Total height = 30.0 + 6.0 + 7.0 = 43.0
+      return const Offset(0.5, 39.5 / 43.0);
+    }
+    // Pill height = 26.5, Pointer = 5.0, Shadow margin = 3.5
+    // Tip Y = 3.5 + 26.5 + 5.0 = 35.0
+    // Total height = 26.5 + 5.0 + 7.0 = 38.5
+    return const Offset(0.5, 35.0 / 38.5);
   }
 }

@@ -631,7 +631,7 @@ class _FindScreenState extends State<FindScreen> {
           markerId: gmaps.MarkerId('space_${space.id}'),
           position: gmaps.LatLng(pt.latitude, pt.longitude),
           anchor: customIcon != null
-              ? MarkerBitmapGenerator.getMarkerAnchor()
+              ? MarkerBitmapGenerator.getMarkerAnchor(isSelected: isSelected)
               : const Offset(0.5, 1.0),
           icon: customIcon ??
               (space.isSoldOut

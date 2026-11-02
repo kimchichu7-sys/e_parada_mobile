@@ -1679,7 +1679,7 @@ class _MapScreenState extends State<MapScreen> {
           markerId: gmaps.MarkerId('selected_dest_${_selectedSpace!.id}'),
           position: gmaps.LatLng(destPt.latitude, destPt.longitude),
           anchor: destIcon != null
-              ? MarkerBitmapGenerator.getMarkerAnchor()
+              ? MarkerBitmapGenerator.getMarkerAnchor(isSelected: true)
               : const Offset(0.5, 1.0),
           icon: destIcon ??
               gmaps.BitmapDescriptor.defaultMarkerWithHue(
@@ -1817,7 +1817,7 @@ class _MapScreenState extends State<MapScreen> {
             markerId: gmaps.MarkerId('parking_space_${space.id}'),
             position: gmaps.LatLng(pt.latitude, pt.longitude),
             anchor: customIcon != null
-                ? MarkerBitmapGenerator.getMarkerAnchor()
+                ? MarkerBitmapGenerator.getMarkerAnchor(isSelected: selected)
                 : const Offset(0.5, 1.0),
             icon: customIcon ??
                 (space.isSoldOut
