@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 import '../models/parking_space.dart';
 import 'api_client.dart';
 
@@ -35,5 +37,20 @@ class ApiService {
     }
 
     return ParkingSpace.fromJson(Map<String, dynamic>.from(item));
+  }
+
+  static Future<LatLng?> geocodeAddress(String query) async {
+    try {
+      final response = await ApiClient.get('places/geocode?q=${Uri.encodeComponent(query)}');
+      if (response.statusCode == 200) {
+        final body = ApiClient.decodeObject(response);
+        final lat = body['latitude'];
+        final lng = body['longitude'];
+        if (lat is num && lng is num) {
+          return LatLng(lat.toDouble(), lng.toDouble());
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 }

@@ -17,13 +17,11 @@ class MarkerBitmapGenerator {
 
   /// Builds a unique cache key based on marker visual attributes
   static String _cacheKey(double price, bool isAvailable, bool isSelected) {
-    final priceStr = price > 0
-        ? (price % 1 == 0 ? price.toInt().toString() : price.toStringAsFixed(1))
-        : '0';
+    final priceStr = price > 0 ? price.toStringAsFixed(2) : '0.00';
     return '${priceStr}_${isAvailable}_$isSelected';
   }
 
-  /// Creates or retrieves a custom price badge BitmapDescriptor
+  /// Creates or retrieves a custom price badge BitmapDescriptor matching the web pin style
   static Future<gmaps.BitmapDescriptor> getPriceMarker({
     required double price,
     required bool isAvailable,
@@ -61,89 +59,65 @@ class MarkerBitmapGenerator {
     required bool isSelected,
     required double pixelRatio,
   }) async {
-    // 1. Color Palette
-    const navyBg = Color(0xFF173B64);
-    const goldBg = Color(0xFFFFDE70);
-    const redBg = Color(0xFFDC2626);
+    // 1. Color Palette matching e-parada web pin (.spot-pin)
+    const navyBg = Color(0xFF235282); // Web spot-pin background
+    const goldBg = Color(0xFFFFDE70); // Active gold
+    const redBg = Color(0xFF881337);  // Sold out burgundy
 
     final Color bgColor;
     final Color borderColor;
+    final double borderWidth;
     final Color textColor;
-    final Color badgeBgColor;
-    final Color badgeTextColor;
 
     if (isSelected) {
       bgColor = goldBg;
-      borderColor = navyBg;
-      textColor = navyBg;
-      badgeBgColor = navyBg;
-      badgeTextColor = goldBg;
+      borderColor = const Color(0xFF173B64);
+      borderWidth = 2.5;
+      textColor = const Color(0xFF173B64);
     } else if (!isAvailable) {
       bgColor = redBg;
-      borderColor = Colors.white;
-      textColor = Colors.white;
-      badgeBgColor = Colors.white;
-      badgeTextColor = redBg;
+      borderColor = const Color(0xFFFDA4AF);
+      borderWidth = 2.0;
+      textColor = const Color(0xFFFECDD3);
     } else {
       bgColor = navyBg;
       borderColor = Colors.white;
+      borderWidth = 2.0;
       textColor = Colors.white;
-      badgeBgColor = Colors.white;
-      badgeTextColor = navyBg;
     }
 
-    // 2. Format Price Text
+    // 2. Format Price Text (e.g. "₱10.00" matching screenshot)
     final String amountText;
-    final String unitText;
-
-    if (price <= 0) {
+    if (!isAvailable) {
+      amountText = 'Sold Out';
+    } else if (price <= 0) {
       amountText = 'Free';
-      unitText = '';
     } else {
-      amountText = '₱${price % 1 == 0 ? price.toInt() : price.toStringAsFixed(1)}';
-      unitText = '/hr';
+      amountText = '₱${price.toStringAsFixed(2)}';
     }
 
     // 3. Measure Text
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
       text: TextSpan(
-        children: [
-          TextSpan(
-            text: amountText,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 13.0,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.2,
-            ),
-          ),
-          if (unitText.isNotEmpty)
-            TextSpan(
-              text: unitText,
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.9),
-                fontSize: 10.0,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-        ],
+        text: amountText,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12.0,
+          fontWeight: FontWeight.w900,
+          letterSpacing: -0.2,
+        ),
       ),
     )..layout();
 
     // 4. Dimensions & Layout
-    const double emblemDiameter = 17.0;
-    const double emblemSpacing = 5.0;
-    const double padLeft = 7.0;
-    const double padRight = 9.0;
-    const double pillHeight = 32.0;
-    const double pointerHeight = 6.0;
-    const double pointerWidth = 10.0;
+    const double padH = 10.0;
+    const double pillHeight = 26.0;
+    const double pointerHeight = 5.5;
+    const double pointerWidth = 9.0;
     const double shadowMargin = 4.0;
 
-    final double contentWidth = emblemDiameter + emblemSpacing + textPainter.width;
-    final double pillWidth = padLeft + contentWidth + padRight;
-
+    final double pillWidth = textPainter.width + (padH * 2);
     final double totalWidth = pillWidth + (shadowMargin * 2);
     final double totalHeight = pillHeight + pointerHeight + (shadowMargin * 2);
 
@@ -156,8 +130,8 @@ class MarkerBitmapGenerator {
 
     // 5. Draw Shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.28)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5);
+      ..color = Colors.black.withValues(alpha: 0.30)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
 
     final pillRect = Rect.fromLTWH(
       shadowMargin,
@@ -169,12 +143,13 @@ class MarkerBitmapGenerator {
       pillRect,
       const Radius.circular(pillHeight / 2),
     );
+    final centerX = shadowMargin + (pillWidth / 2);
 
     final shadowPath = Path()
       ..addRRect(pillRRect)
-      ..moveTo(shadowMargin + (pillWidth / 2) - (pointerWidth / 2), shadowMargin + pillHeight)
-      ..lineTo(shadowMargin + (pillWidth / 2), shadowMargin + pillHeight + pointerHeight)
-      ..lineTo(shadowMargin + (pillWidth / 2) + (pointerWidth / 2), shadowMargin + pillHeight)
+      ..moveTo(centerX - (pointerWidth / 2), shadowMargin + pillHeight)
+      ..lineTo(centerX, shadowMargin + pillHeight + pointerHeight)
+      ..lineTo(centerX + (pointerWidth / 2), shadowMargin + pillHeight)
       ..close();
 
     canvas.save();
@@ -182,12 +157,12 @@ class MarkerBitmapGenerator {
     canvas.drawPath(shadowPath, shadowPaint);
     canvas.restore();
 
-    // 6. Draw Unified Badge Path (Pill + Bottom Pointer)
+    // 6. Draw Unified Speech-Bubble Badge Path (Pill + Bottom Tip)
     final badgePath = Path()
       ..addRRect(pillRRect)
-      ..moveTo(shadowMargin + (pillWidth / 2) - (pointerWidth / 2), shadowMargin + pillHeight - 1)
-      ..lineTo(shadowMargin + (pillWidth / 2), shadowMargin + pillHeight + pointerHeight)
-      ..lineTo(shadowMargin + (pillWidth / 2) + (pointerWidth / 2), shadowMargin + pillHeight - 1)
+      ..moveTo(centerX - (pointerWidth / 2), shadowMargin + pillHeight - 0.5)
+      ..lineTo(centerX, shadowMargin + pillHeight + pointerHeight)
+      ..lineTo(centerX + (pointerWidth / 2), shadowMargin + pillHeight - 0.5)
       ..close();
 
     final fillPaint = Paint()
@@ -198,46 +173,17 @@ class MarkerBitmapGenerator {
     final borderPaint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = isSelected ? 2.0 : 1.3
+      ..strokeWidth = borderWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(badgePath, borderPaint);
 
-    // 7. Draw Circular 'P' Emblem
-    final emblemCenterX = shadowMargin + padLeft + (emblemDiameter / 2);
-    final emblemCenterY = shadowMargin + (pillHeight / 2);
-
-    final emblemBgPaint = Paint()
-      ..color = badgeBgColor
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(emblemCenterX, emblemCenterY), emblemDiameter / 2, emblemBgPaint);
-
-    final emblemTextPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      text: TextSpan(
-        text: 'P',
-        style: TextStyle(
-          color: badgeTextColor,
-          fontSize: 10.5,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    )..layout();
-
-    emblemTextPainter.paint(
-      canvas,
-      Offset(
-        emblemCenterX - (emblemTextPainter.width / 2),
-        emblemCenterY - (emblemTextPainter.height / 2),
-      ),
-    );
-
-    // 8. Draw Price Text
-    final textX = shadowMargin + padLeft + emblemDiameter + emblemSpacing;
+    // 7. Draw Price Text centered inside the pill
+    final textX = shadowMargin + (pillWidth - textPainter.width) / 2;
     final textY = shadowMargin + (pillHeight - textPainter.height) / 2;
     textPainter.paint(canvas, Offset(textX, textY));
 
-    // 9. Convert to BitmapDescriptor
+    // 8. Convert to BitmapDescriptor
     final picture = recorder.endRecording();
     final image = await picture.toImage(canvasWidth, canvasHeight);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
@@ -250,11 +196,12 @@ class MarkerBitmapGenerator {
     return gmaps.BitmapDescriptor.bytes(uint8List);
   }
 
-  /// Calculates anchor offset so pointer tip touches coordinate
+  /// Calculates anchor offset so pointer tip touches coordinate precisely
   static Offset getMarkerAnchor() {
-    // Total logical height = 32 + 6 + (4*2) = 46
-    // Tip Y = 4 + 32 + 6 = 42
-    // 42 / 46 ≈ 0.913
-    return const Offset(0.5, 0.913);
+    // Pill height = 26.0, Pointer = 5.5, Shadow margin = 4.0
+    // Tip Y = 4.0 + 26.0 + 5.5 = 35.5
+    // Total height = 26.0 + 5.5 + 8.0 = 39.5
+    // 35.5 / 39.5 ≈ 0.899
+    return const Offset(0.5, 0.899);
   }
 }

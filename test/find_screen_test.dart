@@ -145,5 +145,34 @@ void main() {
       expect(find.text('Directions'), findsNWidgets(2));
       expect(find.text('DETAILS'), findsNWidgets(2));
     });
+
+    testWidgets('Search bar uses dark text style and preserves spaces when searching a general place', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FindScreen(
+            loadParkingSpaces: () async => sampleSpaces,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.style?.color, const Color(0xFF0F172A)); // Dark slate text, visible on white!
+
+      // Type general place
+      await tester.enterText(find.byType(TextField), 'Calamba Laguna');
+      await tester.pumpAndSettle();
+
+      // Tap GRID to check that spaces remain visible
+      await tester.tap(find.text('GRID'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SM Calamba Parking'), findsOneWidget);
+    });
   });
 }
+

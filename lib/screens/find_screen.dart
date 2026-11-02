@@ -118,7 +118,7 @@ class _FindScreenState extends State<FindScreen> {
           isSelected: false,
         ).then((bitmap) {
           _customMarkerBitmaps['${space.id}_false'] = bitmap;
-        }),
+        }).catchError((_) {}),
       );
 
       // Selected state
@@ -129,7 +129,7 @@ class _FindScreenState extends State<FindScreen> {
           isSelected: true,
         ).then((bitmap) {
           _customMarkerBitmaps['${space.id}_true'] = bitmap;
-        }),
+        }).catchError((_) {}),
       );
     }
 
@@ -235,15 +235,9 @@ class _FindScreenState extends State<FindScreen> {
     final favIds = FavoritesService.getFavoriteIds();
     final targetList = source ?? _allSpaces;
 
-    return targetList.where((space) {
+    final baseFiltered = targetList.where((space) {
       if (_onlyFavorites && !favIds.contains(space.id)) {
         return false;
-      }
-
-      if (query.isNotEmpty) {
-        final nameMatch = space.name.toLowerCase().contains(query);
-        final addrMatch = space.address.toLowerCase().contains(query);
-        if (!nameMatch && !addrMatch) return false;
       }
 
       if (vehicle.isNotEmpty && vehicle != 'all') {
@@ -255,6 +249,121 @@ class _FindScreenState extends State<FindScreen> {
 
       return true;
     }).toList();
+
+    if (query.isEmpty) {
+      return baseFiltered;
+    }
+
+    final queryMatches = baseFiltered.where((space) {
+      final nameMatch = space.name.toLowerCase().contains(query);
+      final addrMatch = space.address.toLowerCase().contains(query);
+      return nameMatch || addrMatch;
+    }).toList();
+
+    // If direct matches exist, return them; otherwise keep spaces on the map so pins don't vanish!
+    return queryMatches.isNotEmpty ? queryMatches : baseFiltered;
+  }
+
+  Future<void> _searchAndMoveToPlace(String rawQuery) async {
+    final query = rawQuery.trim();
+    if (query.isEmpty) return;
+    FocusScope.of(context).unfocus();
+
+    final qLower = query.toLowerCase();
+
+    // 1. Direct match with any parking space (name or address)
+    ParkingSpace? matchedSpace;
+    for (final s in _allSpaces) {
+      if (s.name.toLowerCase().contains(qLower) || s.address.toLowerCase().contains(qLower)) {
+        matchedSpace = s;
+        break;
+      }
+    }
+
+    if (matchedSpace != null && matchedSpace.latitude != null && matchedSpace.longitude != null) {
+      setState(() {
+        _selectedSpace = matchedSpace;
+        _showSearchHereButton = false;
+      });
+      if (_googleMapController != null) {
+        await _googleMapController!.animateCamera(
+          gmaps.CameraUpdate.newCameraPosition(
+            gmaps.CameraPosition(
+              target: gmaps.LatLng(matchedSpace.latitude!, matchedSpace.longitude!),
+              zoom: 16.0,
+            ),
+          ),
+        );
+      }
+      _showToast('Found parking at: ${matchedSpace.name}');
+      return;
+    }
+
+    // 2. Known Laguna & Philippine hub coordinates fallback dictionary
+    final knownHubs = <String, LatLng>{
+      'balian': const LatLng(14.4010, 121.4770),
+      'pangil': const LatLng(14.4010, 121.4770),
+      'calamba': const LatLng(14.2117, 121.1653),
+      'los banos': const LatLng(14.1706, 121.2433),
+      'los baños': const LatLng(14.1706, 121.2433),
+      'pansol': const LatLng(14.1812, 121.1815),
+      'canlubang': const LatLng(14.2223, 121.0961),
+      'mayapa': const LatLng(14.2251, 121.1347),
+      'turbina': const LatLng(14.1917, 121.1396),
+      'real': const LatLng(14.2058, 121.1554),
+      'cabuyao': const LatLng(14.2786, 121.1247),
+      'santa rosa': const LatLng(14.3122, 121.1114),
+      'sta rosa': const LatLng(14.3122, 121.1114),
+      'biñan': const LatLng(14.3333, 121.0833),
+      'binan': const LatLng(14.3333, 121.0833),
+      'san pedro': const LatLng(14.3583, 121.0167),
+      'santa cruz': const LatLng(14.2789, 121.4158),
+      'sta cruz': const LatLng(14.2789, 121.4158),
+      'pagsanjan': const LatLng(14.2731, 121.4542),
+      'rizal shrine': const LatLng(14.2120, 121.1645),
+      'plaza': const LatLng(14.2120, 121.1645),
+      'sm calamba': const LatLng(14.2045, 121.1550),
+      'manila': const LatLng(14.5995, 120.9842),
+      'makati': const LatLng(14.5547, 121.0244),
+      'bgc': const LatLng(14.5492, 121.0507),
+    };
+
+    for (final entry in knownHubs.entries) {
+      if (qLower.contains(entry.key)) {
+        final pt = entry.value;
+        if (_googleMapController != null) {
+          await _googleMapController!.animateCamera(
+            gmaps.CameraUpdate.newCameraPosition(
+              gmaps.CameraPosition(
+                target: gmaps.LatLng(pt.latitude, pt.longitude),
+                zoom: 15.5,
+              ),
+            ),
+          );
+        }
+        _showToast('Moved map to ${entry.key.toUpperCase()}');
+        return;
+      }
+    }
+
+    // 3. Online Geocoding via ApiService
+    try {
+      final geoPt = await ApiService.geocodeAddress(query);
+      if (geoPt != null && _googleMapController != null) {
+        await _googleMapController!.animateCamera(
+          gmaps.CameraUpdate.newCameraPosition(
+            gmaps.CameraPosition(
+              target: gmaps.LatLng(geoPt.latitude, geoPt.longitude),
+              zoom: 15.5,
+            ),
+          ),
+        );
+        _showToast('Moved map to $query');
+        return;
+      }
+    } catch (_) {}
+
+    _showToast('Showing parking spaces around $query');
   }
 
   LatLng? _pointFor(ParkingSpace space) {
@@ -629,36 +738,45 @@ class _FindScreenState extends State<FindScreen> {
           // Row 1: Search Bar + View Toggle & Favorites
           Row(
             children: [
-              // Search text input
+              // Search text input (High contrast white pill with dark slate text)
               Expanded(
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF28495D),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF475569)),
+                    border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.location_on_rounded,
-                        color: Color(0xFFF43F5E), // Rose pin icon from web
+                        color: Color(0xFFF43F5E), // Rose pin icon
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
                           controller: _searchController,
+                          textInputAction: TextInputAction.search,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFF0F172A), // Dark slate text: 100% visible on white!
                             fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
+                          cursorColor: const Color(0xFF173B64),
                           decoration: const InputDecoration(
                             hintText: 'Address, Place or Event...',
                             hintStyle: TextStyle(
-                              color: Color(0xFFCBD5E1),
+                              color: Color(0xFF94A3B8),
                               fontSize: 13,
                               fontWeight: FontWeight.normal,
                             ),
@@ -666,6 +784,7 @@ class _FindScreenState extends State<FindScreen> {
                             isDense: true,
                             contentPadding: EdgeInsets.zero,
                           ),
+                          onSubmitted: (val) => _searchAndMoveToPlace(val),
                           onChanged: (val) {
                             setState(() {
                               _searchQuery = val;
@@ -673,24 +792,32 @@ class _FindScreenState extends State<FindScreen> {
                           },
                         ),
                       ),
-                      if (_searchQuery.isNotEmpty)
+                      if (_searchController.text.isNotEmpty)
                         GestureDetector(
                           onTap: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
                           },
-                          child: const Icon(
-                            Icons.close_rounded,
-                            color: Color(0xFF94A3B8),
-                            size: 18,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 4.0),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Color(0xFF64748B),
+                              size: 18,
+                            ),
                           ),
-                        )
-                      else
-                        const Icon(
-                          Icons.search_rounded,
-                          color: Color(0xFFCBD5E1),
-                          size: 20,
                         ),
+                      GestureDetector(
+                        onTap: () => _searchAndMoveToPlace(_searchController.text),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 4.0),
+                          child: Icon(
+                            Icons.search_rounded,
+                            color: Color(0xFF1E3A4C),
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
