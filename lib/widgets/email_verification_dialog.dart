@@ -29,26 +29,36 @@ class EmailVerificationDialog extends StatefulWidget {
 
 class _EmailVerificationDialogState extends State<EmailVerificationDialog> {
   bool _isResending = false;
-  bool _isVerifying = false;
+  bool _isCheckingStatus = false;
   String? _statusMessage;
   bool _isSuccess = false;
 
-  Future<void> _verifyNow() async {
+  Future<void> _checkVerificationStatus() async {
     setState(() {
-      _isVerifying = true;
+      _isCheckingStatus = true;
       _statusMessage = null;
     });
 
     try {
-      final verifiedUser = await AuthService.verifyEmailInstant();
+      final freshUser = await AuthService.fetchMe();
       if (!mounted) return;
-      Navigator.of(context).pop(verifiedUser);
+      if (freshUser != null && freshUser.emailVerified) {
+        Navigator.of(context).pop(freshUser);
+        return;
+      }
+      setState(() {
+        _isCheckingStatus = false;
+        _isSuccess = false;
+        _statusMessage =
+            'Your email is not verified yet. Please open the verification link sent to your inbox or spam folder first.';
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _isVerifying = false;
+        _isCheckingStatus = false;
         _isSuccess = false;
-        _statusMessage = 'Could not verify email right now. Please try again.';
+        _statusMessage =
+            'Could not check verification status right now. Please try again.';
       });
     }
   }
@@ -228,12 +238,12 @@ class _EmailVerificationDialogState extends State<EmailVerificationDialog> {
 
             const SizedBox(height: 12),
 
-            // Primary action: Verify Email & Continue
+            // Primary action: Check if email link was clicked
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: _isVerifying ? null : _verifyNow,
-                icon: _isVerifying
+                onPressed: _isCheckingStatus ? null : _checkVerificationStatus,
+                icon: _isCheckingStatus
                     ? const SizedBox(
                         width: 16,
                         height: 16,
@@ -242,7 +252,7 @@ class _EmailVerificationDialogState extends State<EmailVerificationDialog> {
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.verified_outlined, size: 18),
+                    : const Icon(Icons.mark_email_read_outlined, size: 18),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
@@ -250,7 +260,9 @@ class _EmailVerificationDialogState extends State<EmailVerificationDialog> {
                   ),
                 ),
                 label: Text(
-                  _isVerifying ? 'Verifying Email...' : 'Verify Email & Continue',
+                  _isCheckingStatus
+                      ? 'Checking Status...'
+                      : 'I\'ve Verified My Email',
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                 ),
               ),

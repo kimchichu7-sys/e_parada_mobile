@@ -205,23 +205,6 @@ class AuthService {
         'Verification email sent.';
   }
 
-  static Future<AuthUser> verifyEmailInstant() async {
-    final token = await requireToken();
-    final response = await ApiClient.post(
-      'email/verify-instant',
-      headers: bearerHeaders(token),
-    );
-    ApiClient.requireStatus(response, const {200});
-    final body = ApiClient.decodeObject(response);
-    final userData = body['user'];
-    if (userData is! Map) {
-      throw const ApiException('The verification response is incomplete.');
-    }
-    final user = AuthUser.fromJson(Map<String, dynamic>.from(userData));
-    await _saveUserOnly(user);
-    return user;
-  }
-
   static Future<AuthUser> acceptTerms() async {
     final token = await requireToken();
     final response = await ApiClient.postJson(
