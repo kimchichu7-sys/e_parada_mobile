@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/auth_user.dart';
+import '../services/auth_service.dart';
+import '../widgets/terms_and_conditions_dialog.dart';
 import 'admin_operations_screen.dart';
 import 'admin_reservations_screen.dart';
 import 'admin_reviews_screen.dart';
@@ -24,6 +26,31 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkPostVerificationTerms();
+    });
+  }
+
+  Future<void> _checkPostVerificationTerms() async {
+    if (!mounted) return;
+    if (widget.user.emailVerified && !widget.user.termsAccepted) {
+      await TermsAndConditionsDialog.show(context);
+      return;
+    }
+    try {
+      final freshUser = await AuthService.fetchMe();
+      if (!mounted || freshUser == null) return;
+      if (freshUser.emailVerified && !freshUser.termsAccepted) {
+        await TermsAndConditionsDialog.show(context);
+      }
+    } catch (_) {
+      // Ignore background refresh errors during offline/test runs.
+    }
+  }
 
   late final List<Widget> _pages = widget.user.isDriver
       ? const [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/auth_user.dart';
 import '../services/auth_service.dart';
 
 class EmailVerificationDialog extends StatefulWidget {
@@ -10,11 +11,11 @@ class EmailVerificationDialog extends StatefulWidget {
 
   final String email;
 
-  static Future<void> show(
+  static Future<AuthUser?> show(
     BuildContext context, {
     required String email,
   }) {
-    return showDialog<void>(
+    return showDialog<AuthUser>(
       context: context,
       barrierDismissible: true,
       builder: (_) => EmailVerificationDialog(email: email),
@@ -28,8 +29,29 @@ class EmailVerificationDialog extends StatefulWidget {
 
 class _EmailVerificationDialogState extends State<EmailVerificationDialog> {
   bool _isResending = false;
+  bool _isVerifying = false;
   String? _statusMessage;
   bool _isSuccess = false;
+
+  Future<void> _verifyNow() async {
+    setState(() {
+      _isVerifying = true;
+      _statusMessage = null;
+    });
+
+    try {
+      final verifiedUser = await AuthService.verifyEmailInstant();
+      if (!mounted) return;
+      Navigator.of(context).pop(verifiedUser);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isVerifying = false;
+        _isSuccess = false;
+        _statusMessage = 'Could not verify email right now. Please try again.';
+      });
+    }
+  }
 
   Future<void> _resendVerification() async {
     setState(() {
@@ -206,20 +228,30 @@ class _EmailVerificationDialogState extends State<EmailVerificationDialog> {
 
             const SizedBox(height: 12),
 
-            // Primary action: Continue to App
+            // Primary action: Verify Email & Continue
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(),
+              child: FilledButton.icon(
+                onPressed: _isVerifying ? null : _verifyNow,
+                icon: _isVerifying
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.verified_outlined, size: 18),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Continue to App',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                label: Text(
+                  _isVerifying ? 'Verifying Email...' : 'Verify Email & Continue',
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                 ),
               ),
             ),

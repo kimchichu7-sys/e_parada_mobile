@@ -6,6 +6,7 @@ class AuthUser {
     required this.role,
     required this.verificationStatus,
     required this.emailVerified,
+    this.termsAccepted = true,
     required this.hasApprovedVehicle,
     required this.canReserve,
     required this.canManageParkingSpaces,
@@ -18,6 +19,7 @@ class AuthUser {
   final String role;
   final String verificationStatus;
   final bool emailVerified;
+  final bool termsAccepted;
   final bool hasApprovedVehicle;
   final bool canReserve;
   final bool canManageParkingSpaces;
@@ -41,6 +43,9 @@ class AuthUser {
       role: json['role']?.toString() ?? '',
       verificationStatus: json['verification_status']?.toString() ?? 'pending',
       emailVerified: json['email_verified'] == true,
+      termsAccepted: json.containsKey('terms_accepted')
+          ? json['terms_accepted'] == true
+          : true,
       hasApprovedVehicle: json['has_approved_vehicle'] == true,
       canReserve: json['can_reserve'] == true,
       canManageParkingSpaces: json['can_manage_parking_spaces'] == true,

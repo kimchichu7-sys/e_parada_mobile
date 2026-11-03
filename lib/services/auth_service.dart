@@ -205,6 +205,41 @@ class AuthService {
         'Verification email sent.';
   }
 
+  static Future<AuthUser> verifyEmailInstant() async {
+    final token = await requireToken();
+    final response = await ApiClient.post(
+      'email/verify-instant',
+      headers: bearerHeaders(token),
+    );
+    ApiClient.requireStatus(response, const {200});
+    final body = ApiClient.decodeObject(response);
+    final userData = body['user'];
+    if (userData is! Map) {
+      throw const ApiException('The verification response is incomplete.');
+    }
+    final user = AuthUser.fromJson(Map<String, dynamic>.from(userData));
+    await _saveUserOnly(user);
+    return user;
+  }
+
+  static Future<AuthUser> acceptTerms() async {
+    final token = await requireToken();
+    final response = await ApiClient.postJson(
+      'terms/accept',
+      headers: bearerHeaders(token),
+      body: {'accepted': true},
+    );
+    ApiClient.requireStatus(response, const {200});
+    final body = ApiClient.decodeObject(response);
+    final userData = body['user'];
+    if (userData is! Map) {
+      throw const ApiException('The terms response is incomplete.');
+    }
+    final user = AuthUser.fromJson(Map<String, dynamic>.from(userData));
+    await _saveUserOnly(user);
+    return user;
+  }
+
   static Future<String?> authToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
@@ -252,6 +287,7 @@ class AuthService {
       role: role,
       verificationStatus: prefs.getString('verification_status') ?? 'pending',
       emailVerified: prefs.getBool('email_verified') ?? false,
+      termsAccepted: prefs.getBool('terms_accepted') ?? true,
       hasApprovedVehicle: prefs.getBool('has_approved_vehicle') ?? false,
       canReserve: prefs.getBool('can_reserve') ?? false,
       canManageParkingSpaces:
@@ -269,6 +305,7 @@ class AuthService {
     await prefs.remove('user_role');
     await prefs.remove('verification_status');
     await prefs.remove('email_verified');
+    await prefs.remove('terms_accepted');
     await prefs.remove('has_approved_vehicle');
     await prefs.remove('can_reserve');
     await prefs.remove('can_manage_parking_spaces');
@@ -301,6 +338,7 @@ class AuthService {
     await prefs.setString('user_role', user.role);
     await prefs.setString('verification_status', user.verificationStatus);
     await prefs.setBool('email_verified', user.emailVerified);
+    await prefs.setBool('terms_accepted', user.termsAccepted);
     await prefs.setBool('has_approved_vehicle', user.hasApprovedVehicle);
     await prefs.setBool('can_reserve', user.canReserve);
     await prefs.setBool(

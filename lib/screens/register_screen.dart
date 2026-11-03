@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/vehicle_service.dart';
 import '../utils/registration_validation.dart';
 import '../widgets/email_verification_dialog.dart';
+import '../widgets/terms_and_conditions_dialog.dart';
 import '../widgets/vehicle_catalog_fields.dart';
 import 'main_navigation_screen.dart';
 
@@ -97,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final user = await AuthService.registerAccount(
+      var user = await AuthService.registerAccount(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -126,10 +127,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       if (!user.emailVerified) {
-        await EmailVerificationDialog.show(
+        final verifiedUser = await EmailVerificationDialog.show(
           context,
           email: user.email,
         );
+        if (verifiedUser != null) {
+          user = verifiedUser;
+        }
+      }
+
+      if (!mounted) return;
+
+      if (user.emailVerified && !user.termsAccepted) {
+        final acceptedUser = await TermsAndConditionsDialog.show(context);
+        if (acceptedUser != null) {
+          user = acceptedUser;
+        }
       }
 
       if (!mounted) return;

@@ -6,7 +6,9 @@ import '../services/auth_service.dart';
 import '../widgets/app_feedback_dialog.dart';
 import '../widgets/change_password_dialog.dart';
 import '../widgets/delete_account_dialog.dart';
+import '../widgets/email_verification_dialog.dart';
 import '../widgets/paymongo_settings_dialog.dart';
+import '../widgets/terms_and_conditions_dialog.dart';
 import 'incident_report_screen.dart';
 import 'support_screen.dart';
 import 'welcome_screen.dart';
@@ -32,7 +34,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _future = request;
     });
-    await request;
+    final user = await request;
+    if (mounted && user != null && user.emailVerified && !user.termsAccepted) {
+      await TermsAndConditionsDialog.show(context);
+      if (mounted) {
+        setState(() {
+          _future = AuthService.fetchMe();
+        });
+      }
+    }
   }
 
   Future<void> _logout() async {
@@ -45,18 +55,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _resendVerification() async {
-    try {
-      final message = await AuthService.resendVerificationEmail();
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+  Future<void> _openEmailVerification(String email) async {
+    final verifiedUser = await EmailVerificationDialog.show(
+      context,
+      email: email,
+    );
+    if (!mounted) return;
+    if (verifiedUser != null &&
+        verifiedUser.emailVerified &&
+        !verifiedUser.termsAccepted) {
+      await TermsAndConditionsDialog.show(context);
+    }
+    if (mounted) {
+      await _refresh();
     }
   }
 
@@ -110,8 +121,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: 'Email verification',
                   value: user.emailVerified ? 'Verified' : 'Action required',
                   approved: user.emailVerified,
-                  actionLabel: user.emailVerified ? null : 'Resend email',
-                  onAction: user.emailVerified ? null : _resendVerification,
+                  actionLabel: user.emailVerified ? null : 'Verify Email',
+                  onAction: user.emailVerified
+                      ? null
+                      : () => _openEmailVerification(user.email),
                 ),
                 const SizedBox(height: 12),
                 _StatusCard(
