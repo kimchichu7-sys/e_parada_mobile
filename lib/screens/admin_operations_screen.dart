@@ -481,11 +481,24 @@ class _ParkingSpaceLogFilter extends StatelessWidget {
           child: DropdownButtonFormField<String>(
             key: ValueKey(selectedKey),
             initialValue: selectedKey,
+            isExpanded: true,
             decoration: InputDecoration(
               labelText: label,
               prefixIcon: const Icon(Icons.local_parking_outlined),
               border: const OutlineInputBorder(),
             ),
+            selectedItemBuilder: (context) => options.entries
+                .map(
+                  (entry) => Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      entry.value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(growable: false),
             items: options.entries
                 .map(
                   (entry) => DropdownMenuItem(

@@ -529,21 +529,30 @@ class ReservationProgressTracker extends StatelessWidget {
     required this.paymentStatus,
     required this.timeIn,
     required this.timeOut,
+    this.isDownpaymentPaid = false,
   });
 
   final String status;
   final String paymentStatus;
   final DateTime? timeIn;
   final DateTime? timeOut;
+  final bool isDownpaymentPaid;
 
   @override
   Widget build(BuildContext context) {
     final approved = status == 'approved' || status == 'completed';
+    final downpaymentDone =
+        isDownpaymentPaid || paymentStatus == 'paid' || timeIn != null;
     final paymentSubmitted =
         paymentStatus == 'pending_verification' || paymentStatus == 'paid';
     final steps = <(String, IconData, bool)>[
       ('Requested', Icons.receipt_long_outlined, true),
       ('Approved', Icons.task_alt_rounded, approved),
+      (
+        '1-Hr Downpayment',
+        Icons.account_balance_wallet_outlined,
+        downpaymentDone,
+      ),
       ('Checked in', Icons.login_rounded, timeIn != null),
       ('Checked out', Icons.logout_rounded, timeOut != null),
       ('Payment sent', Icons.upload_file_rounded, paymentSubmitted),

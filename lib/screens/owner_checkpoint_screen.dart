@@ -405,6 +405,7 @@ class _ValidationPanel extends StatelessWidget {
           const SizedBox(height: 16),
           DropdownButtonFormField<int>(
             initialValue: selectedSpaceId,
+            isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Parking space checkpoint',
               border: OutlineInputBorder(),

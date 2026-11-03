@@ -532,6 +532,7 @@ class _ReservationCard extends StatelessWidget {
               paymentStatus: reservation.paymentStatus,
               timeIn: reservation.timeIn,
               timeOut: reservation.timeOut,
+              isDownpaymentPaid: reservation.isDownpaymentPaid,
             ),
             const SizedBox(height: 14),
             _DetailRow(
@@ -554,8 +555,13 @@ class _ReservationCard extends StatelessWidget {
               title: reservation.totalAmount == null
                   ? 'Amount not yet computed'
                   : 'PHP ${reservation.totalAmount!.toStringAsFixed(2)}',
-              subtitle:
-                  '${_title(reservation.paymentStatus)}${reservation.paymentMethod.isEmpty ? '' : ' via ${reservation.paymentMethod.toUpperCase()}'}',
+              subtitle: reservation.paymentStatus == 'paid'
+                  ? 'Paid in full${reservation.paymentMethod.isEmpty ? '' : ' via ${reservation.paymentMethod.toUpperCase()}'}'
+                  : (reservation.isDownpaymentPaid
+                        ? '1-hr downpayment (PHP ${(reservation.downpaymentAmount ?? 0.0).toStringAsFixed(2)}) paid • Balance: PHP ${(reservation.remainingBalance ?? 0.0).toStringAsFixed(2)}'
+                        : (reservation.status == 'approved'
+                              ? 'Awaiting mandatory 1-hr downpayment (PHP ${(reservation.downpaymentAmount ?? 0.0).toStringAsFixed(2)})'
+                              : '${_title(reservation.paymentStatus)}${reservation.paymentMethod.isEmpty ? '' : ' via ${reservation.paymentMethod.toUpperCase()}'}')),
             ),
             if (reservation.ownerNotes.isNotEmpty) ...[
               const SizedBox(height: 6),

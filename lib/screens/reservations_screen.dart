@@ -78,13 +78,23 @@ class _ReservationsScreenState extends State<ReservationsScreen>
       [];
 
   void _checkPendingPoll(List<DriverReservation>? items) {
-    final hasPending = items?.any((r) => r.status.toLowerCase() == 'pending') ?? false;
-    if (hasPending && (_statusPollTimer == null || !_statusPollTimer!.isActive)) {
+    final shouldPoll = items?.any((r) {
+          final status = r.status.toLowerCase();
+          if (status == 'pending') return true;
+          if (status == 'approved' &&
+              !r.isDownpaymentPaid &&
+              r.paymentStatus != 'paid') {
+            return true;
+          }
+          return false;
+        }) ??
+        false;
+    if (shouldPoll && (_statusPollTimer == null || !_statusPollTimer!.isActive)) {
       _statusPollTimer?.cancel();
       _statusPollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
         if (mounted) _refresh();
       });
-    } else if (!hasPending && _statusPollTimer != null) {
+    } else if (!shouldPoll && _statusPollTimer != null) {
       _statusPollTimer?.cancel();
       _statusPollTimer = null;
     }
@@ -348,6 +358,8 @@ class _ReservationsScreenState extends State<ReservationsScreen>
   }
 
   Future<void> _pay(DriverReservation reservation) async {
+    final isPayingDownpayment =
+        !reservation.isDownpaymentPaid && reservation.paymentStatus != 'paid';
     final selection = await showBillingPaymentDialog(context, reservation);
     if (selection == null) return;
     final file = selection.proof;
@@ -365,7 +377,36 @@ class _ReservationsScreenState extends State<ReservationsScreen>
       ),
     );
 
-    if (mounted) {
+    if (!mounted) return;
+
+    if (isPayingDownpayment && reservation.status != 'completed') {
+      final hasInstantVerification =
+          selection.gcashReference != null && selection.gcashReference!.isNotEmpty;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: Text(
+            hasInstantVerification
+                ? '1-Hour Downpayment Confirmed'
+                : 'Downpayment Proof Submitted',
+          ),
+          content: Text(
+            hasInstantVerification
+                ? 'Your mandatory 1-hour downpayment for ${reservation.parkingSpaceName} has been confirmed! Your QR Gate Pass is now unlocked and ready for checkpoint entry.'
+                : 'Your downpayment receipt for ${reservation.parkingSpaceName} has been submitted and is awaiting owner verification to unlock your QR Gate Pass.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Got it'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (reservation.status == 'completed') {
       final shouldRate = await showDialog<bool>(
         context: context,
         builder: (dialogCtx) => AlertDialog(
@@ -738,15 +779,37 @@ class _ReservationCard extends StatelessWidget {
                 ),
                 Chip(
                   label: Text(
-                    _title(reservation.status),
+                    (reservation.status == 'approved' &&
+                            !reservation.isDownpaymentPaid &&
+                            reservation.paymentStatus != 'paid' &&
+                            reservation.timeIn == null)
+                        ? 'Approved • Downpayment Due'
+                        : _title(reservation.status),
                     style: TextStyle(
-                      color: _statusColor(reservation.status),
+                      color: (reservation.status == 'approved' &&
+                              !reservation.isDownpaymentPaid &&
+                              reservation.paymentStatus != 'paid' &&
+                              reservation.timeIn == null)
+                          ? const Color(0xFFD97706)
+                          : _statusColor(reservation.status),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  backgroundColor: _statusColor(reservation.status).withValues(alpha: 0.12),
+                  backgroundColor: ((reservation.status == 'approved' &&
+                              !reservation.isDownpaymentPaid &&
+                              reservation.paymentStatus != 'paid' &&
+                              reservation.timeIn == null)
+                          ? const Color(0xFFD97706)
+                          : _statusColor(reservation.status))
+                      .withValues(alpha: 0.12),
                   side: BorderSide(
-                    color: _statusColor(reservation.status).withValues(alpha: 0.3),
+                    color: ((reservation.status == 'approved' &&
+                                !reservation.isDownpaymentPaid &&
+                                reservation.paymentStatus != 'paid' &&
+                                reservation.timeIn == null)
+                            ? const Color(0xFFD97706)
+                            : _statusColor(reservation.status))
+                        .withValues(alpha: 0.3),
                   ),
                 ),
               ],
@@ -891,7 +954,83 @@ class _ReservationCard extends StatelessWidget {
               paymentStatus: reservation.paymentStatus,
               timeIn: reservation.timeIn,
               timeOut: reservation.timeOut,
+              isDownpaymentPaid: reservation.isDownpaymentPaid,
             ),
+            if (reservation.status == 'approved' &&
+                !reservation.isDownpaymentPaid &&
+                reservation.paymentStatus != 'paid' &&
+                reservation.timeOut == null &&
+                !reservation.isNoShowCancelled) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: isDark ? 0.15 : 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.amber.withValues(alpha: isDark ? 0.5 : 0.6),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.lock_clock_rounded,
+                          color: isDark ? const Color(0xFFFDE68A) : Colors.amber.shade900,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            reservation.paymentStatus == 'pending_verification'
+                                ? 'Downpayment Proof Submitted'
+                                : 'Action Required: Mandatory 1-Hour Downpayment',
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? const Color(0xFFFDE68A) : Colors.amber.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      reservation.paymentStatus == 'pending_verification'
+                          ? 'Your downpayment receipt is awaiting provider verification. Your QR Gate Pass will unlock as soon as it is verified.'
+                          : 'The parking provider has approved your reservation! Please pay the mandatory 1-hour downpayment (PHP ${(reservation.downpaymentAmount ?? reservation.totalAmount ?? 0.0).toStringAsFixed(2)}) via GCash to unlock your QR Gate Pass for entry.',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: isDark ? const Color(0xFFFEF3C7) : Colors.amber.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (reservation.paymentStatus == 'unpaid') ...[
+                      const SizedBox(height: 10),
+                      FilledButton.icon(
+                        onPressed: disabled ? null : onPay,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFD97706),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                        ),
+                        icon: const Icon(Icons.account_balance_wallet_outlined, size: 18),
+                        label: Text(
+                          'Pay 1-Hr Downpayment (PHP ${(reservation.downpaymentAmount ?? reservation.totalAmount ?? 0.0).toStringAsFixed(2)})',
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             if (reservation.status == 'approved' && reservation.timeOut == null && !reservation.isNoShowCancelled) ...[
               const SizedBox(height: 10),
               LiveOverstayTrackerCard(
@@ -947,7 +1086,11 @@ class _ReservationCard extends StatelessWidget {
                     icon: const Icon(Icons.near_me_outlined, size: 18),
                     label: const Text('Rebook Space', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
-                if (reservation.status == 'approved' && reservation.timeOut == null && reservation.hasCredential)
+                if (reservation.status == 'approved' &&
+                    reservation.timeOut == null &&
+                    (reservation.isDownpaymentPaid ||
+                        reservation.paymentStatus == 'paid') &&
+                    reservation.hasCredential)
                   FilledButton.icon(
                     onPressed: disabled ? null : onCredential,
                     style: FilledButton.styleFrom(
@@ -1006,7 +1149,12 @@ class _ReservationCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     icon: const Icon(Icons.payment_outlined, size: 18),
-                    label: const Text('Pay', style: TextStyle(fontWeight: FontWeight.w800)),
+                    label: Text(
+                      reservation.isDownpaymentPaid
+                          ? 'Pay Balance'
+                          : 'Pay 1-Hr Downpayment',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
                   ),
                 if (reservation.canExtend)
                   FilledButton.icon(

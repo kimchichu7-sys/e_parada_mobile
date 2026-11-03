@@ -43,7 +43,12 @@ Future<PaymentSelection?> showBillingPaymentDialog(
   BuildContext context,
   DriverReservation reservation,
 ) async {
-  String method = 'cash';
+  final totalGross = reservation.totalAmount ?? 0.0;
+  final downpaymentAmount = reservation.downpaymentAmount ?? 0.0;
+  final isDownpaymentPaid = reservation.isDownpaymentPaid;
+  final isPayingDownpayment =
+      !isDownpaymentPaid && reservation.paymentStatus != 'paid';
+  String method = isPayingDownpayment ? 'gcash' : 'cash';
   XFile? proof;
   String? gcashRef;
 
@@ -58,14 +63,15 @@ Future<PaymentSelection?> showBillingPaymentDialog(
     durationLabel = '${reservation.totalHours} hrs (Estimated)';
   }
 
-  final totalGross = reservation.totalAmount ?? 0.0;
-  final downpaymentAmount = reservation.downpaymentAmount ?? 0.0;
-  final isDownpaymentPaid = reservation.isDownpaymentPaid;
   final netDue = reservation.remainingBalance ??
       (isDownpaymentPaid
           ? (totalGross - downpaymentAmount).clamp(0.0, double.infinity)
           : totalGross);
-  final payableAmount = isDownpaymentPaid ? netDue : totalGross;
+  final payableAmount = isPayingDownpayment
+      ? (downpaymentAmount > 0 ? downpaymentAmount : totalGross)
+      : netDue;
+  final remainingAfterDownpayment =
+      (totalGross - payableAmount).clamp(0.0, double.infinity);
   final hasOverstay = reservation.overstayMinutes > 0 || reservation.overstayAmount > 0;
 
   final accepted = await showDialog<bool>(
@@ -86,10 +92,12 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                 child: Icon(Icons.receipt_long_rounded, color: colors.primary, size: 22),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Itemized Billing Statement',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  isPayingDownpayment
+                      ? 'Mandatory 1-Hour Downpayment'
+                      : 'Itemized Billing Statement',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -101,6 +109,44 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (isPayingDownpayment) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.lock_clock_rounded,
+                            color: Colors.amber.shade800,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Your reservation is approved! Pay the mandatory 1-hour downpayment now via GCash to unlock your QR Gate Pass for checkpoint entry.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFFFDE68A)
+                                    : Colors.amber.shade900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
@@ -155,13 +201,28 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                       valueColor: colors.error,
                       icon: Icons.warning_amber_rounded,
                     ),
-                  if (isDownpaymentPaid && downpaymentAmount > 0) ...[
+                  _buildBillingRow(
+                    context: context,
+                    label: 'Gross Estimated Bill',
+                    value: 'PHP ${totalGross.toStringAsFixed(2)}',
+                    icon: Icons.receipt_outlined,
+                  ),
+                  if (isPayingDownpayment) ...[
                     _buildBillingRow(
                       context: context,
-                      label: 'Gross Estimated Bill',
-                      value: 'PHP ${totalGross.toStringAsFixed(2)}',
-                      icon: Icons.receipt_outlined,
+                      label: 'Mandatory 1-Hr Downpayment (Now)',
+                      value: 'PHP ${payableAmount.toStringAsFixed(2)}',
+                      valueColor: const Color(0xFF10B981),
+                      icon: Icons.account_balance_wallet_outlined,
                     ),
+                    if (remainingAfterDownpayment > 0)
+                      _buildBillingRow(
+                        context: context,
+                        label: 'Remaining Balance (Pay at Exit)',
+                        value: 'PHP ${remainingAfterDownpayment.toStringAsFixed(2)}',
+                        icon: Icons.schedule_outlined,
+                      ),
+                  ] else if (isDownpaymentPaid && downpaymentAmount > 0) ...[
                     _buildBillingRow(
                       context: context,
                       label: '1-Hour Downpayment (Paid)',
@@ -175,7 +236,11 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        isDownpaymentPaid ? 'Net Exit Balance Due' : 'Total Payable Amount',
+                        isPayingDownpayment
+                            ? '1-Hr Downpayment Due Now'
+                            : (isDownpaymentPaid
+                                ? 'Net Exit Balance Due'
+                                : 'Total Payable Amount'),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       Text(
@@ -189,30 +254,34 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                     ],
                   ),
                   const SizedBox(height: 18),
-                  const Text(
-                    'Select Settlement Method',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                  Text(
+                    isPayingDownpayment
+                        ? 'Downpayment Method (Online Required)'
+                        : 'Select Settlement Method',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.3),
                   ),
                   const SizedBox(height: 8),
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(
-                        value: 'cash',
-                        icon: Icon(Icons.payments_outlined),
-                        label: Text('Cash'),
-                      ),
-                      ButtonSegment(
-                        value: 'gcash',
-                        icon: Icon(Icons.account_balance_wallet_outlined),
-                        label: Text('GCash'),
-                      ),
-                    ],
-                    selected: {method},
-                    onSelectionChanged: (selected) {
-                      setDialogState(() => method = selected.first);
-                    },
-                  ),
-                  const SizedBox(height: 12),
+                  if (!isPayingDownpayment) ...[
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(
+                          value: 'cash',
+                          icon: Icon(Icons.payments_outlined),
+                          label: Text('Cash'),
+                        ),
+                        ButtonSegment(
+                          value: 'gcash',
+                          icon: Icon(Icons.account_balance_wallet_outlined),
+                          label: Text('GCash'),
+                        ),
+                      ],
+                      selected: {method},
+                      onSelectionChanged: (selected) {
+                        setDialogState(() => method = selected.first);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   if (method == 'cash')
                     Container(
                       padding: const EdgeInsets.all(12),
