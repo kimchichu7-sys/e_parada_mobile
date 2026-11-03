@@ -110,9 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ? _registeredOwnerController.text.trim()
             : null,
         identityImage: (await _uploadData(_identityFront))!,
-        identityImageBack: _requiresDriversLicense
-            ? await _uploadData(_identityBack)
-            : null,
+        identityImageBack: await _uploadData(_identityBack),
         plateNumber: _role == 'driver' ? _plateController.text : null,
         vehicleType: _role == 'driver' ? _vehicleType : null,
         vehicleMake: _role == 'driver' ? _vehicleMake : null,
@@ -162,10 +160,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_identityFront == null) {
       return _requiresDriversLicense
           ? 'Upload the front of your driver\'s license.'
-          : 'Upload a clear government-issued valid ID.';
+          : 'Upload the front of your government-issued valid ID.';
     }
-    if (_requiresDriversLicense && _identityBack == null) {
-      return 'Upload the back of your driver\'s license.';
+    if (_identityBack == null) {
+      return _requiresDriversLicense
+          ? 'Upload the back of your driver\'s license.'
+          : 'Upload the back of your government-issued valid ID.';
     }
     if (_role != 'driver') return null;
     if (_vehicleFront == null) {
@@ -306,37 +306,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     : 'Government ID verification',
                 caption: _requiresDriversLicense
                     ? 'Upload clear, uncropped photos of both sides of your valid Driver\'s License.'
-                    : 'Upload one clear government-issued valid ID.',
+                    : 'Upload clear, uncropped photos of both sides (front and back) of your government-issued valid ID.',
               ),
               const SizedBox(height: 12),
-              if (_requiresDriversLicense)
-                _uploadPair(
-                  first: _uploadCard(
-                    context,
-                    title: 'License front',
-                    hint: 'Photo and license details visible',
-                    image: _identityFront,
-                    icon: Icons.badge_outlined,
-                    onTap: () => _pickImage((file) => _identityFront = file),
-                  ),
-                  second: _uploadCard(
-                    context,
-                    title: 'License back',
-                    hint: 'Back details fully readable',
-                    image: _identityBack,
-                    icon: Icons.flip_to_back_outlined,
-                    onTap: () => _pickImage((file) => _identityBack = file),
-                  ),
-                )
-              else
-                _uploadCard(
+              _uploadPair(
+                first: _uploadCard(
                   context,
-                  title: 'Government-issued valid ID',
-                  hint: 'JPG or PNG, clear and uncropped',
+                  title: _requiresDriversLicense
+                      ? 'License front'
+                      : 'Government ID front',
+                  hint: _requiresDriversLicense
+                      ? 'Photo and license details visible'
+                      : 'Front side with photo and full name',
                   image: _identityFront,
                   icon: Icons.badge_outlined,
                   onTap: () => _pickImage((file) => _identityFront = file),
                 ),
+                second: _uploadCard(
+                  context,
+                  title: _requiresDriversLicense
+                      ? 'License back'
+                      : 'Government ID back',
+                  hint: 'Back details fully readable',
+                  image: _identityBack,
+                  icon: Icons.flip_to_back_outlined,
+                  onTap: () => _pickImage((file) => _identityBack = file),
+                ),
+              ),
               if (_userSubtype == 'parking_provider') ...[
                 const SizedBox(height: 18),
                 Container(
