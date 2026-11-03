@@ -24,8 +24,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmationController = TextEditingController();
   final _plateController = TextEditingController();
+  final _registeredOwnerController = TextEditingController();
 
-  String _role = 'driver';
+  String _userSubtype = 'owner_driver';
   String _vehicleType = 'Car';
   String _vehicleMake = '';
   String _vehicleModel = '';
@@ -41,6 +42,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _showConfirmation = false;
   bool _isLoading = false;
   String? _errorMessage;
+
+  String get _role =>
+      _userSubtype == 'parking_provider' ? 'parking_owner' : 'driver';
+
+  bool get _requiresDriversLicense =>
+      _userSubtype == 'driver_only' || _userSubtype == 'owner_driver';
+
+  bool get _requiresOrCr =>
+      _userSubtype == 'vehicle_owner_only' || _userSubtype == 'owner_driver';
 
   Future<void> _pickImage(ValueSetter<XFile> onPicked) async {
     final image = await _picker.pickImage(
@@ -93,8 +103,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
         passwordConfirmation: _confirmationController.text,
         role: _role,
+        userSubtype: _userSubtype,
+        isOwnerDriving: _userSubtype != 'driver_only',
+        registeredOwnerName: _userSubtype == 'driver_only'
+            ? _registeredOwnerController.text.trim()
+            : null,
         identityImage: (await _uploadData(_identityFront))!,
-        identityImageBack: await _uploadData(_identityBack),
+        identityImageBack: _requiresDriversLicense
+            ? await _uploadData(_identityBack)
+            : null,
         plateNumber: _role == 'driver' ? _plateController.text : null,
         vehicleType: _role == 'driver' ? _vehicleType : null,
         vehicleMake: _role == 'driver' ? _vehicleMake : null,
@@ -130,21 +147,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String? _missingDocumentMessage() {
     if (_identityFront == null) {
-      return _role == 'driver'
+      return _requiresDriversLicense
           ? 'Upload the front of your driver\'s license.'
           : 'Upload a clear government-issued valid ID.';
     }
-    if (_role != 'driver') return null;
-    if (_identityBack == null) {
+    if (_requiresDriversLicense && _identityBack == null) {
       return 'Upload the back of your driver\'s license.';
     }
+    if (_role != 'driver') return null;
     if (_vehicleFront == null) {
       return 'Upload a front photo of the vehicle showing its plate.';
     }
     if (_vehicleBack == null) {
       return 'Upload a back photo of the vehicle showing its plate.';
     }
-    if (_orPhoto == null) {
+    if (_requiresOrCr && _orPhoto == null) {
       return 'Upload your vehicle\'s Official Receipt (OR) or OR/CR document.';
     }
     if (!_consent) return 'Accept the vehicle-photo consent statement.';
@@ -158,6 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmationController.dispose();
     _plateController.dispose();
+    _registeredOwnerController.dispose();
     super.dispose();
   }
 
@@ -181,33 +199,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _sectionHeading(
                 context,
                 icon: Icons.manage_accounts_outlined,
-                title: 'Choose your account',
-                caption: 'Your role determines the documents we need.',
+                title: 'Registration Options',
+                caption:
+                    'Choose your registration type to determine the required documents.',
               ),
               const SizedBox(height: 12),
-              SegmentedButton<String>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(
-                    value: 'driver',
-                    icon: Icon(Icons.directions_car_outlined),
-                    label: Text('Driver'),
-                  ),
-                  ButtonSegment(
-                    value: 'parking_owner',
-                    icon: Icon(Icons.local_parking_outlined),
-                    label: Text('Parking owner'),
-                  ),
-                ],
-                selected: {_role},
-                onSelectionChanged: _isLoading
-                    ? null
-                    : (selection) {
-                        setState(() {
-                          _role = selection.first;
-                          _errorMessage = null;
-                        });
-                      },
+              _registrationOptionCard(
+                context,
+                value: 'driver_only',
+                title: '1. Driver Only',
+                subtitle: 'Submits a valid Driver\'s License.',
+                icon: Icons.badge_outlined,
+              ),
+              const SizedBox(height: 10),
+              _registrationOptionCard(
+                context,
+                value: 'vehicle_owner_only',
+                title: '2. Vehicle Owner Only',
+                subtitle: 'Submits Government ID + OR/CR in their name.',
+                icon: Icons.description_outlined,
+              ),
+              const SizedBox(height: 10),
+              _registrationOptionCard(
+                context,
+                value: 'owner_driver',
+                title: '3. Owner & Driver (Both)',
+                subtitle: 'Submits both Driver\'s License and OR/CR.',
+                icon: Icons.directions_car_outlined,
+              ),
+              const SizedBox(height: 10),
+              _registrationOptionCard(
+                context,
+                value: 'parking_provider',
+                title: '4. Parking Space Provider',
+                subtitle: 'Routes to property onboarding.',
+                icon: Icons.local_parking_outlined,
               ),
               const SizedBox(height: 24),
               _sectionHeading(
@@ -262,15 +288,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _sectionHeading(
                 context,
                 icon: Icons.badge_outlined,
-                title: _role == 'driver'
+                title: _requiresDriversLicense
                     ? 'Driver\'s license'
-                    : 'Identity verification',
-                caption: _role == 'driver'
-                    ? 'Upload clear, uncropped photos of both sides.'
+                    : 'Government ID verification',
+                caption: _requiresDriversLicense
+                    ? 'Upload clear, uncropped photos of both sides of your valid Driver\'s License.'
                     : 'Upload one clear government-issued valid ID.',
               ),
               const SizedBox(height: 12),
-              if (_role == 'driver')
+              if (_requiresDriversLicense)
                 _uploadPair(
                   first: _uploadCard(
                     context,
@@ -298,6 +324,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   icon: Icons.badge_outlined,
                   onTap: () => _pickImage((file) => _identityFront = file),
                 ),
+              if (_userSubtype == 'parking_provider') ...[
+                const SizedBox(height: 18),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: colors.outlineVariant),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.storefront_outlined, color: colors.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Parking Space Provider Onboarding: After creating your account, you will be routed to property onboarding to list your parking bays and upload property documents.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               if (_role == 'driver') ...[
                 const SizedBox(height: 28),
                 _sectionHeading(
@@ -360,6 +412,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _vehicleColor = color;
                   },
                 ),
+                if (_userSubtype == 'driver_only') ...[
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _registeredOwnerController,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Registered owner\'s full name (optional)',
+                      prefixIcon: Icon(Icons.person_pin_outlined),
+                      helperText:
+                          'Driver Only mode: OR/CR is not required if you are driving someone else\'s vehicle.',
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 _sectionHeading(
                   context,
@@ -409,9 +474,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 _sectionHeading(
                   context,
                   icon: Icons.description_outlined,
-                  title: 'LTO registration documents (OR / CR)',
-                  caption:
-                      'Upload your vehicle\'s Official Receipt (OR) and Certificate of Registration (CR). If both are on one document, upload it in both cards.',
+                  title: _requiresOrCr
+                      ? 'LTO registration documents (OR / CR)'
+                      : 'LTO registration documents (OR / CR) — Optional',
+                  caption: _requiresOrCr
+                      ? 'Upload your vehicle\'s Official Receipt (OR) and Certificate of Registration (CR) in your name. If both are on one document, upload it in the OR card.'
+                      : 'Optional for Driver Only registrations. Upload OR/CR if available.',
                 ),
                 const SizedBox(height: 12),
                 _uploadPair(
@@ -421,6 +489,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hint: 'Latest registration receipt',
                     image: _orPhoto,
                     icon: Icons.receipt_long_outlined,
+                    isOptional: !_requiresOrCr,
                     onTap: () => _pickImage((file) => _orPhoto = file),
                   ),
                   second: _uploadCard(
@@ -429,6 +498,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hint: 'Certificate of registration',
                     image: _crPhoto,
                     icon: Icons.badge_outlined,
+                    isOptional: true,
                     onTap: () => _pickImage((file) => _crPhoto = file),
                   ),
                 ),
@@ -476,6 +546,78 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ),
   ),
 );
+  }
+
+  Widget _registrationOptionCard(
+    BuildContext context, {
+    required String value,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final selected = _userSubtype == value;
+
+    return InkWell(
+      onTap: _isLoading
+          ? null
+          : () {
+              setState(() {
+                _userSubtype = value;
+                _errorMessage = null;
+              });
+            },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? colors.primaryContainer.withValues(alpha: 0.65)
+              : colors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? colors.primary : colors.outlineVariant,
+            width: selected ? 1.8 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              selected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_off_rounded,
+              color: selected ? colors.primary : colors.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              icon,
+              color: selected ? colors.primary : colors.onSurfaceVariant,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: selected ? colors.primary : colors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _sectionHeading(
@@ -567,6 +709,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required XFile? image,
     required IconData icon,
     required VoidCallback onTap,
+    bool isOptional = false,
   }) {
     final colors = Theme.of(context).colorScheme;
     final complete = image != null;
@@ -598,7 +741,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  complete ? 'Ready' : 'Required',
+                  complete ? 'Ready' : (isOptional ? 'Optional' : 'Required'),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: complete ? colors.primary : colors.onSurfaceVariant,
                     fontWeight: FontWeight.w800,

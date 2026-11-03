@@ -1,5 +1,23 @@
 import '../config/api_config.dart';
 
+class ParkingSlotPreview {
+  const ParkingSlotPreview({
+    required this.id,
+    required this.slotNumber,
+    required this.label,
+    required this.vehicleTypes,
+    required this.status,
+  });
+
+  final int id;
+  final int slotNumber;
+  final String label;
+  final List<String> vehicleTypes;
+  final String status;
+
+  bool get isAvailable => status == 'available';
+}
+
 class ParkingSpace {
   const ParkingSpace({
     required this.id,
@@ -27,6 +45,7 @@ class ParkingSpace {
     this.isSoldOut = false,
     this.openingTime,
     this.closingTime,
+    this.slotsLayout = const [],
   });
 
   final int id;
@@ -54,6 +73,7 @@ class ParkingSpace {
   final bool isSoldOut;
   final String? openingTime;
   final String? closingTime;
+  final List<ParkingSlotPreview> slotsLayout;
 
   bool get isClosed => !isOpenNow && !isOpen24Hours;
   bool get isAvailable => !isSoldOut;
@@ -241,6 +261,29 @@ class ParkingSpace {
       isSoldOut: json['is_sold_out'] == true,
       openingTime: json['opening_time']?.toString(),
       closingTime: json['closing_time']?.toString(),
+      slotsLayout: () {
+        final rawList = json['slots_layout'];
+        if (rawList is! List) return const <ParkingSlotPreview>[];
+        final items = <ParkingSlotPreview>[];
+        for (final item in rawList) {
+          if (item is Map) {
+            final vTypes = (item['vehicle_types'] as List<dynamic>? ?? [])
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            items.add(
+              ParkingSlotPreview(
+                id: _integer(item['id']),
+                slotNumber: _integer(item['slot_number'], items.length + 1),
+                label: item['label']?.toString() ?? 'Slot ${items.length + 1}',
+                vehicleTypes: vTypes,
+                status: item['status']?.toString() ?? 'available',
+              ),
+            );
+          }
+        }
+        return items;
+      }(),
       vehicleHourlyRates: () {
         final rates = <String, double>{};
         if (json['vehicle_hourly_rates'] is Map) {

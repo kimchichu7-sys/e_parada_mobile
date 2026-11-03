@@ -11,6 +11,9 @@ class AuthService {
     required String password,
     required String passwordConfirmation,
     required String role,
+    String userSubtype = 'owner_driver',
+    bool? isOwnerDriving,
+    String? registeredOwnerName,
     required UploadFileData identityImage,
     UploadFileData? identityImageBack,
     String? plateNumber,
@@ -29,6 +32,7 @@ class AuthService {
       'password': password,
       'password_confirmation': passwordConfirmation,
       'role': role,
+      'user_subtype': userSubtype,
     };
     final files = <String, UploadFileData>{'id_image': identityImage};
 
@@ -37,6 +41,7 @@ class AuthService {
     }
 
     if (role == 'driver') {
+      final ownerDriving = isOwnerDriving ?? (userSubtype != 'driver_only');
       fields.addAll({
         'plate_number': plateNumber ?? '',
         'vehicle_type': vehicleType ?? '',
@@ -44,7 +49,11 @@ class AuthService {
         'vehicle_color': vehicleColor ?? '',
         'vehicle_model': vehicleModel ?? '',
         'vehicle_photo_consent': '1',
+        'is_owner_driving': ownerDriving ? '1' : '0',
       });
+      if (registeredOwnerName != null && registeredOwnerName.trim().isNotEmpty) {
+        fields['registered_owner_name'] = registeredOwnerName.trim();
+      }
 
       if (vehiclePhoto != null) {
         files['vehicle_photo'] = vehiclePhoto;

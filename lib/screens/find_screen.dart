@@ -46,6 +46,11 @@ class _FindScreenState extends State<FindScreen> {
   late Future<List<ParkingSpace>> _spacesFuture;
   List<ParkingSpace> _allSpaces = const [];
   ParkingSpace? _selectedSpace;
+  int? _expandedSpaceId;
+  int? _hoveredSpaceId;
+
+  bool _isSpaceExpanded(int spaceId) =>
+      _expandedSpaceId == spaceId || _hoveredSpaceId == spaceId;
 
   // Filter state
   String _searchQuery = '';
@@ -1270,221 +1275,438 @@ class _FindScreenState extends State<FindScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // Selected Space Bottom Preview Card (Matches Screenshot 2)
+  // Miniature 2D Floor Plan Preview for Cascading / Collapsible Cards
   // ---------------------------------------------------------------------------
-  Widget _buildSelectedSpaceCard(ParkingSpace space) {
-    final dist = _distanceFor(space);
-    final total = _calculateEstimatedTotal(space);
-    final hours = _calculateDurationHours();
+  Widget _buildMini2DFloorPlan(ParkingSpace space) {
+    final slots = space.slotsLayout.isNotEmpty
+        ? space.slotsLayout.take(8).toList()
+        : List.generate(
+            math.min(math.max(space.totalSlots, 4), 8),
+            (i) => ParkingSlotPreview(
+              id: i + 1,
+              slotNumber: i + 1,
+              label: 'Slot ${i + 1}',
+              vehicleTypes: space.supportedVehicles.isNotEmpty
+                  ? [space.supportedVehicles.first]
+                  : const ['Car'],
+              status: i < space.availableSlotsCount ? 'available' : 'occupied',
+            ),
+          );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final mid = (slots.length / 2).ceil();
+    final topRow = slots.sublist(0, mid);
+    final bottomRow = slots.length > mid ? slots.sublist(mid) : const <ParkingSlotPreview>[];
+
+    Widget buildStallRow(List<ParkingSlotPreview> rowSlots) {
+      return Row(
         children: [
-          // Drag handle
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(2),
+          for (var i = 0; i < rowSlots.length; i++) ...[
+            if (i > 0) const SizedBox(width: 6),
+            Expanded(
+              child: InkWell(
+                onTap: rowSlots[i].isAvailable ? () => _openBookingScreen(space) : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: rowSlots[i].isAvailable
+                        ? const Color(0xFF064E3B)
+                        : const Color(0xFF4C0519),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: rowSlots[i].isAvailable
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFFF43F5E),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: rowSlots[i].isAvailable
+                                  ? const Color(0xFF34D399)
+                                  : const Color(0xFFFB7185),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              'P-${rowSlots[i].slotNumber}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        rowSlots[i].vehicleTypes.isNotEmpty
+                            ? rowSlots[i].vehicleTypes.first
+                            : 'Bay',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFCBD5E1),
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
+        ],
+      );
+    }
 
-          // Main Card Content: Photo + Title + Close Button
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF334155), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Photo Thumbnail
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  width: 90,
-                  height: 90,
-                  child: space.imageUrl != null && space.imageUrl!.trim().isNotEmpty
-                      ? AppNetworkImage(
-                          imageUrl: space.imageUrl!,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          color: const Color(0xFFE2E8F0),
-                          child: const Icon(Icons.local_parking_rounded, color: Color(0xFF64748B), size: 36),
-                        ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Info & Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            space.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF0F172A),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        FavoriteSpaceButton(
-                          parkingSpaceId: space.id,
-                          parkingSpaceName: space.name,
-                          iconSize: 20,
-                        ),
-                        const SizedBox(width: 4),
-                        GestureDetector(
-                          onTap: () => setState(() => _selectedSpace = null),
-                          child: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      space.address,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-                    // Ratings, Distance, Slots
-                    Row(
-                      children: [
-                        const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 15),
-                        const SizedBox(width: 2),
-                        const Text(
-                          '4.8',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
-                        ),
-                        const SizedBox(width: 8),
-                        if (dist != null) ...[
-                          const Icon(Icons.directions_walk_rounded, color: Color(0xFF64748B), size: 14),
-                          Text(
-                            formatParkingDistance(dist),
-                            style: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: space.isSoldOut
-                                ? const Color(0xFFFFE4E6)
-                                : (space.isClosed ? const Color(0xFFF1F5F9) : const Color(0xFFDCFCE7)),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            space.isSoldOut
-                                ? 'Sold Out'
-                                : (space.isClosed ? 'Closed • ${space.operatingHours}' : '${space.availableSlotsCount} slots free'),
-                            style: TextStyle(
-                              color: space.isSoldOut
-                                  ? const Color(0xFFBE123C)
-                                  : (space.isClosed ? const Color(0xFF475569) : const Color(0xFF16A34A)),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 10.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Action Buttons: Book CTA + Directions & Details
-          Row(
-            children: [
-              // Big CTA Button: "Book for ₱..."
-              Expanded(
-                flex: 3,
-                child: ElevatedButton(
-                  onPressed: () => _openBookingScreen(space),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981), // Emerald CTA like Screenshot 2
-                    foregroundColor: Colors.white,
-                    elevation: 2,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Book for ₱${total.toStringAsFixed(2)} ($hours hr${hours > 1 ? 's' : ''})',
-                    style: const TextStyle(
+              const Row(
+                children: [
+                  Icon(Icons.layers_outlined, size: 13, color: Color(0xFFFFDE70)),
+                  SizedBox(width: 5),
+                  Text(
+                    '2D FLOOR PLAN PREVIEW',
+                    style: TextStyle(
+                      color: Color(0xFFFFDE70),
+                      fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      fontSize: 13.5,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
-
-              // Directions button
-              OutlinedButton(
-                onPressed: () => _openDirections(space),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF34D399),
+                    ),
                   ),
-                  side: const BorderSide(color: Color(0xFFCBD5E1)),
-                ),
-                child: const Icon(Icons.directions_rounded, color: Color(0xFF173B64), size: 18),
-              ),
-              const SizedBox(width: 8),
-
-              // Details button
-              OutlinedButton(
-                onPressed: () => _openDetailsScreen(space),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 3),
+                  const Text(
+                    'Open',
+                    style: TextStyle(color: Color(0xFF34D399), fontSize: 9, fontWeight: FontWeight.w700),
                   ),
-                  side: const BorderSide(color: Color(0xFFCBD5E1)),
-                ),
-                child: const Icon(Icons.info_outline_rounded, color: Color(0xFF173B64), size: 18),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFFFB7185),
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  const Text(
+                    'Occupied',
+                    style: TextStyle(color: Color(0xFFFB7185), fontSize: 9, fontWeight: FontWeight.w700),
+                  ),
+                ],
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          buildStallRow(topRow),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 1.5,
+                    color: const Color(0xFFFACC15).withValues(alpha: 0.6),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: const Text(
+                    '⇄ DRIVEWAY AISLE ⇄',
+                    style: TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    height: 1.5,
+                    color: const Color(0xFFFACC15).withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (bottomRow.isNotEmpty) buildStallRow(bottomRow),
         ],
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Grid / List View (Matches Screenshot 3 Left Side)
+  // Selected Space Bottom Preview Card (Cascading / Collapsible)
+  // ---------------------------------------------------------------------------
+  Widget _buildSelectedSpaceCard(ParkingSpace space) {
+    final dist = _distanceFor(space);
+    final total = _calculateEstimatedTotal(space);
+    final hours = _calculateDurationHours();
+    final expanded = _isSpaceExpanded(space.id);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredSpaceId = space.id),
+      onExit: (_) => setState(() => _hoveredSpaceId = null),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _expandedSpaceId = (_expandedSpaceId == space.id) ? null : space.id;
+          });
+        },
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 16,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+
+                // Main Summary Content: Photo + Title + Expand/Close
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 78,
+                        height: 78,
+                        child: space.imageUrl != null && space.imageUrl!.trim().isNotEmpty
+                            ? AppNetworkImage(
+                                imageUrl: space.imageUrl!,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: const Color(0xFFE2E8F0),
+                                child: const Icon(Icons.local_parking_rounded, color: Color(0xFF64748B), size: 32),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  space.name,
+                                  style: const TextStyle(
+                                    fontSize: 15.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              FavoriteSpaceButton(
+                                parkingSpaceId: space.id,
+                                parkingSpaceName: space.name,
+                                iconSize: 20,
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () => setState(() => _selectedSpace = null),
+                                child: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            space.address,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: space.isSoldOut
+                                      ? const Color(0xFFFFE4E6)
+                                      : (space.isClosed ? const Color(0xFFF1F5F9) : const Color(0xFFDCFCE7)),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  space.isSoldOut
+                                      ? 'Sold Out'
+                                      : (space.isClosed ? 'Closed' : '${space.availableSlotsCount} bays open'),
+                                  style: TextStyle(
+                                    color: space.isSoldOut
+                                        ? const Color(0xFFBE123C)
+                                        : (space.isClosed ? const Color(0xFF475569) : const Color(0xFF16A34A)),
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 10.5,
+                                  ),
+                                ),
+                              ),
+                              if (dist != null) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  formatParkingDistance(dist),
+                                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                                ),
+                              ],
+                              const Spacer(),
+                              Text(
+                                expanded ? 'Hide 2D Plan ▲' : '2D Plan & Details ▼',
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF173B64),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                if (expanded) ...[
+                  const SizedBox(height: 10),
+                  _buildMini2DFloorPlan(space),
+                ],
+
+                const SizedBox(height: 10),
+
+                // Action Buttons: Book CTA + Directions & Details
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: ElevatedButton(
+                        onPressed: () => _openBookingScreen(space),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Book for ₱${total.toStringAsFixed(2)} ($hours hr${hours > 1 ? 's' : ''})',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () => _openDirections(space),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      ),
+                      child: const Icon(Icons.directions_rounded, color: Color(0xFF173B64), size: 18),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () => _openDetailsScreen(space),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      ),
+                      child: const Icon(Icons.info_outline_rounded, color: Color(0xFF173B64), size: 18),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Grid / List View (Cascading / Collapsible Summary Cards)
   // ---------------------------------------------------------------------------
   Widget _buildGridView(List<ParkingSpace> spaces) {
     if (spaces.isEmpty) {
@@ -1530,196 +1752,266 @@ class _FindScreenState extends State<FindScreen> {
       itemBuilder: (context, index) {
         final space = spaces[index];
         final rate = parkingHourlyRate(space) ?? 20.0;
+        final expanded = _isSpaceExpanded(space.id);
 
-        return Card(
-          elevation: 2,
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: Image + Info
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Photo
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: SizedBox(
-                        width: 95,
-                        height: 95,
-                        child: space.imageUrl != null && space.imageUrl!.trim().isNotEmpty
-                            ? AppNetworkImage(
-                                imageUrl: space.imageUrl!,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                color: const Color(0xFFE2E8F0),
-                                child: const Icon(Icons.local_parking_rounded, color: Color(0xFF64748B), size: 36),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        return MouseRegion(
+          onEnter: (_) => setState(() => _hoveredSpaceId = space.id),
+          onExit: (_) => setState(() => _hoveredSpaceId = null),
+          child: Card(
+            elevation: expanded ? 4 : 1.5,
+            margin: const EdgeInsets.only(bottom: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: expanded ? const Color(0xFF173B64) : const Color(0xFFE2E8F0),
+                width: expanded ? 1.5 : 1.0,
+              ),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                setState(() {
+                  _expandedSpaceId = (_expandedSpaceId == space.id) ? null : space.id;
+                });
+              },
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Clean Summary Header Row (Always Visible)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  space.name,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF0F172A),
-                                  ),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              width: 76,
+                              height: 76,
+                              child: space.imageUrl != null && space.imageUrl!.trim().isNotEmpty
+                                  ? AppNetworkImage(
+                                      imageUrl: space.imageUrl!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      color: const Color(0xFFE2E8F0),
+                                      child: const Icon(Icons.local_parking_rounded, color: Color(0xFF64748B), size: 32),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        space.name,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF0F172A),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    FavoriteSpaceButton(
+                                      parkingSpaceId: space.id,
+                                      parkingSpaceName: space.name,
+                                      iconSize: 19,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  space.address,
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              FavoriteSpaceButton(
-                                parkingSpaceId: space.id,
-                                parkingSpaceName: space.name,
-                                iconSize: 20,
-                              ),
-                            ],
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: space.isSoldOut
+                                            ? const Color(0xFFFFE4E6)
+                                            : (space.isClosed
+                                                ? const Color(0xFFF1F5F9)
+                                                : const Color(0xFFDCFCE7)),
+                                        borderRadius: BorderRadius.circular(99),
+                                      ),
+                                      child: Text(
+                                        space.isSoldOut
+                                            ? 'Sold Out'
+                                            : (space.isClosed
+                                                ? 'Closed'
+                                                : '${space.availableSlotsCount} bays open'),
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: space.isSoldOut
+                                              ? const Color(0xFFBE123C)
+                                              : (space.isClosed ? const Color(0xFF64748B) : const Color(0xFF16A34A)),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        expanded ? 'Hide Details ▲' : 'Tap for Details & 2D Plan ▼',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF173B64),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            space.address,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'from ₱${rate.toStringAsFixed(2)}',
+                                '₱${rate.toStringAsFixed(0)}',
                                 style: const TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 17,
                                   fontWeight: FontWeight.w900,
                                   color: Color(0xFF173B64),
                                 ),
                               ),
-                              const SizedBox(width: 4),
                               const Text(
-                                'PER HOUR',
+                                'PER HR',
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: 8.5,
                                   fontWeight: FontWeight.w800,
                                   color: Color(0xFF64748B),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            space.isSoldOut
-                                ? 'Sold Out • ${space.operatingHours.isNotEmpty ? space.operatingHours : "Open 24/7"}'
-                                : (space.isClosed
-                                    ? 'Closed • ${space.operatingHours.isNotEmpty ? space.operatingHours : "Open 24/7"}'
-                                    : '${space.availableSlotsCount} bays open • ${space.operatingHours.isNotEmpty ? space.operatingHours : "Open 24/7"}'),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: space.isSoldOut
-                                  ? const Color(0xFFBE123C)
-                                  : (space.isClosed ? const Color(0xFF64748B) : const Color(0xFF16A34A)),
-                            ),
-                          ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
 
-                const SizedBox(height: 10),
-
-                // Vehicle types chips
-                if (space.supportedVehicles.isNotEmpty)
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: space.supportedVehicles.map((v) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFFCBD5E1), width: 0.8),
+                      // Cascading / Collapsible Details & 2D Floor Plan
+                      if (expanded) ...[
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF0284C7)),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                space.operatingHours.isNotEmpty ? space.operatingHours : 'Open 24/7',
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF334155),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          v,
-                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                const SizedBox(height: 10),
-
-                // Action Buttons: BOOK NOW, Directions, DETAILS
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () => _openBookingScreen(space),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFDE70), // Naples Gold button from web
-                          foregroundColor: const Color(0xFF173B64),
-                          elevation: 1,
-                          padding: const EdgeInsets.symmetric(vertical: 9),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                        if (space.supportedVehicles.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: space.supportedVehicles.map((v) {
+                              final vRate = space.vehicleHourlyRates[v];
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFCBD5E1), width: 0.8),
+                                ),
+                                child: Text(
+                                  vRate != null ? '$v: ₱${vRate.toStringAsFixed(0)}/hr' : v,
+                                  style: const TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF334155),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
+                        ],
+                        const SizedBox(height: 10),
+                        _buildMini2DFloorPlan(space),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton(
+                                onPressed: () => _openBookingScreen(space),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFFDE70),
+                                  foregroundColor: const Color(0xFF173B64),
+                                  elevation: 1,
+                                  padding: const EdgeInsets.symmetric(vertical: 9),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'BOOK NOW',
+                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              onPressed: () => _openDirections(space),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                              ),
+                              icon: const Icon(Icons.near_me_outlined, size: 14, color: Color(0xFF173B64)),
+                              label: const Text(
+                                'Directions',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF173B64)),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton(
+                              onPressed: () => _openDetailsScreen(space),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              ),
+                              child: const Text(
+                                'DETAILS',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF64748B)),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          'BOOK NOW',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: () => _openDirections(space),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      ),
-                      icon: const Icon(Icons.near_me_outlined, size: 14, color: Color(0xFF173B64)),
-                      label: const Text(
-                        'Directions',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF173B64)),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () => _openDetailsScreen(space),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      ),
-                      child: const Text(
-                        'DETAILS',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF64748B)),
-                      ),
-                    ),
-                  ],
+                      ],
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
         );
