@@ -141,9 +141,14 @@ void main() {
       // Verify cards appear
       expect(find.text('SM Calamba Parking'), findsOneWidget);
       expect(find.text('VOGMES Parking Space'), findsOneWidget);
-      expect(find.text('BOOK NOW'), findsNWidgets(2));
-      expect(find.text('Directions'), findsNWidgets(2));
-      expect(find.text('DETAILS'), findsNWidgets(2));
+
+      // Tap card to expand details & actions
+      await tester.tap(find.text('SM Calamba Parking'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('BOOK NOW'), findsOneWidget);
+      expect(find.text('Directions'), findsOneWidget);
+      expect(find.text('DETAILS'), findsOneWidget);
     });
 
     testWidgets('Search bar uses dark text style and preserves spaces when searching a general place', (tester) async {

@@ -247,3 +247,258 @@ class MarkerBitmapGenerator {
     return const Offset(0.5, 35.0 / 38.5);
   }
 }
+
+/// Native Flutter widget version of the E-Parada price speech-bubble pin
+/// for use with `flutter_map` `MarkerLayer`.
+class PricePinBadge extends StatelessWidget {
+  const PricePinBadge({
+    super.key,
+    required this.price,
+    this.isAvailable = true,
+    this.isClosed = false,
+    this.isSoldOut = false,
+    this.isSelected = false,
+    this.onTap,
+  });
+
+  final double price;
+  final bool isAvailable;
+  final bool isClosed;
+  final bool isSoldOut;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: CustomPaint(
+        painter: _PricePinBadgePainter(
+          price: price,
+          isAvailable: isAvailable,
+          isClosed: isClosed,
+          isSoldOut: isSoldOut,
+          isSelected: isSelected,
+        ),
+      ),
+    );
+  }
+}
+
+class _PricePinBadgePainter extends CustomPainter {
+  _PricePinBadgePainter({
+    required this.price,
+    required this.isAvailable,
+    required this.isClosed,
+    required this.isSoldOut,
+    required this.isSelected,
+  });
+
+  final double price;
+  final bool isAvailable;
+  final bool isClosed;
+  final bool isSoldOut;
+  final bool isSelected;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const navyBg = Color(0xFF235282);
+    const goldBg = Color(0xFFFFDE70);
+    const redBg = Color(0xFF881337);
+    const slateBg = Color(0xFF334155);
+
+    final Color bgColor;
+    final Color borderColor;
+    final double borderWidth;
+    final Color textColor;
+
+    if (isSelected) {
+      bgColor = goldBg;
+      borderColor = const Color(0xFF173B64);
+      borderWidth = 2.4;
+      textColor = const Color(0xFF173B64);
+    } else if (isSoldOut) {
+      bgColor = redBg;
+      borderColor = const Color(0xFFFDA4AF);
+      borderWidth = 1.8;
+      textColor = const Color(0xFFFECDD3);
+    } else if (isClosed) {
+      bgColor = slateBg;
+      borderColor = const Color(0xFF94A3B8);
+      borderWidth = 1.8;
+      textColor = const Color(0xFFF1F5F9);
+    } else if (!isAvailable) {
+      bgColor = redBg;
+      borderColor = const Color(0xFFFDA4AF);
+      borderWidth = 1.8;
+      textColor = const Color(0xFFFECDD3);
+    } else {
+      bgColor = navyBg;
+      borderColor = Colors.white;
+      borderWidth = 1.8;
+      textColor = Colors.white;
+    }
+
+    final String amountText;
+    if (isSoldOut) {
+      amountText = 'Sold Out';
+    } else if (isClosed) {
+      amountText = 'Closed';
+    } else if (!isAvailable) {
+      amountText = 'Unavailable';
+    } else if (price <= 0) {
+      amountText = 'Free';
+    } else {
+      amountText =
+          price % 1 == 0 ? '₱${price.toInt()}' : '₱${price.toStringAsFixed(2)}';
+    }
+
+    final double fontSize = amountText.length <= 4
+        ? (isSelected ? 14.0 : 13.0)
+        : (isSelected ? 12.5 : 11.5);
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: amountText,
+        style: TextStyle(
+          color: textColor,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w900,
+          letterSpacing: -0.2,
+        ),
+      ),
+    )..layout();
+
+    final double padH = amountText.length <= 4 ? 10.0 : 9.0;
+    final double pillHeight = isSelected ? 29.0 : 26.0;
+    final double pointerHeight = isSelected ? 6.0 : 5.0;
+    final double pointerWidth = isSelected ? 9.0 : 8.0;
+
+    final double pillWidth = textPainter.width + (padH * 2);
+    final double centerX = size.width / 2;
+    final double tipY = size.height - 2.0;
+    final double pillBottom = tipY - pointerHeight;
+    final double pillTop = pillBottom - pillHeight;
+    final double pillLeft = centerX - (pillWidth / 2);
+
+    final pillRect = Rect.fromLTWH(pillLeft, pillTop, pillWidth, pillHeight);
+    final pillRRect = RRect.fromRectAndRadius(
+      pillRect,
+      Radius.circular(pillHeight / 2),
+    );
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.2);
+
+    final badgePath = Path()
+      ..addRRect(pillRRect)
+      ..moveTo(centerX - (pointerWidth / 2), pillBottom - 0.5)
+      ..lineTo(centerX, tipY)
+      ..lineTo(centerX + (pointerWidth / 2), pillBottom - 0.5)
+      ..close();
+
+    canvas.save();
+    canvas.translate(0, 1.2);
+    canvas.drawPath(badgePath, shadowPaint);
+    canvas.restore();
+
+    final fillPaint = Paint()
+      ..color = bgColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(badgePath, fillPaint);
+
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(badgePath, borderPaint);
+
+    final textX = centerX - (textPainter.width / 2);
+    final textY = pillTop + (pillHeight - textPainter.height) / 2;
+    textPainter.paint(canvas, Offset(textX, textY));
+  }
+
+  @override
+  bool shouldRepaint(covariant _PricePinBadgePainter oldDelegate) {
+    return oldDelegate.price != price ||
+        oldDelegate.isAvailable != isAvailable ||
+        oldDelegate.isClosed != isClosed ||
+        oldDelegate.isSoldOut != isSoldOut ||
+        oldDelegate.isSelected != isSelected;
+  }
+}
+
+/// Live GPS / Origin marker widget for `flutter_map` `MarkerLayer`.
+class DriverGpsPinWidget extends StatelessWidget {
+  const DriverGpsPinWidget({
+    super.key,
+    this.color = const Color(0xFF0284C7),
+    this.isCustomOrigin = false,
+  });
+
+  final Color color;
+  final bool isCustomOrigin;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isCustomOrigin) {
+      return Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF97316),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.trip_origin_rounded,
+            color: Colors.white,
+            size: 14,
+          ),
+        ),
+      );
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.22),
+            shape: BoxShape.circle,
+          ),
+        ),
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+

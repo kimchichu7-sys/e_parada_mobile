@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart' hide Path;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -40,7 +38,7 @@ class _FindScreenState extends State<FindScreen> {
   static const _fallbackCenter = LatLng(14.2117, 121.1653);
 
   // Controllers & State
-  gmaps.GoogleMapController? _googleMapController;
+  final MapController _mapController = MapController();
   final _searchController = TextEditingController();
 
   late Future<List<ParkingSpace>> _spacesFuture;
@@ -64,11 +62,9 @@ class _FindScreenState extends State<FindScreen> {
 
   // Location & Map
   LatLng? _currentLocation;
-  double _currentHeading = 0.0;
   bool _locationPermissionGranted = false;
   bool _mapReady = false;
   bool _showSearchHereButton = false;
-  final Map<String, gmaps.BitmapDescriptor> _customMarkerBitmaps = {};
 
   @override
   void initState() {
@@ -96,8 +92,15 @@ class _FindScreenState extends State<FindScreen> {
   @override
   void dispose() {
     _searchController.dispose();
-    _googleMapController?.dispose();
+    _mapController.dispose();
     super.dispose();
+  }
+
+  void _moveCamera(LatLng point, double zoom) {
+    if (!_mapReady) return;
+    try {
+      _mapController.move(point, zoom);
+    } catch (_) {}
   }
 
   void _loadSpaces() {
@@ -106,64 +109,21 @@ class _FindScreenState extends State<FindScreen> {
       setState(() {
         _allSpaces = spaces;
       });
-      _preloadMarkerBitmaps(spaces);
 
-      if (_currentLocation == null && _googleMapController != null && spaces.isNotEmpty) {
+      if (_currentLocation == null && _mapReady && spaces.isNotEmpty) {
         final firstWithCoords = spaces.firstWhere(
           (s) => s.latitude != null && s.longitude != null,
           orElse: () => spaces.first,
         );
         if (firstWithCoords.latitude != null && firstWithCoords.longitude != null) {
-          _googleMapController!.animateCamera(
-            gmaps.CameraUpdate.newLatLngZoom(
-              gmaps.LatLng(firstWithCoords.latitude!, firstWithCoords.longitude!),
-              14.5,
-            ),
+          _moveCamera(
+            LatLng(firstWithCoords.latitude!, firstWithCoords.longitude!),
+            14.5,
           );
         }
       }
       return spaces;
     });
-  }
-
-  Future<void> _preloadMarkerBitmaps(List<ParkingSpace> spaces) async {
-    final futures = <Future<void>>[];
-    for (final space in spaces) {
-      final rate = space.getEffectiveRate(vehicleType: _selectedVehicleType);
-
-      // Unselected state
-      futures.add(
-        MarkerBitmapGenerator.getPriceMarker(
-          price: rate,
-          isAvailable: space.isAvailable,
-          isClosed: space.isClosed,
-          isSoldOut: space.isSoldOut,
-          isSelected: false,
-        ).then((bitmap) {
-          _customMarkerBitmaps['${space.id}_false'] = bitmap;
-        }).catchError((_) {}),
-      );
-
-      // Selected state
-      futures.add(
-        MarkerBitmapGenerator.getPriceMarker(
-          price: rate,
-          isAvailable: space.isAvailable,
-          isClosed: space.isClosed,
-          isSoldOut: space.isSoldOut,
-          isSelected: true,
-        ).then((bitmap) {
-          _customMarkerBitmaps['${space.id}_true'] = bitmap;
-        }).catchError((_) {}),
-      );
-    }
-
-    try {
-      await Future.wait(futures);
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (_) {}
   }
 
   Future<void> _checkLocationServices() async {
@@ -225,18 +185,10 @@ class _FindScreenState extends State<FindScreen> {
       final point = LatLng(pos.latitude, pos.longitude);
       setState(() {
         _currentLocation = point;
-        _currentHeading = pos.heading;
       });
 
-      if (animateCamera && _mapReady && _googleMapController != null) {
-        _googleMapController!.animateCamera(
-          gmaps.CameraUpdate.newCameraPosition(
-            gmaps.CameraPosition(
-              target: gmaps.LatLng(point.latitude, point.longitude),
-              zoom: 15.0,
-            ),
-          ),
-        );
+      if (animateCamera && _mapReady) {
+        _moveCamera(point, 15.0);
       }
     } catch (_) {}
   }
@@ -310,16 +262,10 @@ class _FindScreenState extends State<FindScreen> {
         _selectedSpace = matchedSpace;
         _showSearchHereButton = false;
       });
-      if (_googleMapController != null) {
-        await _googleMapController!.animateCamera(
-          gmaps.CameraUpdate.newCameraPosition(
-            gmaps.CameraPosition(
-              target: gmaps.LatLng(matchedSpace.latitude!, matchedSpace.longitude!),
-              zoom: 16.0,
-            ),
-          ),
-        );
-      }
+      _moveCamera(
+        LatLng(matchedSpace.latitude!, matchedSpace.longitude!),
+        16.0,
+      );
       _showToast('Found parking at: ${matchedSpace.name}');
       return;
     }
@@ -356,16 +302,7 @@ class _FindScreenState extends State<FindScreen> {
     for (final entry in knownHubs.entries) {
       if (qLower.contains(entry.key)) {
         final pt = entry.value;
-        if (_googleMapController != null) {
-          await _googleMapController!.animateCamera(
-            gmaps.CameraUpdate.newCameraPosition(
-              gmaps.CameraPosition(
-                target: gmaps.LatLng(pt.latitude, pt.longitude),
-                zoom: 15.5,
-              ),
-            ),
-          );
-        }
+        _moveCamera(pt, 15.5);
         _showToast('Moved map to ${entry.key.toUpperCase()}');
         return;
       }
@@ -374,15 +311,8 @@ class _FindScreenState extends State<FindScreen> {
     // 3. Online Geocoding via ApiService
     try {
       final geoPt = await ApiService.geocodeAddress(query);
-      if (geoPt != null && _googleMapController != null) {
-        await _googleMapController!.animateCamera(
-          gmaps.CameraUpdate.newCameraPosition(
-            gmaps.CameraPosition(
-              target: gmaps.LatLng(geoPt.latitude, geoPt.longitude),
-              zoom: 15.5,
-            ),
-          ),
-        );
+      if (geoPt != null) {
+        _moveCamera(geoPt, 15.5);
         _showToast('Moved map to $query');
         return;
       }
@@ -523,11 +453,12 @@ class _FindScreenState extends State<FindScreen> {
 
   void _applyFilters() {
     FocusScope.of(context).unfocus();
-    _preloadMarkerBitmaps(_allSpaces);
     final count = _getFilteredSpaces().length;
     _showToast('Filters applied: $count parking space${count == 1 ? '' : 's'} available');
     if (_selectedSpace != null && !_getFilteredSpaces().contains(_selectedSpace)) {
       setState(() => _selectedSpace = null);
+    } else {
+      setState(() {});
     }
   }
 
@@ -590,72 +521,58 @@ class _FindScreenState extends State<FindScreen> {
     }
   }
 
-  Set<gmaps.Marker> _buildMarkers(List<ParkingSpace> spaces) {
-    final markers = <gmaps.Marker>{};
+  List<Marker> _buildMarkers(List<ParkingSpace> spaces) {
+    final markers = <Marker>[];
 
     // Driver Live GPS Marker
     if (_currentLocation != null) {
       markers.add(
-        gmaps.Marker(
-          markerId: const gmaps.MarkerId('driver_live_gps'),
-          position: gmaps.LatLng(
-            _currentLocation!.latitude,
-            _currentLocation!.longitude,
-          ),
-          rotation: _currentHeading,
-          flat: true,
-          anchor: const Offset(0.5, 0.5),
-          zIndexInt: 10,
-          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            gmaps.BitmapDescriptor.hueAzure,
-          ),
-          infoWindow: const gmaps.InfoWindow(title: 'You are here'),
+        Marker(
+          key: const ValueKey('driver_live_gps'),
+          point: _currentLocation!,
+          width: 34,
+          height: 34,
+          alignment: Alignment.center,
+          child: const DriverGpsPinWidget(),
         ),
       );
     }
 
-    // Parking spaces markers
-    for (final space in spaces) {
+    // Parking spaces markers (render unselected first, selected on top)
+    final orderedSpaces = [
+      ...spaces.where((s) => _selectedSpace?.id != s.id),
+      ...spaces.where((s) => _selectedSpace?.id == s.id),
+    ];
+
+    for (final space in orderedSpaces) {
       final pt = _pointFor(space);
       if (pt == null) continue;
 
       final isSelected = _selectedSpace?.id == space.id;
       final rate = space.getEffectiveRate(vehicleType: _selectedVehicleType);
-      final cacheKey = '${space.id}_$isSelected';
-      final customIcon = _customMarkerBitmaps[cacheKey] ??
-          MarkerBitmapGenerator.getCachedMarker(
+
+      markers.add(
+        Marker(
+          key: ValueKey('space_${space.id}_$isSelected'),
+          point: pt,
+          width: 96,
+          height: 44,
+          alignment: Alignment.topCenter,
+          child: PricePinBadge(
             price: rate,
             isAvailable: space.isAvailable,
             isClosed: space.isClosed,
             isSoldOut: space.isSoldOut,
             isSelected: isSelected,
-          );
-
-      markers.add(
-        gmaps.Marker(
-          markerId: gmaps.MarkerId('space_${space.id}'),
-          position: gmaps.LatLng(pt.latitude, pt.longitude),
-          anchor: customIcon != null
-              ? MarkerBitmapGenerator.getMarkerAnchor(isSelected: isSelected)
-              : const Offset(0.5, 1.0),
-          icon: customIcon ??
-              (space.isSoldOut
-                  ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)
-                  : (space.isClosed
-                      ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet)
-                      : (isSelected
-                          ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
-                          : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueCyan)))),
-          onTap: () {
-            setState(() {
-              _selectedSpace = space;
-            });
-            _googleMapController?.animateCamera(
-              gmaps.CameraUpdate.newLatLng(
-                gmaps.LatLng(pt.latitude, pt.longitude),
-              ),
-            );
-          },
+            onTap: () {
+              setState(() {
+                _selectedSpace = space;
+              });
+              if (_mapReady) {
+                _moveCamera(pt, _mapController.camera.zoom);
+              }
+            },
+          ),
         ),
       );
     }
@@ -1112,7 +1029,6 @@ class _FindScreenState extends State<FindScreen> {
                             setState(() {
                               _selectedVehicleType = (val == null || val == 'All') ? '' : val;
                             });
-                            _preloadMarkerBitmaps(_allSpaces);
                           },
                         ),
                       ),
@@ -1226,51 +1142,50 @@ class _FindScreenState extends State<FindScreen> {
   // Map View
   // ---------------------------------------------------------------------------
   Widget _buildMapView(List<ParkingSpace> spaces) {
-    return gmaps.GoogleMap(
-      gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-      },
-      initialCameraPosition: gmaps.CameraPosition(
-        target: gmaps.LatLng(
-          _currentLocation?.latitude ?? _fallbackCenter.latitude,
-          _currentLocation?.longitude ?? _fallbackCenter.longitude,
-        ),
-        zoom: 13.8,
-      ),
-      onMapCreated: (ctrl) {
-        _googleMapController = ctrl;
-        _mapReady = true;
-        if (_currentLocation == null && spaces.isNotEmpty) {
-          final firstWithCoords = spaces.firstWhere(
-            (s) => s.latitude != null && s.longitude != null,
-            orElse: () => spaces.first,
-          );
-          if (firstWithCoords.latitude != null && firstWithCoords.longitude != null) {
-            ctrl.animateCamera(
-              gmaps.CameraUpdate.newLatLngZoom(
-                gmaps.LatLng(firstWithCoords.latitude!, firstWithCoords.longitude!),
-                14.5,
-              ),
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: _currentLocation ?? _fallbackCenter,
+        initialZoom: 13.8,
+        minZoom: 3,
+        maxZoom: 20,
+        onMapReady: () {
+          _mapReady = true;
+          if (_currentLocation == null && spaces.isNotEmpty) {
+            final firstWithCoords = spaces.firstWhere(
+              (s) => s.latitude != null && s.longitude != null,
+              orElse: () => spaces.first,
             );
+            if (firstWithCoords.latitude != null && firstWithCoords.longitude != null) {
+              _moveCamera(
+                LatLng(firstWithCoords.latitude!, firstWithCoords.longitude!),
+                14.5,
+              );
+            }
           }
-        }
-      },
-      myLocationEnabled: true,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      mapToolbarEnabled: false,
-      compassEnabled: true,
-      onCameraMove: (pos) {
-        if (!_showSearchHereButton) {
-          setState(() => _showSearchHereButton = true);
-        }
-      },
-      onTap: (_) {
-        if (_selectedSpace != null) {
-          setState(() => _selectedSpace = null);
-        }
-      },
-      markers: _buildMarkers(spaces),
+        },
+        onPositionChanged: (camera, hasGesture) {
+          if (hasGesture && !_showSearchHereButton) {
+            setState(() => _showSearchHereButton = true);
+          }
+        },
+        onTap: (_, _) {
+          if (_selectedSpace != null) {
+            setState(() => _selectedSpace = null);
+          }
+        },
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+          subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+          userAgentPackageName: 'com.eparada.app',
+          maxZoom: 20,
+        ),
+        MarkerLayer(
+          markers: _buildMarkers(spaces),
+        ),
+      ],
     );
   }
 
@@ -1383,10 +1298,14 @@ class _FindScreenState extends State<FindScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 4,
             children: [
               const Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.layers_outlined, size: 13, color: Color(0xFFFFDE70)),
                   SizedBox(width: 5),
@@ -1402,6 +1321,7 @@ class _FindScreenState extends State<FindScreen> {
                 ],
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     width: 6,

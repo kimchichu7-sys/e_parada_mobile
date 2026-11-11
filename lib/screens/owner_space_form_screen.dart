@@ -1,9 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart' hide Path;
 
 import '../models/owner_parking_space.dart';
 import '../services/api_client.dart';
@@ -41,7 +42,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
   XFile? _barangayClearance;
   XFile? _taxDeclaration;
 
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
   LatLng? _location;
   bool _isAvailable = true;
   bool _open24Hours = true;
@@ -104,7 +105,7 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    _mapController.dispose();
     _nameController.dispose();
     _addressController.dispose();
     _barangayController.dispose();
@@ -141,9 +142,9 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
       if (!mounted) return;
 
       setState(() => _location = location);
-      await _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(location, 17),
-      );
+      try {
+        _mapController.move(location, 17);
+      } catch (_) {}
     } catch (error) {
       if (mounted) setState(() => _errorMessage = error.toString());
     } finally {
@@ -183,12 +184,13 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
         final bytes = await file.readAsBytes();
         final coordinates = await GeotagHelper.extractCoordinates(bytes);
         if (coordinates != null && mounted) {
+          final pin = LatLng(coordinates.latitude, coordinates.longitude);
           setState(() {
-            _location = coordinates;
+            _location = pin;
           });
-          await _mapController?.animateCamera(
-            CameraUpdate.newLatLngZoom(coordinates, 17),
-          );
+          try {
+            _mapController.move(pin, 17);
+          } catch (_) {}
           if (mounted) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
@@ -567,30 +569,42 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                     borderRadius: BorderRadius.circular(8),
                     child: SizedBox(
                       height: 280,
-                      child: GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: mapCenter,
-                          zoom: _location == null ? 12 : 17,
+                      child: FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: mapCenter,
+                          initialZoom: _location == null ? 12 : 17,
+                          minZoom: 3,
+                          maxZoom: 20,
+                          onTap: (_, position) =>
+                              setState(() => _location = position),
                         ),
-                        onMapCreated: (controller) =>
-                            _mapController = controller,
-                        onTap: (position) =>
-                            setState(() => _location = position),
-                        mapToolbarEnabled: false,
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: true,
-                        markers: _location == null
-                            ? const <Marker>{}
-                            : {
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+                            subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                            userAgentPackageName: 'com.eparada.app',
+                            maxZoom: 20,
+                          ),
+                          if (_location != null)
+                            MarkerLayer(
+                              markers: [
                                 Marker(
-                                  markerId: const MarkerId('parking-space'),
-                                  position: _location!,
-                                  draggable: true,
-                                  onDragEnd: (position) {
-                                    setState(() => _location = position);
-                                  },
+                                  key: const ValueKey('parking-space'),
+                                  point: _location!,
+                                  width: 44,
+                                  height: 44,
+                                  alignment: Alignment.topCenter,
+                                  child: const Icon(
+                                    Icons.location_on_rounded,
+                                    color: Color(0xFFEF4444),
+                                    size: 40,
+                                  ),
                                 ),
-                              },
+                              ],
+                            ),
+                        ],
                       ),
                     ),
                   ),

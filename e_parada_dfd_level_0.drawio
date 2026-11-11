@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T10:25:00.000Z" agent="E-Parada Portrait Level-0 DFD" version="24.0.0" type="device">
+  <diagram id="level-0-dfd" name="Level 0 DFD (Portrait - 7 Processes - Zero Crossings)">
+    <mxGraphModel dx="1200" dy="1500" grid="1" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1180" pageHeight="1310" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title_banner" value="E-PARADA SYSTEM - LEVEL-0 DFD (7 CORE PROCESSES | GANE &amp; SARSON / IEEE STANDARD | ZERO-INTERSECTION PORTRAIT LAYOUT)" style="text;html=1;strokeColor=#000000;strokeWidth=1.5;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="12" width="1150" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ADMIN" value="SYSTEM&#xa;ADMINISTRATOR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="495" y="60" width="155" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="DRIVER_main" value="DRIVER / END USER" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="20" y="310" width="120" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="PROVIDER_main" value="PARKING SPACE&#xa;PROVIDER" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="985" y="310" width="145" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="DRIVER_alias" value="DRIVER / END USER" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="900" y="650" width="145" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="PROVIDER_alias" value="PARKING SPACE&#xa;PROVIDER" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="140" y="800" width="150" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="GCASH" value="PAYMENT GATEWAY&#xa;(GCash)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;align=center;verticalAlign=middle;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="495" y="1205" width="155" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="P1" value="1.0" style="swimlane;whiteSpace=wrap;html=1;rounded=0;startSize=22;horizontal=1;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="205" y="135" width="180" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="P1_lbl" value="Manage User Registration&#xa;&amp; KYC Authentication" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="P1">
+          <mxGeometry x="0" y="22" width="180" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="P2" value="2.0" style="swimlane;whiteSpace=wrap;html=1;rounded=0;startSize=22;horizontal=1;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="755" y="195" width="180" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="P2_lbl" value="Manage Parking Facilities&#xa;&amp; 2D Slot Layouts" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="P2">
+          <mxGeometry x="0" y="22" width="180" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="P3" value="3.0" style="swimlane;whiteSpace=wrap;html=1;rounded=0;startSize=22;horizontal=1;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="210" y="430" width="180" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="P3_lbl" value="Search Available Parking&#xa;&amp; Navigate Routes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="P3">
+          <mxGeometry x="0" y="22" width="180" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="P4" value="4.0" style="swimlane;whiteSpace=wrap;html=1;rounded=0;startSize=22;horizontal=1;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="210" y="675" width="180" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="P4_lbl" value="Process Slot Reservations&#xa;&amp; Concurrency Locks" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="P4">
+          <mxGeometry x="0" y="22" width="180" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="P5" value="5.0" style="swimlane;whiteSpace=wrap;html=1;rounded=0;startSize=22;horizontal=1;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="695" y="505" width="180" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="P5_lbl" value="Validate Checkpoint QR&#xa;Access &amp; Gate Sessions" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="P5">
+          <mxGeometry x="0" y="22" width="180" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="P6" value="6.0" style="swimlane;whiteSpace=wrap;html=1;rounded=0;startSize=22;horizontal=1;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="482" y="995" width="180" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="P6_lbl" value="Compute Duration Billing&#xa;&amp; Payment Settlement" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="P6">
+          <mxGeometry x="0" y="22" width="180" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="P7" value="7.0" style="swimlane;whiteSpace=wrap;html=1;rounded=0;startSize=22;horizontal=1;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="482" y="455" width="180" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="P7_lbl" value="Manage Comms, Feedback&#xa;&amp; System Reports" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="P7">
+          <mxGeometry x="0" y="22" width="180" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="D1_left" value="D1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="205" y="60" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D1_left_lbl" value="User &amp; Vehicle Records" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D1_left">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D2_top" value="D2" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="755" y="60" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D2_top_lbl" value="Parking Spaces &amp; 2D Slots" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D2_top">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D1_right" value="D1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="965" y="75" width="175" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D1_right_lbl" value="User &amp; Vehicle Records" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D1_right">
+          <mxGeometry x="28" y="0" width="147" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D5_upper" value="D5" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="595" y="340" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D5_upper_lbl" value="Payment &amp; Receipts" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D5_upper">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D3_right" value="D3" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="955" y="526" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D3_right_lbl" value="Reservation Records" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D3_right">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D2_mid" value="D2" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="210" y="572" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D2_mid_lbl" value="Parking Spaces &amp; 2D Slots" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D2_mid">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D6_center" value="D6" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="482" y="615" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D6_center_lbl" value="Feedback &amp; Audit Logs" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D6_center">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D3_lower" value="D3" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="240" y="895" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D3_lower_lbl" value="Reservation Records" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D3_lower">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D4_sessions" value="D4" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="740" y="795" width="185" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D4_sessions_lbl" value="Active Parking Sessions" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D4_sessions">
+          <mxGeometry x="28" y="0" width="157" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D5_lower" value="D5" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=28;fontStyle=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;collapsible=0;fontSize=10;fontColor=#000000;swimlaneLine=0;" vertex="1" parent="1">
+          <mxGeometry x="482" y="885" width="180" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="D5_lower_lbl" value="Payment &amp; Receipts" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="D5_lower">
+          <mxGeometry x="28" y="0" width="152" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="f01" value="Verified Driver &amp; Vehicle Profile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="P1" target="D1_left">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f02" value="Authentication Token &amp; KYC Notice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="P1" target="DRIVER_main">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="80" y="173" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f03" value="Registration, Credentials &amp; OR/CR" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.12;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="DRIVER_main" target="P1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="331" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f04" value="Pending KYC &amp; Vehicle Records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.26;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="P1" target="ADMIN">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="155" />
+              <mxPoint x="420" y="77" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f05" value="Account KYC Approval Status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.59;entryDx=0;entryDy=0;" edge="1" parent="1" source="ADMIN" target="P1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="111" />
+              <mxPoint x="440" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f06" value="Facility &amp; Rate Approval Decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ADMIN" target="P2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="790" y="111" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f07" value="Pending Facility &amp; Slot Submission" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="P2" target="ADMIN">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="572" y="233" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f08" value="Approved 2D Slot Layout &amp; Rates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="P2" target="D2_top">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f09" value="Verified Provider Profile Data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="P2" target="D1_right">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1052" y="233" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f10" value="Provider Profile &amp; 2D Slot Setup" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="PROVIDER_main" target="P2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="845" y="344" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f11" value="Review, Dispute &amp; Comms Message" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="DRIVER_main" target="P7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="362" />
+              <mxPoint x="425" y="493" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f12" value="Moderation &amp; Audit Directives" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.28;exitY=1;exitDx=0;exitDy=0;entryX=0.31;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ADMIN" target="P7">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f13" value="Transaction Financial Totals" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.11;exitY=1;exitDx=0;exitDy=0;entryX=0.74;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="D5_upper" target="P7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="615" y="405" />
+              <mxPoint x="615" y="455" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f14" value="Review, Comms &amp; Audit Records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="P7" target="D6_center">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f15" value="Location Search &amp; 2D Map Query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.48;exitDx=0;exitDy=0;entryX=0.4;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="DRIVER_main" target="P3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="282" y="394" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f16" value="Available 2D Floorplan &amp; Route" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.68;entryDx=0;entryDy=0;" edge="1" parent="1" source="P3" target="DRIVER_main">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="185" y="468" />
+              <mxPoint x="185" y="429" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f17" value="Slot Layout, Rates &amp; Occupancy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="D2_mid" target="P3">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f18" value="Slot Availability &amp; Rate Rules" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="D2_mid" target="P4">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f19" value="Slot Selection &amp; Booking Request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.86;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" edge="1" parent="1" source="DRIVER_main" target="P4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="165" y="460" />
+              <mxPoint x="165" y="698" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f20" value="HMAC QR Code &amp; Booking Pass" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=0.8;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="P4" target="DRIVER_main">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="116" y="736" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f21" value="Reservation Alert &amp; Driver ETA" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="P4" target="PROVIDER_alias">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="785" />
+              <mxPoint x="215" y="785" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f22" value="Confirmed Booking &amp; Slot Lock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.58;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="P4" target="D3_lower">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f23" value="Checkpoint QR Scan Data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="PROVIDER_main" target="P5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="785" y="411" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f24" value="Reservation Validation Record" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="D3_right" target="P5">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f25" value="Access Granted &amp; Slot Assignment" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="P5" target="DRIVER_alias">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="615" />
+              <mxPoint x="972" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f26" value="Check-In / Check-Out Timestamps" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.28;exitY=1;exitDx=0;exitDy=0;entryX=0.32;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="P5" target="D4_sessions">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="745" y="700" />
+              <mxPoint x="800" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f27" value="Completed Session Duration" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="D4_sessions" target="P6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="812" />
+              <mxPoint x="700" y="1033" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f28" value="Recorded Digital Receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="P6" target="D5_lower">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f29" value="Itemized Bill Statement" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="P6" target="DRIVER_main">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="80" y="1018" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f30" value="Payment Authorization &amp; Method" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" edge="1" parent="1" source="DRIVER_main" target="P6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="44" y="1056" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f31" value="Gateway Payment Request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.35;exitY=1;exitDx=0;exitDy=0;entryX=0.32;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="P6" target="GCASH">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f32" value="Payment Settlement Webhook" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=0.68;exitY=0;exitDx=0;exitDy=0;entryX=0.65;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="GCASH" target="P6">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f33" value="Settled Payout Notification" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.2;fontSize=9;fontColor=#000000;fontStyle=1;labelBackgroundColor=#FFFFFF;jumpStyle=none;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="P6" target="PROVIDER_main">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1155" y="1056" />
+              <mxPoint x="1155" y="378" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -38,7 +38,7 @@ class _ConfigurationErrorAppState extends State<_ConfigurationErrorApp> {
     _controller = TextEditingController(
       text: ApiConfig.baseUrl.isNotEmpty
           ? ApiConfig.baseUrl
-          : 'https://yacht-aka-profit-champions.trycloudflare.com/api',
+          : 'http://192.168.100.205:8000/api',
     );
   }
 
@@ -158,15 +158,15 @@ class _ConfigurationErrorAppState extends State<_ConfigurationErrorApp> {
                           alignment: WrapAlignment.center,
                           children: [
                             ActionChip(
-                              label: const Text('Live Tunnel', style: TextStyle(fontSize: 14)),
+                              label: const Text('Live Cloud (Render)', style: TextStyle(fontSize: 14)),
                               avatar: const Icon(Icons.cloud, size: 16),
                               onPressed: () {
                                 _controller.text =
-                                    'https://yacht-aka-profit-champions.trycloudflare.com/api';
+                                    'https://e-parada.onrender.com/api';
                               },
                             ),
                             ActionChip(
-                              label: const Text('Wi-Fi LAN', style: TextStyle(fontSize: 14)),
+                              label: const Text('Wi-Fi LAN (Fastest)', style: TextStyle(fontSize: 14)),
                               avatar: const Icon(Icons.wifi, size: 16),
                               onPressed: () {
                                 _controller.text =

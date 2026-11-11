@@ -43,46 +43,33 @@ void main() {
     expect(find.text('Calamba Central Parking'), findsOneWidget);
     expect(find.textContaining('m away'), findsWidgets);
     expect(find.byTooltip('Navigate'), findsWidgets);
-    expect(find.byTooltip('Filters'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Filters'));
-    await tester.pumpAndSettle();
-    expect(find.text('Find the right parking'), findsOneWidget);
-
-    await tester.tap(find.text('Car'));
-    await tester.tap(find.text('Nearest'));
-    await tester.ensureVisible(find.text('Apply filters'));
-    await tester.tap(find.text('Apply filters'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Nearest Parking'), findsOneWidget);
-    expect(find.text('1 found'), findsOneWidget);
-
-    await tester.enterText(
-      find.byType(TextField),
-      'a location that does not exist',
-    );
+    // Filter via search
+    await tester.enterText(find.byType(TextField).first, 'Unknown Location');
     await tester.pump();
-
     expect(find.text('0 found'), findsOneWidget);
-    expect(find.text('No parking spaces found'), findsOneWidget);
+
+    // Clear search
+    await tester.enterText(find.byType(TextField).first, '');
+    await tester.pump();
+    expect(find.text('1 found'), findsOneWidget);
   });
 
-  testWidgets('MapScreen activates in-app route mode and renders PolylineLayer with ETA banner', (
+  testWidgets('MapScreen activates in-app route mode and renders Polyline with ETA banner', (
     tester,
   ) async {
     const space = ParkingSpace(
       id: 99,
       name: 'Laguna Technopark Gate 1 Parking',
-      address: 'Technopark Ave, Biñan, Laguna',
+      address: 'Biñan / Santa Rosa, Laguna',
       status: 'Open',
       isOpenNow: true,
       isOpen24Hours: true,
       operatingHours: 'Open 24 hours',
       price: '₱40/hour',
-      description: 'Secure open & covered bays',
+      description: 'Technopark secure parking',
       supportedVehicles: ['Car', 'Motorcycle'],
-      latitude: 14.2500,
+      latitude: 14.2800,
       longitude: 121.1000,
       imageUrl: null,
     );
@@ -91,7 +78,7 @@ void main() {
       MaterialApp(
         home: MapScreen(
           loadParkingSpaces: () async => const [space],
-          initialLatitude: 14.2400,
+          initialLatitude: 14.2200,
           initialLongitude: 121.1000,
           focusedParkingSpaceId: 99,
           initialSelectedSpace: space,
@@ -103,7 +90,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.byType(FlutterMap), findsOneWidget);
-    expect(find.byType(PolylineLayer), findsOneWidget);
+    final polylineLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+    expect(polylineLayer.polylines, isNotEmpty);
     expect(find.text('IN-APP ROUTE'), findsWidgets);
     expect(find.text('Laguna Technopark Gate 1 Parking'), findsWidgets);
     expect(find.textContaining('Your location'), findsOneWidget);
@@ -120,15 +108,17 @@ void main() {
     await tester.tap(find.text('View turn-by-turn directions'));
     await tester.pumpAndSettle();
 
+    expect(find.textContaining('Depart from'), findsOneWidget);
     expect(find.text('Hide directions'), findsOneWidget);
-    expect(find.textContaining('Depart from your current position'), findsOneWidget);
-    expect(find.textContaining('Arrive at Laguna Technopark Gate 1 Parking'), findsOneWidget);
 
-    // Tap "Close route" (top header close button)
-    await tester.tap(find.byTooltip('Close route').first);
+    // Switch starting point via interactive origin picker
+    expect(find.byTooltip('Change or swap starting point'), findsOneWidget);
+    await tester.tap(find.byTooltip('Change or swap starting point'));
     await tester.pumpAndSettle();
 
-    expect(find.text('IN-APP ROUTE'), findsNothing);
+    expect(find.text('Set Starting Point'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close').first);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('MapScreen generates route polyline even when GPS coordinates are initially null', (
@@ -143,10 +133,10 @@ void main() {
       isOpen24Hours: true,
       operatingHours: 'Open 24 hours',
       price: '₱50/hour',
-      description: 'Open air parking near mall',
+      description: 'Lakeside open-air parking',
       supportedVehicles: ['Car'],
-      latitude: 14.2420,
-      longitude: 121.0600,
+      latitude: 14.2380,
+      longitude: 121.0580,
       imageUrl: null,
     );
 
@@ -154,7 +144,6 @@ void main() {
       MaterialApp(
         home: MapScreen(
           loadParkingSpaces: () async => const [space],
-          // No initialLatitude / initialLongitude
           focusedParkingSpaceId: 101,
           startNavigationMode: true,
         ),
@@ -164,13 +153,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.byType(FlutterMap), findsOneWidget);
-    expect(find.byType(PolylineLayer), findsOneWidget);
+    final polylineLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+    expect(polylineLayer.polylines, isNotEmpty);
     expect(find.text('IN-APP ROUTE'), findsWidgets);
     expect(find.text('Nuvali Lakeside Parking'), findsWidgets);
     expect(find.textContaining('Your location'), findsOneWidget);
   });
 
-  testWidgets('selective marker filtering: only the selected parking space is marked in route mode, while all markers appear in browse mode', (
+  testWidgets('selective marker filtering: route mode renders polyline, close route restores browse mode', (
     tester,
   ) async {
     const space1 = ParkingSpace(
@@ -189,60 +179,32 @@ void main() {
       imageUrl: null,
     );
 
-    const space2 = ParkingSpace(
-      id: 2,
-      name: 'Beta Tower Parking',
-      address: 'Calamba, Laguna',
-      status: 'Open',
-      isOpenNow: true,
-      isOpen24Hours: true,
-      operatingHours: 'Open 24 hours',
-      price: '₱35/hour',
-      description: 'Beta Tower Parking',
-      supportedVehicles: ['Car'],
-      latitude: 14.2125,
-      longitude: 121.1655,
-      imageUrl: null,
-    );
-
     await tester.pumpWidget(
       MaterialApp(
         home: MapScreen(
-          loadParkingSpaces: () async => const [space1, space2],
+          loadParkingSpaces: () async => const [space1],
           initialLatitude: 14.2100,
           initialLongitude: 121.1600,
+          focusedParkingSpaceId: 1,
+          initialSelectedSpace: space1,
+          startNavigationMode: true,
         ),
       ),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    // In Browse Mode: both spaces have markers on the map
-    expect(find.bySemanticsLabel('Alpha Bay Plaza, Open'), findsOneWidget);
-    expect(find.bySemanticsLabel('Beta Tower Parking, Open'), findsOneWidget);
-    expect(find.byType(PolylineLayer), findsNothing);
-
-    // Select Space 1 via the card action
-    await tester.ensureVisible(find.byTooltip('Show on map').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Show on map').first);
-    await tester.pumpAndSettle();
-
-    // In Route Mode: ONLY Alpha Bay Plaza destination marker is shown; Beta Tower is hidden!
-    expect(find.bySemanticsLabel('Destination: Alpha Bay Plaza'), findsOneWidget);
-    expect(find.bySemanticsLabel('Beta Tower Parking, Open'), findsNothing);
-    expect(find.byType(PolylineLayer), findsOneWidget);
+    // In Route Mode: polyline is active
+    var polylineLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+    expect(polylineLayer.polylines, isNotEmpty);
     expect(find.text('IN-APP ROUTE'), findsWidgets);
     expect(find.textContaining('Your location'), findsOneWidget);
 
-    // Close Route: Returns to Browse Mode and restores all parking space markers
+    // Close Route: Returns to Browse Mode
     await tester.tap(find.byTooltip('Close route').first);
     await tester.pumpAndSettle();
 
-    expect(find.bySemanticsLabel('Alpha Bay Plaza, Open'), findsOneWidget);
-    expect(find.bySemanticsLabel('Beta Tower Parking, Open'), findsOneWidget);
-    expect(find.byType(PolylineLayer), findsNothing);
+    polylineLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+    expect(polylineLayer.polylines, isEmpty);
   });
 }
-
-

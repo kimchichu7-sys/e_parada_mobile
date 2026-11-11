@@ -7,7 +7,7 @@ void main() {
     await tester.pumpWidget(const TestApp());
 
     expect(find.text('E-Parada'), findsNothing);
-    expect(find.text('Find Parking.\nMade Smarter.'), findsOneWidget);
+    expect(find.text('Find Parking.\nMade Local.'), findsOneWidget);
     expect(find.text('Login'), findsOneWidget);
     expect(find.text('Create Account'), findsOneWidget);
   });

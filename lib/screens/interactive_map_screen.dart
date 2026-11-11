@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart' hide Path;
 
 import '../models/parking_space.dart';
@@ -42,7 +41,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   static const _fallbackCenter = LatLng(14.2117, 121.1653);
 
-  gmaps.GoogleMapController? _googleMapController;
+  final MapController _mapController = MapController();
   final _searchController = TextEditingController();
   final _mapKey = GlobalKey();
 
@@ -57,7 +56,6 @@ class _MapScreenState extends State<MapScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
   double _currentHeading = 0.0;
   double _currentSpeedKmh = 0.0;
-  double _currentAccuracyMeters = 0.0;
   bool _isLiveTrackingActive = false;
   bool _isSimulatingRoute = false;
 
@@ -74,45 +72,6 @@ class _MapScreenState extends State<MapScreen> {
   double? _maxHourlyRate;
   ParkingSort _sort = ParkingSort.recommended;
   bool _isMapFullscreen = false;
-  final Map<String, gmaps.BitmapDescriptor> _customMarkerBitmaps = {};
-
-  Future<void> _preloadMarkerBitmaps(List<ParkingSpace> spaces) async {
-    final futures = <Future<void>>[];
-    for (final space in spaces) {
-      final rate = space.getEffectiveRate(vehicleType: _vehicleFilter);
-
-      futures.add(
-        MarkerBitmapGenerator.getPriceMarker(
-          price: rate,
-          isAvailable: space.isAvailable,
-          isClosed: space.isClosed,
-          isSoldOut: space.isSoldOut,
-          isSelected: false,
-        ).then((bitmap) {
-          _customMarkerBitmaps['${space.id}_false'] = bitmap;
-        }),
-      );
-
-      futures.add(
-        MarkerBitmapGenerator.getPriceMarker(
-          price: rate,
-          isAvailable: space.isAvailable,
-          isClosed: space.isClosed,
-          isSoldOut: space.isSoldOut,
-          isSelected: true,
-        ).then((bitmap) {
-          _customMarkerBitmaps['${space.id}_true'] = bitmap;
-        }),
-      );
-    }
-
-    try {
-      await Future.wait(futures);
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (_) {}
-  }
 
   @override
   void initState() {
@@ -121,7 +80,6 @@ class _MapScreenState extends State<MapScreen> {
       _selectedSpace = widget.initialSelectedSpace;
     }
     _spacesFuture = widget.loadParkingSpaces().then((spaces) {
-      _preloadMarkerBitmaps(spaces);
       if (widget.focusedParkingSpaceId != null && _selectedSpace == null) {
         try {
           final found = spaces.firstWhere(
@@ -153,7 +111,7 @@ class _MapScreenState extends State<MapScreen> {
     _positionStreamSubscription?.cancel();
     _navSubscription?.cancel();
     _searchController.dispose();
-    _googleMapController?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -446,40 +404,35 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _moveMap(LatLng point, double zoom) {
-    if (!_mapReady || _googleMapController == null) return;
-    _googleMapController!.animateCamera(
-      gmaps.CameraUpdate.newLatLngZoom(
-        gmaps.LatLng(point.latitude, point.longitude),
-        zoom,
-      ),
-    );
+    if (!_mapReady) return;
+    try {
+      _mapController.move(point, zoom);
+    } catch (_) {}
   }
 
   void _fitRoute(LatLng origin, LatLng destination) {
-    if (!_mapReady || _googleMapController == null) return;
+    if (!_mapReady) return;
     final south = math.min(origin.latitude, destination.latitude);
     final north = math.max(origin.latitude, destination.latitude);
     final west = math.min(origin.longitude, destination.longitude);
     final east = math.max(origin.longitude, destination.longitude);
 
-    final bounds = gmaps.LatLngBounds(
-      southwest: gmaps.LatLng(south, west),
-      northeast: gmaps.LatLng(north, east),
-    );
-
     try {
-      _googleMapController!.animateCamera(
-        gmaps.CameraUpdate.newLatLngBounds(bounds, 48),
+      if ((north - south).abs() < 0.0001 && (east - west).abs() < 0.0001) {
+        _mapController.move(origin, 16.0);
+        return;
+      }
+      _mapController.fitCamera(
+        CameraFit.bounds(
+          bounds: LatLngBounds(LatLng(south, west), LatLng(north, east)),
+          padding: const EdgeInsets.all(48),
+          maxZoom: 16.5,
+        ),
       );
     } catch (_) {
       final midLat = (origin.latitude + destination.latitude) / 2;
       final midLng = (origin.longitude + destination.longitude) / 2;
-      _googleMapController!.animateCamera(
-        gmaps.CameraUpdate.newLatLngZoom(
-          gmaps.LatLng(midLat, midLng),
-          14.5,
-        ),
-      );
+      _moveMap(LatLng(midLat, midLng), 14.5);
     }
   }
 
@@ -718,7 +671,6 @@ class _MapScreenState extends State<MapScreen> {
       _currentLocation = newPoint;
       _currentHeading = heading;
       _currentSpeedKmh = speedKmh;
-      _currentAccuracyMeters = position.accuracy;
       _isLiveTrackingActive = true;
     });
 
@@ -728,17 +680,8 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     // If camera follows vehicle and navigating, animate camera along driver's movement
-    if (_isNavigating && _cameraFollowsVehicle && _mapReady && _googleMapController != null) {
-      _googleMapController!.animateCamera(
-        gmaps.CameraUpdate.newCameraPosition(
-          gmaps.CameraPosition(
-            target: gmaps.LatLng(newPoint.latitude, newPoint.longitude),
-            bearing: heading,
-            tilt: 45.0,
-            zoom: 18.0,
-          ),
-        ),
-      );
+    if (_isNavigating && _cameraFollowsVehicle && _mapReady) {
+      _moveMap(newPoint, 18.0);
     }
   }
 
@@ -1404,47 +1347,49 @@ class _MapScreenState extends State<MapScreen> {
       borderRadius: borderRadius ?? BorderRadius.circular(22),
       child: Stack(
         children: [
-          gmaps.GoogleMap(
-            gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-              Factory<OneSequenceGestureRecognizer>(
-                () => EagerGestureRecognizer(),
-              ),
-            },
-            initialCameraPosition: gmaps.CameraPosition(
-              target: gmaps.LatLng(
-                _initialCenter(allSpaces).latitude,
-                _initialCenter(allSpaces).longitude,
-              ),
-              zoom: 14,
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _initialCenter(allSpaces),
+              initialZoom: 14,
+              minZoom: 3,
+              maxZoom: 20,
+              onMapReady: () {
+                _mapReady = true;
+                if (_selectedSpace != null &&
+                    _pointFor(_selectedSpace!) != null) {
+                  final start = _effectiveOrigin(_selectedSpace!);
+                  _fitRoute(
+                    start,
+                    _pointFor(_selectedSpace!)!,
+                  );
+                }
+              },
+              onTap: (_, latLng) {
+                if (_isPickingOriginOnMap) {
+                  _setCustomOrigin(
+                    LatLng(latLng.latitude, latLng.longitude),
+                    'Map Pin (${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)})',
+                  );
+                  _message('Starting point set from map pin.');
+                }
+              },
             ),
-            onMapCreated: (controller) {
-              _googleMapController = controller;
-              _mapReady = true;
-              if (_selectedSpace != null &&
-                  _pointFor(_selectedSpace!) != null) {
-                final start = _effectiveOrigin(_selectedSpace!);
-                _fitRoute(
-                  start,
-                  _pointFor(_selectedSpace!)!,
-                );
-              }
-            },
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            compassEnabled: true,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
-            onTap: (latLng) {
-              if (_isPickingOriginOnMap) {
-                _setCustomOrigin(
-                  LatLng(latLng.latitude, latLng.longitude),
-                  'Map Pin (${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)})',
-                );
-                _message('Starting point set from map pin.');
-              }
-            },
-            markers: _buildGoogleMarkers(allSpaces, mappedSpaces),
-            polylines: _buildGooglePolylines(),
+            children: [
+              TileLayer(
+                urlTemplate:
+                    'https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}',
+                subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                userAgentPackageName: 'com.eparada.app',
+                maxZoom: 20,
+              ),
+              PolylineLayer(
+                polylines: _buildFlutterPolylines(),
+              ),
+              MarkerLayer(
+                markers: _buildFlutterMarkers(allSpaces, mappedSpaces),
+              ),
+            ],
           ),
           if (_isPickingOriginOnMap)
             Positioned(
@@ -1547,9 +1492,12 @@ class _MapScreenState extends State<MapScreen> {
                     icon: Icons.add_rounded,
                     tooltip: 'Zoom in',
                     onPressed: () {
-                      _googleMapController?.animateCamera(
-                        gmaps.CameraUpdate.zoomIn(),
-                      );
+                      if (_mapReady) {
+                        _moveMap(
+                          _mapController.camera.center,
+                          (_mapController.camera.zoom + 1).clamp(3, 20),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 8),
@@ -1557,9 +1505,12 @@ class _MapScreenState extends State<MapScreen> {
                     icon: Icons.remove_rounded,
                     tooltip: 'Zoom out',
                     onPressed: () {
-                      _googleMapController?.animateCamera(
-                        gmaps.CameraUpdate.zoomOut(),
-                      );
+                      if (_mapReady) {
+                        _moveMap(
+                          _mapController.camera.center,
+                          (_mapController.camera.zoom - 1).clamp(3, 20),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 8),
@@ -1654,145 +1605,86 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Set<gmaps.Marker> _buildGoogleMarkers(
+  List<Marker> _buildFlutterMarkers(
     List<ParkingSpace> allSpaces,
     List<ParkingSpace> mappedSpaces,
   ) {
-    final markers = <gmaps.Marker>{};
+    final markers = <Marker>[];
 
     // 1. In Navigation / Route Mode: show the destination and vehicle position
     if (_selectedSpace != null && _pointFor(_selectedSpace!) != null) {
       final destPt = _pointFor(_selectedSpace!)!;
       final isAvailable = _selectedSpace!.isAvailable;
       final rate = _selectedSpace!.getEffectiveRate(vehicleType: _vehicleFilter);
-      final destIcon = _customMarkerBitmaps['${_selectedSpace!.id}_true'] ??
-          MarkerBitmapGenerator.getCachedMarker(
+
+      // If user specified a custom origin AND live GPS is available, show actual position pin too
+      if (_customOrigin != null && _currentLocation != null) {
+        markers.add(
+          Marker(
+            key: const ValueKey('driver_live_gps_marker'),
+            point: _currentLocation!,
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            child: const DriverGpsPinWidget(),
+          ),
+        );
+      }
+
+      // Driver vehicle / origin marker
+      final originPt = _customOrigin ??
+          _currentLocation ??
+          _navProgress?.currentPosition ??
+          _effectiveOrigin(_selectedSpace!);
+
+      markers.add(
+        Marker(
+          key: const ValueKey('driver_vehicle_marker'),
+          point: originPt,
+          width: 34,
+          height: 34,
+          alignment: Alignment.center,
+          child: DriverGpsPinWidget(
+            isCustomOrigin: _customOrigin != null,
+            color: _isNavigating
+                ? const Color(0xFF06B6D4)
+                : const Color(0xFF2563EB),
+          ),
+        ),
+      );
+
+      markers.add(
+        Marker(
+          key: ValueKey('selected_dest_${_selectedSpace!.id}'),
+          point: destPt,
+          width: 96,
+          height: 44,
+          alignment: Alignment.topCenter,
+          child: PricePinBadge(
             price: rate,
             isAvailable: isAvailable,
             isClosed: _selectedSpace!.isClosed,
             isSoldOut: _selectedSpace!.isSoldOut,
             isSelected: true,
-          );
-
-      markers.add(
-        gmaps.Marker(
-          markerId: gmaps.MarkerId('selected_dest_${_selectedSpace!.id}'),
-          position: gmaps.LatLng(destPt.latitude, destPt.longitude),
-          anchor: destIcon != null
-              ? MarkerBitmapGenerator.getMarkerAnchor(isSelected: true)
-              : const Offset(0.5, 1.0),
-          icon: destIcon ??
-              gmaps.BitmapDescriptor.defaultMarkerWithHue(
-                _selectedSpace!.isSoldOut
-                    ? gmaps.BitmapDescriptor.hueRed
-                    : (_selectedSpace!.isClosed
-                        ? gmaps.BitmapDescriptor.hueViolet
-                        : gmaps.BitmapDescriptor.hueAzure),
-              ),
-          infoWindow: gmaps.InfoWindow(
-            title: _selectedSpace!.name,
-            snippet: _selectedSpace!.isSoldOut
-                ? 'Sold Out'
-                : (_selectedSpace!.isClosed
-                    ? 'Closed • ${_selectedSpace!.operatingHours}'
-                    : '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${_selectedSpace!.availableSlotsCount} slots free'),
-          ),
-          onTap: () {
-            final start = _effectiveOrigin(_selectedSpace!);
-            _fitRoute(start, destPt);
-          },
-        ),
-      );
-
-      // Driver vehicle / origin marker (real-time moving pin or custom starting point)
-      final originPt = _customOrigin ??
-          _currentLocation ??
-          _navProgress?.currentPosition ??
-          _effectiveOrigin(_selectedSpace!);
-      final bearing = _isNavigating
-          ? (_currentHeading > 0.0 ? _currentHeading : (_navProgress?.bearing ?? 0.0))
-          : _currentHeading;
-
-      markers.add(
-        gmaps.Marker(
-          markerId: const gmaps.MarkerId('driver_vehicle_marker'),
-          position: gmaps.LatLng(originPt.latitude, originPt.longitude),
-          rotation: bearing,
-          flat: true,
-          anchor: const Offset(0.5, 0.5),
-          zIndexInt: 10,
-          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            _customOrigin != null
-                ? gmaps.BitmapDescriptor.hueOrange
-                : (_isNavigating
-                    ? gmaps.BitmapDescriptor.hueCyan
-                    : gmaps.BitmapDescriptor.hueBlue),
-          ),
-          infoWindow: gmaps.InfoWindow(
-            title: _customOrigin != null
-                ? 'Starting Point: ${_customOriginName ?? "Custom"}'
-                : (_isNavigating ? 'Vehicle En Route' : 'Your Live Location'),
-            snippet: _customOrigin != null
-                ? (_routeData != null
-                    ? '${_routeData!.etaText} (${_routeData!.distanceKm.toStringAsFixed(1)} km)'
-                    : 'Custom starting origin')
-                : (_currentSpeedKmh > 1.0
-                    ? '${_currentSpeedKmh.toStringAsFixed(0)} km/h • GPS Active${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'
-                    : (_routeData != null
-                        ? '${_routeData!.etaText} (${_routeData!.distanceKm.toStringAsFixed(1)} km)'
-                        : 'Real-time GPS Tracking${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}')),
+            onTap: () {
+              final start = _effectiveOrigin(_selectedSpace!);
+              _fitRoute(start, destPt);
+            },
           ),
         ),
       );
-
-      // If user specified a custom origin AND live GPS is available, show actual position pin too
-      if (_customOrigin != null && _currentLocation != null) {
-        markers.add(
-          gmaps.Marker(
-            markerId: const gmaps.MarkerId('driver_live_gps_marker'),
-            position: gmaps.LatLng(
-              _currentLocation!.latitude,
-              _currentLocation!.longitude,
-            ),
-            rotation: _currentHeading,
-            flat: true,
-            anchor: const Offset(0.5, 0.5),
-            zIndexInt: 9,
-            icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-              gmaps.BitmapDescriptor.hueAzure,
-            ),
-            infoWindow: const gmaps.InfoWindow(
-              title: 'Your Location (Live GPS)',
-              snippet: 'Live device position',
-            ),
-          ),
-        );
-      }
     }
     // 2. In Browse Mode: show real-time driver location pin PLUS all filtered spaces
     else {
-      // Add real-time driver location marker if position is known
       if (_currentLocation != null) {
         markers.add(
-          gmaps.Marker(
-            markerId: const gmaps.MarkerId('driver_live_location_marker'),
-            position: gmaps.LatLng(
-              _currentLocation!.latitude,
-              _currentLocation!.longitude,
-            ),
-            rotation: _currentHeading,
-            flat: true,
-            anchor: const Offset(0.5, 0.5),
-            zIndexInt: 10,
-            icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-              gmaps.BitmapDescriptor.hueAzure,
-            ),
-            infoWindow: gmaps.InfoWindow(
-              title: 'Your Location (Live GPS)',
-              snippet: _currentSpeedKmh > 1.0
-                  ? '${_currentSpeedKmh.toStringAsFixed(0)} km/h • Real-time Tracking${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}'
-                  : 'Real-time GPS detected${_currentAccuracyMeters > 0 ? " (±${_currentAccuracyMeters.toStringAsFixed(0)}m)" : ""}',
-            ),
+          Marker(
+            key: const ValueKey('driver_live_location_marker'),
+            point: _currentLocation!,
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            child: const DriverGpsPinWidget(),
           ),
         );
       }
@@ -1802,42 +1694,24 @@ class _MapScreenState extends State<MapScreen> {
         if (pt == null) continue;
         final selected = _selectedSpace?.id == space.id;
         final rate = space.getEffectiveRate(vehicleType: _vehicleFilter);
-        final cacheKey = '${space.id}_$selected';
-        final customIcon = _customMarkerBitmaps[cacheKey] ??
-            MarkerBitmapGenerator.getCachedMarker(
+
+        markers.add(
+          Marker(
+            key: ValueKey('parking_space_${space.id}_$selected'),
+            point: pt,
+            width: 96,
+            height: 44,
+            alignment: Alignment.topCenter,
+            child: PricePinBadge(
               price: rate,
               isAvailable: space.isAvailable,
               isClosed: space.isClosed,
               isSoldOut: space.isSoldOut,
               isSelected: selected,
-            );
-
-        markers.add(
-          gmaps.Marker(
-            markerId: gmaps.MarkerId('parking_space_${space.id}'),
-            position: gmaps.LatLng(pt.latitude, pt.longitude),
-            anchor: customIcon != null
-                ? MarkerBitmapGenerator.getMarkerAnchor(isSelected: selected)
-                : const Offset(0.5, 1.0),
-            icon: customIcon ??
-                (space.isSoldOut
-                    ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed)
-                    : (space.isClosed
-                        ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet)
-                        : (selected
-                            ? gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueYellow)
-                            : gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueViolet)))),
-            infoWindow: gmaps.InfoWindow(
-              title: space.name,
-              snippet: space.isSoldOut
-                  ? 'Sold Out'
-                  : (space.isClosed
-                      ? 'Closed • ${space.operatingHours}'
-                      : '₱${rate % 1 == 0 ? rate.toInt() : rate.toStringAsFixed(1)}/hr • ${space.availableSlotsCount} slots free'),
+              onTap: () {
+                _selectSpace(space, autoFit: true);
+              },
             ),
-            onTap: () {
-              _selectSpace(space, autoFit: true);
-            },
           ),
         );
       }
@@ -1846,48 +1720,36 @@ class _MapScreenState extends State<MapScreen> {
     return markers;
   }
 
-  Set<gmaps.Polyline> _buildGooglePolylines() {
-    final polylines = <gmaps.Polyline>{};
+  List<Polyline> _buildFlutterPolylines() {
+    final polylines = <Polyline>[];
 
     if (_selectedSpace != null &&
         _pointFor(_selectedSpace!) != null &&
         _routeData != null) {
-      // Alternative route in subtle slate grey
       if (_routeData!.alternativeCoordinates != null &&
           _routeData!.alternativeCoordinates!.isNotEmpty) {
         polylines.add(
-          gmaps.Polyline(
-            polylineId: const gmaps.PolylineId('alternative_route'),
-            points: _routeData!.alternativeCoordinates!
-                .map((p) => gmaps.LatLng(p.latitude, p.longitude))
-                .toList(),
+          Polyline(
+            points: _routeData!.alternativeCoordinates!,
             color: const Color(0xFF94A3B8),
-            width: 4,
+            strokeWidth: 4,
           ),
         );
       }
 
-      // High-contrast casing for primary route
       polylines.add(
-        gmaps.Polyline(
-          polylineId: const gmaps.PolylineId('primary_route_casing'),
-          points: _routeData!.primaryCoordinates
-              .map((p) => gmaps.LatLng(p.latitude, p.longitude))
-              .toList(),
+        Polyline(
+          points: _routeData!.primaryCoordinates,
           color: const Color(0xFF173B64),
-          width: 8,
+          strokeWidth: 8,
         ),
       );
 
-      // Primary route polyline in vibrant brand gold/blue
       polylines.add(
-        gmaps.Polyline(
-          polylineId: const gmaps.PolylineId('primary_route'),
-          points: _routeData!.primaryCoordinates
-              .map((p) => gmaps.LatLng(p.latitude, p.longitude))
-              .toList(),
+        Polyline(
+          points: _routeData!.primaryCoordinates,
           color: const Color(0xFFFFDE70),
-          width: 5,
+          strokeWidth: 5,
         ),
       );
     }
@@ -3198,59 +3060,72 @@ class _RoutePlanningHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Top row: Car & Motor mode tabs + Start Driving + Close button
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                _ModeItem(
-                  mode: NavigationTransportMode.car,
-                  label: 'Drive',
-                  eta: routeData?.carEta ?? '',
-                  icon: Icons.directions_car_rounded,
-                  isSelected: transportMode == NavigationTransportMode.car,
-                  onTap: () => onModeChanged(NavigationTransportMode.car),
-                ),
-                const SizedBox(width: 8),
-                _ModeItem(
-                  mode: NavigationTransportMode.motorcycle,
-                  label: 'Motor',
-                  eta: routeData?.motorcycleEta ?? '',
-                  icon: Icons.two_wheeler_rounded,
-                  isSelected: transportMode == NavigationTransportMode.motorcycle,
-                  onTap: () => onModeChanged(NavigationTransportMode.motorcycle),
-                ),
-                const Spacer(),
-                if (onStartDriving != null) ...[
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF16A34A),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      minimumSize: const Size(0, 32),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ModeItem(
+                      mode: NavigationTransportMode.car,
+                      label: 'Drive',
+                      eta: routeData?.carEta ?? '',
+                      icon: Icons.directions_car_rounded,
+                      isSelected: transportMode == NavigationTransportMode.car,
+                      onTap: () => onModeChanged(NavigationTransportMode.car),
                     ),
-                    onPressed: onStartDriving,
-                    icon: const Icon(Icons.navigation_rounded, size: 14),
-                    label: const Text('Start', style: TextStyle(fontSize: 14)),
-                  ),
-                  const SizedBox(width: 4),
-                ],
-                FavoriteSpaceButton(
-                  parkingSpaceId: space.id,
-                  parkingSpaceName: space.name,
-                  iconSize: 20,
-                  padding: const EdgeInsets.all(4),
+                    const SizedBox(width: 8),
+                    _ModeItem(
+                      mode: NavigationTransportMode.motorcycle,
+                      label: 'Motor',
+                      eta: routeData?.motorcycleEta ?? '',
+                      icon: Icons.two_wheeler_rounded,
+                      isSelected: transportMode == NavigationTransportMode.motorcycle,
+                      onTap: () => onModeChanged(NavigationTransportMode.motorcycle),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  tooltip: 'Close route',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: onClose,
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    size: 20,
-                    color: Color(0xFF64748B),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onStartDriving != null) ...[
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF16A34A),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          minimumSize: const Size(0, 32),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: onStartDriving,
+                        icon: const Icon(Icons.navigation_rounded, size: 14),
+                        label: const Text('Start', style: TextStyle(fontSize: 14)),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    FavoriteSpaceButton(
+                      parkingSpaceId: space.id,
+                      parkingSpaceName: space.name,
+                      iconSize: 20,
+                      padding: const EdgeInsets.all(4),
+                    ),
+                    IconButton(
+                      tooltip: 'Close route',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: onClose,
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

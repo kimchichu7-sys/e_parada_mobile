@@ -118,9 +118,10 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
         constraints: const BoxConstraints(maxWidth: 460),
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Header
               Row(
@@ -388,6 +389,7 @@ class _ExtendParkingDialogState extends State<ExtendParkingDialog> {
                 onPressed: _submitting ? null : _submitExtension,
               ),
             ],
+          ),
           ),
         ),
       ),

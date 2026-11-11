@@ -3,8 +3,8 @@ import 'package:e_parada_mobile/models/parking_space.dart';
 import 'package:e_parada_mobile/screens/map_screen.dart';
 import 'package:e_parada_mobile/services/route_navigation_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 
 void main() {
@@ -165,7 +165,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
-      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(find.byType(gmaps.GoogleMap), findsOneWidget);
       expect(find.text('Start Driving'), findsWidgets);
 
       // Tap "Start Driving" to launch full-screen HUD

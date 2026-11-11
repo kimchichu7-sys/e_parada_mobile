@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>E-Parada: Comprehensive Panel Revisions & Action Plan</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0.55in 0.6in 0.6in 0.6in;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    font-size: 9.8pt;
+    line-height: 1.48;
+    color: #0F172A;
+    margin: 0;
+    padding: 0;
+  }
+  .cover-banner {
+    background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%);
+    color: #FFFFFF;
+    padding: 20px 24px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    border-left: 6px solid #4F46E5;
+  }
+  .cover-banner h1 {
+    margin: 0 0 6px 0;
+    font-size: 16.5pt;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+  .cover-banner p {
+    margin: 2px 0;
+    font-size: 9.5pt;
+    color: #E0E7FF;
+  }
+  .badge-row {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #FFFFFF;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+  .badge-alert {
+    background: rgba(239, 68, 68, 0.3);
+    border: 1px solid #EF4444;
+    color: #FEE2E2;
+  }
+
+  .part-banner {
+    background-color: #1E1B4B;
+    color: #FFFFFF;
+    padding: 8px 16px;
+    font-size: 12pt;
+    font-weight: 700;
+    border-radius: 6px;
+    margin-top: 18px;
+    margin-bottom: 12px;
+    letter-spacing: 0.4px;
+    page-break-after: avoid;
+    border-left: 4px solid #6366F1;
+  }
+
+  .card {
+    border: 1.5px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    background: #FFFFFF;
+    page-break-inside: avoid;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #E2E8F0;
+    padding-bottom: 5px;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1E1B4B;
+  }
+  .card-tag {
+    font-size: 8pt;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .tag-paper {
+    background: #EEF2FF;
+    color: #4338CA;
+    border: 1px solid #C7D2FE;
+  }
+  .tag-system {
+    background: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+  }
+  .tag-ui {
+    background: #FFFBEB;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+  }
+  .tag-alert {
+    background: #FEF2F2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+  }
+
+  h3 {
+    color: #1E1B4B;
+    font-size: 10.8pt;
+    margin: 12px 0 6px 0;
+  }
+  h4 {
+    color: #312E81;
+    font-size: 10pt;
+    margin: 8px 0 4px 0;
+  }
+  p {
+    margin: 4px 0 6px 0;
+  }
+  ul, ol {
+    margin: 4px 0 8px 0;
+    padding-left: 20px;
+  }
+  li {
+    margin-bottom: 3.5px;
+  }
+
+  blockquote {
+    background-color: #F8FAFC;
+    border-left: 3.5px solid #6366F1;
+    padding: 6px 12px;
+    margin: 6px 0 10px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 9pt;
+    color: #334155;
+    font-style: italic;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px 0;
+    font-size: 8.8pt;
+  }
+  th, td {
+    border: 1px solid #CBD5E1;
+    padding: 5px 7px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #F1F5F9;
+    color: #0F172A;
+    font-weight: 700;
+  }
+  tr:nth-child(even) td {
+    background-color: #F8FAFC;
+  }
+
+  code {
+    background: #EEF2FF;
+    color: #3730A3;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 9pt;
+    font-family: Consolas, monospace;
+  }
+  pre {
+    background: #0F172A;
+    color: #E2E8F0;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 8.5pt;
+    overflow-x: auto;
+    margin: 6px 0;
+    font-family: Consolas, monospace;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-banner">
+  <h1>E-Parada: Post-Defense Panel Revisions &amp; Action Plan</h1>
+  <p><b>Comprehensive Roadmap for Paper Revisions, Backend Engineering, &amp; UI/UX Overhaul</b></p>
+  <p><b>College of Engineering and Architecture — National University (NU) Laguna</b></p>
+  <p><b>Proponents:</b> Bustria, Christian Jake C. &bull; Gamad, Leticia C. &bull; Ovilla, Shan Jenis C. &bull; Valiña, Resha Lorraine P.</p>
+  <div class="badge-row">
+    <span class="badge badge-alert">🚨 Evaluation Respondent Pivot (3–10–10 Rule)</span>
+    <span class="badge">✔ Two-Factor Vehicle KYC (OR/CR + License)</span>
+    <span class="badge">✔ Provider Barangay Clearance</span>
+    <span class="badge">✔ 1-Hour Downpayment &amp; No-Show Clause</span>
+    <span class="badge">✔ Color-Coded UI Overhaul</span>
+    <span class="badge">✔ Mandatory On-Site Video Testing</span>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- PART 1: MANUSCRIPT & PAPER REVISIONS                                  -->
+<!-- ===================================================================== -->
+<div class="part-banner">PART 1: MANUSCRIPT &amp; PAPER REVISIONS (By Chapter &amp; Section)</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">1. Chapter 1: Specific Objectives Revision (The Respondent Pivot)</span>
+    <span class="card-tag tag-paper">Chapter 1</span>
+  </div>
+  <p><b>The Problem:</b> The paper previously stated that only IT developers would evaluate the system. The panel strictly corrected this: IT developers evaluate technical code and architectural quality, but <b>actual stakeholders must evaluate the operational application</b>.</p>
+  <blockquote>"Ang IT developer, ite-test lang po niya is yung technical ng program... pero yung APPLICATION mismo, dapat USERS ang magte-test niyan! User acceptance / user evaluation!" — Thesis Panel</blockquote>
+  <h4>Required Textual Revision for Specific Objective 3:</h4>
+  <ul>
+    <li><b>Objective 3a (Technical Software Quality):</b> To test and evaluate the technical software product quality of the E-Parada ecosystem through purposive testing by <b>IT Developers and Software Engineering Professionals</b> using the <b>ISO/IEC 25010:2011 Software Product Quality Model</b> in terms of <i>Functional Suitability</i>, <i>Performance Efficiency</i>, and <i>Reliability</i>.</li>
+    <li><b>Objective 3b (User Acceptance &amp; Usability):</b> To evaluate the user acceptance, usability, and operational suitability of the mobile applications and web portal among key stakeholders in Calamba City, Laguna—specifically <b>Ten (10) Drivers/Motorists</b>, <b>Ten (10) Parking Space Providers</b>, and <b>Three (3) System Administrators</b>—measuring <i>Usability</i>, <i>User Error Protection</i>, <i>Learnability</i>, and <i>Operability</i>.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">2. Chapter 1: Scope &amp; Limitations Alignment</span>
+    <span class="card-tag tag-paper">Chapter 1</span>
+  </div>
+  <ul>
+    <li><b>Payment Processing Modality:</b> Correct any ambiguity regarding cashless payments. State explicitly in Scope that E-Parada implements a dual-modality settlement framework: (1) Cashless payments via <b>PayMongo API v1 integrating GCash</b> with automated webhook verification, and (2) On-site <b>Cash settlement</b> with mutual confirmation handshakes. In Limitations, clarify that cashless payment is fully supported but dependent on third-party gateway uptime and active data connectivity.</li>
+    <li><b>Exclusion of E-Bikes and Bicycles:</b> Explicitly delimit in Chapter 1 that the platform strictly caters to <b>LTO-registered motor vehicles</b> (Cars, Sedans, SUVs, Vans, Pickups, and Motorcycles). Bicycles, e-bikes, and light electric scooters are excluded due to the lack of government plate numbers, registration certificates (OR/CR), and licensing requirements.</li>
+    <li><b>Downpayment &amp; No-Show Policy:</b> Document the operational policy requiring an initial 1-hour downpayment upon reservation to protect parking owners from no-show cancellations.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">3. Chapter 3: Methodology &amp; Sampling Design (The 3–10–10 Rule)</span>
+    <span class="card-tag tag-paper">Chapter 3</span>
+  </div>
+  <h4>Dual-Tier Evaluation Design:</h4>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%;">Evaluation Tier</th>
+        <th style="width:25%;">Target Evaluators</th>
+        <th style="width:25%;">Evaluation Instrument</th>
+        <th style="width:25%;">Core Characteristics</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Tier 1: Technical Software Quality</b></td>
+        <td><b>Purposively Selected IT Developers</b> (Software Engineers)</td>
+        <td>ISO/IEC 25010:2011 Evaluation Instrument &amp; Automated Stress Harness</td>
+        <td>Functional Suitability, Performance Efficiency, Reliability, ACID Locking (<code>FOR UPDATE</code>).</td>
+      </tr>
+      <tr>
+        <td><b>Tier 2: User Acceptance &amp; Usability</b></td>
+        <td><b>23 Stakeholder Respondents:</b><br>&bull; 10 Drivers / Motorists<br>&bull; 10 Parking Space Providers<br>&bull; 3 System Administrators</td>
+        <td>Usability &amp; System Acceptance Questionnaire (5-Point Likert Scale)</td>
+        <td>Recognizability, Learnability, Operability, User Error Protection, UI Aesthetics.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><b>Sampling Technique:</b> Purposive Sampling based on verified driver licensing, parking property ownership/custody, and institutional administration credentials in Calamba City, Laguna.</p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ===================================================================== -->
+<!-- PART 2: SYSTEM & SOFTWARE ENGINEERING REVISIONS                       -->
+<!-- ===================================================================== -->
+<div class="part-banner">PART 2: SYSTEM &amp; SOFTWARE ENGINEERING REVISIONS</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">1. User Roles &amp; Vehicle Ownership Differentiation</span>
+    <span class="card-tag tag-system">Backend / Database</span>
+  </div>
+  <p><b>Problem Identified by Panel:</b> The app assumed the driver is always the vehicle owner. What if someone drives a family car or company vehicle?</p>
+  <ul>
+    <li><b>Registration Options:</b> Allow users to register as:
+      <ol>
+        <li><b>Driver Only:</b> Submits a valid <b>Driver's License</b>.</li>
+        <li><b>Vehicle Owner Only:</b> Submits Government ID + <b>OR/CR in their name</b>.</li>
+        <li><b>Owner &amp; Driver (Both):</b> Submits both Driver's License and OR/CR.</li>
+        <li><b>Parking Space Provider:</b> Routes to property onboarding.</li>
+      </ol>
+    </li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">2. Two-Factor Vehicle &amp; Space KYC Verification</span>
+    <span class="card-tag tag-system">Security &amp; Verification</span>
+  </div>
+  <blockquote>"Paano ive-verify kung hindi nakaw? Baka nakapark doon nakaw pala, demandahan pa yung may-ari nung parking!... Hindi pwedeng Valid ID lang sa provider, laging dalawa ang verification!" — Thesis Panel</blockquote>
+  <ul>
+    <li><b>Vehicle Registration KYC:</b> Drivers must upload:
+      <ol>
+        <li>Vehicle photo with visible license plate (for <b>Tesseract OCR</b> plate extraction).</li>
+        <li>Official <b>Certificate of Registration (CR)</b> issued by the LTO.</li>
+        <li>Current-year <b>Official Receipt (OR)</b> issued by the LTO.</li>
+        <li>Valid <b>Driver's License</b>.</li>
+      </ol>
+    </li>
+    <li><b>Parking Space Provider KYC:</b> Providers must upload:
+      <ol>
+        <li>Valid Government ID (with matching home address).</li>
+        <li><b>Barangay Clearance / Certificate of Parking Operation</b> issued by the local Calamba barangay explicitly authorizing parking operations at that specific address.</li>
+        <li><i>(Optional upload slot):</i> Real Property Tax Declaration or Land Title (TCT).</li>
+      </ol>
+    </li>
+    <li><b>Admin Portal Review Interface:</b> Provide side-by-side verification tabs allowing administrators to inspect the vehicle photo, OCR plate, OR/CR document, and license before issuing approval.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">3. 1-Hour Downpayment &amp; 1-Hour No-Show Cancellation Logic</span>
+    <span class="card-tag tag-system">Reservation &amp; Billing</span>
+  </div>
+  <p><b>Problem:</b> Drivers who book a slot and never show up tie up the space and cause revenue loss for the provider.</p>
+  <ul>
+    <li><b>Mandatory 1-Hour Downpayment:</b> When reserving, the driver must immediately pay a downpayment equal to <b>1 hour of parking</b> (e.g., ₱50 via GCash PayMongo).</li>
+    <li><b>Automated 60-Minute No-Show Cancellation:</b> If the driver fails to arrive and scan the entry QR code within <b>60 minutes of the scheduled start time</b>:
+      <ul>
+        <li>The reservation is automatically cancelled (<code>Cancelled_NoShow</code>).</li>
+        <li>The slot is immediately returned to the available inventory.</li>
+        <li>The 1-hour downpayment is <b>forfeited by the driver and credited to the parking owner</b> as compensation.</li>
+      </ul>
+    </li>
+    <li><b>Remaining Balance Settlement:</b> At exit, total duration is calculated: $	ext{Balance Due} = 	ext{Total Computed Bill} - 	ext{Downpayment Paid}$, payable via Cash or GCash.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">4. Space Management: Batch Slot Configuration ("Select All")</span>
+    <span class="card-tag tag-system">Provider Portal</span>
+  </div>
+  <p><b>Problem:</b> Adding 15, 50, or 100 slots one by one is exhausting and impractical for providers.</p>
+  <ul>
+    <li>Implement a <b>"Select All" / Checkbox feature</b> in the parking slot editor.</li>
+    <li>Allows providers to batch-assign vehicle types (e.g., set all to "Car/Sedan" or "SUV"), dimensions, and clearance with one click.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">5. Communication Rules: Deactivate Chat on Inactive Bookings</span>
+    <span class="card-tag tag-system">WebRTC &amp; Chat</span>
+  </div>
+  <ul>
+    <li>Hide and deactivate the in-app chat and WebRTC call buttons if the reservation is <b>Cancelled</b>, <b>Rejected</b>, or <b>Completed</b>. Communication is strictly reservation-bound.</li>
+  </ul>
+</div>
+
+<div class="page-break"></div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">6. Front-End Mobile &amp; Web UI/UX Overhaul</span>
+    <span class="card-tag tag-ui">Mobile UI / UX</span>
+  </div>
+  <p>The panel strongly criticized the visual clutter, tiny text, and monochromatic color scheme in the demo:</p>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%;">UI / UX Dimension</th>
+        <th style="width:35%;">Panel Observation</th>
+        <th style="width:40%;">Required Technical Implementation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Functional Color-Coding</b></td>
+        <td><i>"Puro blue, ang dumi tingnan... walang distinction."</i></td>
+        <td>• <b>Green buttons:</b> Approve, Confirm, Pay Now.<br>• <b>Red buttons:</b> Cancel, Reject, Delete, Overstay alert.<br>• <b>Neutral slate/white:</b> Card containers and headers.</td>
+      </tr>
+      <tr>
+        <td><b>Typography &amp; Readability</b></td>
+        <td><i>"Napakaliit ng text... paano kung matanda ang driver o owner? Hahabulin ng magnifying glass?"</i></td>
+        <td>• Enlarge base body text from 11sp to <b>14sp–16sp</b>.<br>• Headers set to <b>18sp–22sp Bold</b>.<br>• Minimum touch target height of <b>48dp</b> on all buttons.</td>
+      </tr>
+      <tr>
+        <td><b>Screen Clutter &amp; Architecture</b></td>
+        <td><i>"Ang gulo... ang daming nakasulat na hindi maintindihan kung ano ang pipindutin."</i></td>
+        <td>• <b>Separate History Tab:</b> Move past/cancelled bookings to a dedicated History screen.<br>• Main screen displays ONLY the currently active reservation card.</td>
+      </tr>
+      <tr>
+        <td><b>Card Presentation</b></td>
+        <td>Raw text dumped across the entire screen.</td>
+        <td>• <b>Cascading / Collapsible Cards:</b> Clean summary cards that smoothly expand when clicked to reveal details and 2D floor plans.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================================================================== -->
+<!-- PART 3: CAPSTONE 3 COMPLIANCE & DEFENSE PROTOCOL                      -->
+<!-- ===================================================================== -->
+<div class="part-banner">PART 3: CAPSTONE 3 COMPLIANCE &amp; DEFENSE PROTOCOL</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Mandatory Requirements for Capstone 3 Final Defense</span>
+    <span class="card-tag tag-alert">Critical Mandate</span>
+  </div>
+  <blockquote>"Kumuha kayo ng VIDEO, hindi lang picture! Kailangan videohan ninyo na ginagamit nila yung system sa actual parking space. Pagbalik niyo sa Capstone 3 at walang video, papaulitin ko kayo ng defense!" — Lead Panelist</blockquote>
+  <ol>
+    <li><b>On-Site Video Documentation:</b>
+      <ul>
+        <li>During the term break, visit actual parking lots/driveways in Calamba City.</li>
+        <li>Record high-definition video of real drivers and real lot owners conducting live reservations, QR code gate scans, and checkout billing.</li>
+        <li>Produce a 2–3 minute video presentation reel for the final defense.</li>
+      </ul>
+    </li>
+    <li><b>Elimination of Dummy Demo Data:</b>
+      <ul>
+        <li>Purge placeholder names (like "Rasha"), generic text, and sample images.</li>
+        <li>Populate the database with authentic Philippine vehicle models, realistic plate photos (`ABC-1234`), genuine Calamba street addresses, and real sample OR/CR and Driver's Licenses.</li>
+      </ul>
+    </li>
+    <li><b>Three-Device Live Demonstration Setup:</b>
+      <ul>
+        <li><b>Device 1 (Web / Laptop):</b> System Administrator Portal (live KYC audits and telemetry).</li>
+        <li><b>Device 2 (Android Phone A):</b> Parking Space Provider App (camera QR scanner and slot manager).</li>
+        <li><b>Device 3 (Android Phone B):</b> Driver Mobile App (interactive map search, slot booking, and QR pass viewer).</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- ===================================================================== -->
+<!-- PART 4: SUMMARY COMPLIANCE MATRIX                                     -->
+<!-- ===================================================================== -->
+<div class="part-banner">PART 4: SUMMARY COMPLIANCE CHECKLIST</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:8%;">Item</th>
+      <th style="width:18%;">Category</th>
+      <th style="width:58%;">Specific Action Item</th>
+      <th style="width:16%;">Target Scope</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:center;"><b>1</b></td>
+      <td><b>Paper (Ch 1)</b></td>
+      <td>Split Specific Objective 3 into Technical Software Quality (IT Devs) &amp; User Usability (End-Users).</td>
+      <td>Manuscript</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>2</b></td>
+      <td><b>Paper (Ch 1)</b></td>
+      <td>Explicitly state Cash + Cashless support in Scope; remove cashless from limitations.</td>
+      <td>Manuscript</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>3</b></td>
+      <td><b>Paper (Ch 1)</b></td>
+      <td>Delimit vehicle scope: strictly LTO-registered motor vehicles; remove e-bikes and bicycles.</td>
+      <td>Manuscript</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>4</b></td>
+      <td><b>Paper (Ch 3)</b></td>
+      <td>Adopt the <b>3–10–10 Rule</b>: 10 Drivers, 10 Parking Providers, 3 Admins + IT Developer panel.</td>
+      <td>Manuscript</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>5</b></td>
+      <td><b>Paper (Ch 3)</b></td>
+      <td>Update DFD Level-1 to reflect OR/CR, Driver's License, Barangay Clearance, and Downpayment flow.</td>
+      <td>Manuscript</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>6</b></td>
+      <td><b>System (Backend)</b></td>
+      <td>Add OR/CR and Driver's License upload fields and side-by-side admin audit screen.</td>
+      <td>Laravel API / DB</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>7</b></td>
+      <td><b>System (Backend)</b></td>
+      <td>Add Barangay Clearance requirement for Parking Space Provider verification.</td>
+      <td>Laravel API / DB</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>8</b></td>
+      <td><b>System (Backend)</b></td>
+      <td>Implement 1-Hour Downpayment (GCash PayMongo) + 60-Minute No-Show auto-cancellation logic.</td>
+      <td>Billing Engine</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>9</b></td>
+      <td><b>System (Backend)</b></td>
+      <td>Purge e-bike / bicycle options from database seeds, validation rules, and UI dropdowns.</td>
+      <td>Database / API</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>10</b></td>
+      <td><b>System (Mobile)</b></td>
+      <td>Add "Select All" / batch slot configuration checkbox in provider space editor.</td>
+      <td>Flutter App</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>11</b></td>
+      <td><b>System (Mobile)</b></td>
+      <td>Disable/hide in-app chat and WebRTC call buttons for cancelled or rejected bookings.</td>
+      <td>Flutter App</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>12</b></td>
+      <td><b>System (Mobile)</b></td>
+      <td>Overhaul UI colors: Green for Approve/Pay, Red for Cancel/Reject, distinct header cards.</td>
+      <td>Flutter App</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>13</b></td>
+      <td><b>System (Mobile)</b></td>
+      <td>Enlarge typography (14sp–16sp body text) and touch targets (48dp minimum).</td>
+      <td>Flutter App</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>14</b></td>
+      <td><b>System (Mobile)</b></td>
+      <td>Move past bookings to a separate History tab; implement collapsible cascading cards.</td>
+      <td>Flutter App</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>15</b></td>
+      <td><b>Capstone 3 Prep</b></td>
+      <td>Record high-definition on-site video testing at actual Calamba City parking locations.</td>
+      <td>Field Testing</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;"><b>16</b></td>
+      <td><b>Capstone 3 Prep</b></td>
+      <td>Purge placeholder test data; populate with realistic Philippine IDs and OR/CR records.</td>
+      <td>Database Seed</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

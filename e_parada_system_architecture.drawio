@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T09:00:00.000Z" agent="E-Parada Architecture Generator" version="24.0.0" type="device">
+  <diagram id="eparada_arch_portrait" name="Figure 6 - System Architecture (Portrait)">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1500" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cell_2" value="&lt;b&gt;E-PARADA: SYSTEM ARCHITECTURE&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:11px;font-weight:normal;color:#CBD5E1;&#x27;&gt;3-Tier Client-Server Architecture Utilizing an API-Centric Hybrid Model-View-Controller (MVC) Pattern&lt;/font&gt;" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#0F172A;strokeWidth=2;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1020" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_3" value="&lt;b&gt;Mobile Stakeholders: Drivers, Space Providers &amp;amp; Administrators&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:10px;color:#475569;&#x27;&gt;Access via Android / iOS Smartphones (Navigation, Operations &amp;amp; Mobile Admin)&lt;/font&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="92" width="450" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_4" value="&lt;b&gt;Web Stakeholders: Administrators, Space Providers &amp;amp; Drivers&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:10px;color:#475569;&#x27;&gt;Access via Desktop &amp;amp; Mobile Web Browsers (Portal, Management &amp;amp; Governance)&lt;/font&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=1.5;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="580" y="92" width="450" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_5" value="Touch Gestures, GPS &amp; Camera" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="295" y="144" as="sourcePoint" />
+            <mxPoint x="295" y="232" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_6" value="Browser HTTPS Navigation" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="805" y="144" as="sourcePoint" />
+            <mxPoint x="805" y="232" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_7" value="" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;dashed=1;dashPattern=6 4;verticalAlign=top;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="188" width="1020" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_8" value="TIER 1: PRESENTATION TIER  —  CLIENT LAYER (HYBRID MVC DUAL VIEW INTERFACE)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#334155;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="188" width="1020" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_9" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="232" width="450" height="222" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_10" value="[VIEW: Client-Side]  Flutter Cross-Platform Mobile Client (Dart 3.x)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="232" width="450" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_11" value="&lt;b&gt;2D Floor Plan &amp;amp; Slot Grid&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Interactive Stall Selection&lt;br&gt;• Real-Time Vacancy Colors&lt;br&gt;• Provider Slot &amp;amp; Rate Control&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="276" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_12" value="&lt;b&gt;GPS &amp;amp; Route Navigation&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Google Maps Platform SDK&lt;br&gt;• Turn-by-Turn Polyline Route&lt;br&gt;• Proximity Radius Search&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="303" y="276" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_13" value="&lt;b&gt;QR Pass &amp;amp; Offline Resilience&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Optical Gate QR Scanner&lt;br&gt;• OfflineParkingPassService&lt;br&gt;• Manual Code (RES-XXXX)&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="364" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_14" value="&lt;b&gt;Mobile Admin, Comms &amp;amp; OCR&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Admin KYC &amp;amp; Space Reviews&lt;br&gt;• Reservation Chat &amp;amp; WebRTC&lt;br&gt;• Plate OCR Camera Capture&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="303" y="364" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_15" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="580" y="232" width="450" height="222" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_16" value="[VIEW: Server-Side]  Responsive Web Portal (Laravel Blade / Tailwind CSS)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="580" y="232" width="450" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_17" value="&lt;b&gt;Admin Governance &amp;amp; KYC&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Driver &amp;amp; Owner KYC Review&lt;br&gt;• Space Listing Approval&lt;br&gt;• System Audit &amp;amp; Ban Controls&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="595" y="276" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_18" value="&lt;b&gt;Provider Space Management&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• 2D Floor Plan Slot Builder&lt;br&gt;• Pricing &amp;amp; Overstay Policy&lt;br&gt;• Reservation Approval Queue&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="813" y="276" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_19" value="&lt;b&gt;Gate Checkpoint Terminal&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Web QR Scanner Interface&lt;br&gt;• Manual Code (RES-XXXX)&lt;br&gt;• Cash Settlement Confirmation&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="595" y="364" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_20" value="&lt;b&gt;Analytics &amp;amp; Driver Web View&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Smart Occupancy Heatmaps&lt;br&gt;• Revenue &amp;amp; Settlement Logs&lt;br&gt;• Web Booking &amp;amp; Digital Receipts&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="813" y="364" width="202" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_21" value="HTTPS REST API (JSON / Sanctum Token)" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=none;startFill=0;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="190" y="454" as="sourcePoint" />
+            <mxPoint x="190" y="596" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_22" value="JSON Responses &amp; Status Codes" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=none;startFill=0;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="596" as="sourcePoint" />
+            <mxPoint x="400" y="454" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_23" value="HTTPS Web Request (Session / CSRF)" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=none;startFill=0;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="454" as="sourcePoint" />
+            <mxPoint x="700" y="596" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_24" value="Rendered HTML5 / Blade Views" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=none;startFill=0;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="910" y="596" as="sourcePoint" />
+            <mxPoint x="910" y="454" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_25" value="" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;dashed=1;dashPattern=6 4;verticalAlign=top;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="552" width="1020" height="516" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_26" value="TIER 2: APPLICATION &amp; BUSINESS LOGIC TIER  —  CENTRALIZED SERVER (LARAVEL 11 / PHP 8.2)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#334155;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="552" width="1020" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_27" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="596" width="450" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_28" value="[CONTROLLER: API]  RESTful API Controllers (routes/api.php)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="596" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_29" value="&lt;b&gt;Stateless Token Middleware &amp;amp; API Endpoints&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9.5px;color:#334155;&#x27;&gt;• &lt;b&gt;Auth &amp;amp; 3-Role RBAC:&lt;/b&gt; Sanctum Bearer Token &amp;amp; RoleMiddleware (Driver / Owner / Admin)&lt;br&gt;• &lt;b&gt;Core &amp;amp; Admin APIs:&lt;/b&gt; Auth, Vehicle, Space, Reservation, Admin KYC (/api/admin/*)&lt;br&gt;• &lt;b&gt;Operations:&lt;/b&gt; QR Check-In/Out, PayMongo Webhook, Chat &amp;amp; WebRTC Signaling&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="636" width="420" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_30" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="580" y="596" width="450" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_31" value="[CONTROLLER: Web]  Web MVC Controllers (routes/web.php)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="580" y="596" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_32" value="&lt;b&gt;Stateful Session Middleware &amp;amp; Web Controllers&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9.5px;color:#334155;&#x27;&gt;• &lt;b&gt;Auth &amp;amp; Security:&lt;/b&gt; Session Guard, CSRF Token Verification &amp;amp; RoleMiddleware&lt;br&gt;• &lt;b&gt;Portal Controllers:&lt;/b&gt; AdminDashboard, KYC Review, Owner Space/Slot CRUD&lt;br&gt;• &lt;b&gt;Web Workflows:&lt;/b&gt; Driver Web Booking, Receipt Export &amp;amp; Analytics Reporting&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="595" y="636" width="420" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_33" value="Dispatches Service Calls" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=none;startFill=0;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="295" y="730" as="sourcePoint" />
+            <mxPoint x="295" y="774" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_34" value="Dispatches Service Calls" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=none;startFill=0;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="805" y="730" as="sourcePoint" />
+            <mxPoint x="805" y="774" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_35" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="774" width="960" height="136" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_36" value="CORE DOMAIN SERVICES &amp;amp; BUSINESS LOGIC ENGINE (app/Services &amp;amp; app/Support)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="774" width="960" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_37" value="&lt;b&gt;Reservation &amp;amp; Concurrency&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Time-Window Overlap Check&lt;br&gt;• Row-Level Locking (FOR UPDATE)&lt;br&gt;• Zero Double-Booking Guard&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="814" width="222" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_38" value="&lt;b&gt;Cryptographic QR Gate Engine&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• HMAC-SHA256 Token Signing&lt;br&gt;• Single-Use Replay Protection&lt;br&gt;• Cross-Facility Scan Guard&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="321" y="814" width="222" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_39" value="&lt;b&gt;Billing &amp;amp; Overstay Service&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Automated Duration Tracking&lt;br&gt;• 15-Minute Grace Period Rule&lt;br&gt;• Overstay Penalty Multipliers&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="557" y="814" width="222" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_40" value="&lt;b&gt;OCR &amp;amp; Real-Time Signaling&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• LTO Plate Regex Normalizer&lt;br&gt;• Reservation-Bound Messaging&lt;br&gt;• WebRTC SDP/ICE Relay&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="793" y="814" width="222" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_41" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="196" y="910" as="sourcePoint" />
+            <mxPoint x="196" y="950" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_42" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="432" y="910" as="sourcePoint" />
+            <mxPoint x="432" y="950" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_43" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="668" y="910" as="sourcePoint" />
+            <mxPoint x="668" y="950" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_44" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="904" y="910" as="sourcePoint" />
+            <mxPoint x="904" y="950" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_45" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="950" width="960" height="102" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_46" value="[MODEL: Unified Data Layer]  Eloquent ORM Models &amp;amp; Database Abstraction (app/Models)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="950" width="960" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_47" value="User&#xa;(RBAC &amp; KYC)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_48" value="Vehicle&#xa;(LTO Plate)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="203" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_49" value="ParkingSpace&#xa;(Geofence &amp; Rate)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="321" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_50" value="ParkingSlot&#xa;(2D Grid State)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="439" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_51" value="Reservation&#xa;(Lifecycle &amp; QR)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="557" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_52" value="Payment&#xa;(Cash &amp; GCash)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="675" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_53" value="Conversation&#xa;(Chat &amp; Calls)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="793" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_54" value="AuditLog&#xa;(Security Trail)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="911" y="992" width="108" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_55" value="SQL Queries &amp; Row Locks (Persistent TLS)" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="1052" as="sourcePoint" />
+            <mxPoint x="220" y="1196" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_56" value="Multipart File &amp; Document Streams" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="1052" as="sourcePoint" />
+            <mxPoint x="550" y="1196" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_57" value="HTTPS REST / Webhooks / STUN-TURN" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeColor=#334155;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#1E293B;labelBackgroundColor=#FFFFFF;labelBorderColor=#CBD5E1;jumpStyle=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="1052" as="sourcePoint" />
+            <mxPoint x="880" y="1196" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell_58" value="" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;dashed=1;dashPattern=6 4;verticalAlign=top;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1152" width="1020" height="318" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_59" value="TIER 3: DATA PERSISTENCE &amp;amp; EXTERNAL CLOUD INTEGRATION TIER" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#334155;strokeColor=#1E293B;strokeWidth=1.5;fontColor=#FFFFFF;fontFamily=Helvetica;fontSize=12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1152" width="1020" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_60" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1196" width="300" height="256" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_61" value="Cloud Relational Database (Supabase)" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1196" width="300" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_62" value="&lt;b&gt;PostgreSQL Engine (ACID Compliant)&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Connection Pooling (Port 5432 / 6543)&lt;br&gt;• Pessimistic Row-Level Concurrency Locks&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="1240" width="270" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_63" value="&lt;b&gt;Core &amp;amp; Spatial Schema&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• users, vehicles, parking_spaces, parking_slots&lt;br&gt;• Coordinate Bounding &amp;amp; 2D Stall Metadata&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="1310" width="270" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_64" value="&lt;b&gt;Transactional &amp;amp; Security Schema&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• reservations, payments, messages, audit_logs&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="85" y="1380" width="270" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_65" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1196" width="300" height="256" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_66" value="Object &amp;amp; Document Storage Layer" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1196" width="300" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_67" value="&lt;b&gt;KYC &amp;amp; Compliance Document Vault&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Government IDs &amp;amp; Driver&#x27;s Licenses&lt;br&gt;• LTO OR/CR &amp;amp; Property Ownership Proofs&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="415" y="1240" width="270" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_68" value="&lt;b&gt;Facility &amp;amp; Transaction Media&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Parking Space Photos &amp;amp; Reference Maps&lt;br&gt;• GCash Payment Proofs &amp;amp; Digital Receipts&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="415" y="1310" width="270" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_69" value="&lt;b&gt;Local Client Storage (Mobile)&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Encrypted Offline QR Pass &amp;amp; Session Cache&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="415" y="1380" width="270" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_70" value="" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#475569;strokeWidth=1.5;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="730" y="1196" width="300" height="256" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_71" value="External Cloud APIs &amp;amp; Gateways" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#475569;strokeWidth=1.2;fontColor=#0F172A;fontFamily=Helvetica;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="730" y="1196" width="300" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_72" value="&lt;b&gt;Google Maps Platform &amp;amp; OSRM API&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Interactive Map Tiles &amp;amp; Pin Projection&lt;br&gt;• Turn-by-Turn Route Polyline &amp;amp; ETA Calculation&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="745" y="1240" width="270" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_73" value="&lt;b&gt;PayMongo / GCash Payment Gateway&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Digital E-Wallet Checkout Sessions&lt;br&gt;• Asynchronous Payment Webhook Verification&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="745" y="1310" width="270" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_74" value="&lt;b&gt;OCR, WebRTC STUN/TURN &amp;amp; FCM&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:9px;color:#475569;&#x27;&gt;• Tesseract/ML Kit OCR, Voice Relay &amp;amp; Push Alerts&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#94A3B8;strokeWidth=1;fontColor=#1E293B;fontFamily=Helvetica;fontSize=10;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="745" y="1380" width="270" height="58" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

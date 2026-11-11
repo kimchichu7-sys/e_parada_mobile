@@ -1,0 +1,188 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>E-Parada Presentation Script</title><style>
+@page { size: letter; margin: 0.6in; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #0F172A; }
+h1 { background: linear-gradient(135deg,#1E1B4B,#432098); color:#fff; padding:16px 20px; border-radius:8px; font-size:16pt; margin:0 0 10px; }
+h1.chapter { background:#1E1B4B; font-size:12.5pt; padding:8px 16px; margin-top:22px; page-break-after: avoid; }
+h2 { color:#1E1B4B; font-size:12pt; border-bottom:2px solid #432098; padding-bottom:4px; margin:18px 0 8px; page-break-after: avoid; }
+p { margin: 4px 0 8px; }
+.speaker { font-weight:700; color:#432098; margin-top:6px; }
+blockquote { background:#F8FAFC; border-left:4px solid #6366F1; margin:6px 0 12px; padding:8px 14px; border-radius:0 6px 6px 0; page-break-inside: auto; }
+blockquote p { margin: 4px 0; }
+ul, ol { margin: 4px 0 6px; padding-left: 22px; }
+li { margin-bottom: 3px; }
+code { background:#EEF2FF; padding:0 4px; border-radius:3px; font-size:9.5pt; }
+.meta { color:#334155; font-size:9.5pt; margin: 2px 0; }
+hr { display:none; }
+</style></head><body><h1>E-Parada: Capstone Defense Presentation Script (Concise &amp; Word-for-Word)</h1>
+<p class="meta"><b>Title:</b> <i>E-Parada: A Digital Marketplace for Parking Spaces</i></p>
+<p class="meta"><b>Presenters:</b> Bustria, Christian Jake C. | Gamad, Leticia C. | Ovilla, Shan Jenis C. | Valiña, Resha Lorraine P.</p>
+<p><b>Estimated Total Speaking Time:</b> ~12–15 Minutes (Concise, Direct, and 100% True to the System)</p>
+<h2>OPENING / TITLE SLIDE (~30 Seconds)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"Good day to our esteemed panel members and adviser. We are here to present our capstone project titled <b>E-Parada: A Digital Marketplace for Parking Spaces</b>.</p>
+<p>In rapidly urbanizing cities like <b>Calamba City, Laguna</b>, motorists struggle to find safe, available parking, while many residential driveways and private commercial lots remain idle. <b>E-Parada</b> bridges this gap through a <b>100% software-driven, cross-platform digital marketplace</b> that connects parking space providers and drivers without requiring expensive stationary IoT hardware or physical gate barriers."</p></blockquote>
+<h1 class="chapter">CHAPTER 1: INTRODUCTION</h1>
+<h2>SLIDE 1: Objectives of the Study (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"Moving to <b>Slide 1</b>, our general objective is to enhance efficiency, effectiveness, and reliability in parking management by designing and developing <b>E-Parada</b>, a cross-platform digital marketplace connecting residential and commercial parking providers with motorists in Calamba City, Laguna.</p>
+<p>Specifically, our study aims to:</p>
+<ol>
+<li><b>First, design</b> a centralized marketplace architecture featuring parking area and <b>2D floor plan slot management</b>, <b>OCR-assisted vehicle registration</b>, location-based searching, <b>cryptographic QR code access workflows</b>, automated duration billing, and reservation-bound communication.
+</li>
+<li><b>Second, develop</b> the E-Parada ecosystem—consisting of our <b>Flutter Android mobile application</b> and <b>Laravel 12 administrative web portal</b> backed by <b>Supabase PostgreSQL 15+</b>—following the <b>Incremental Development Model</b>, while integrating <b>Google Maps</b> for navigation, <b>Tesseract OCR</b> for license plates, <b>WebRTC</b> for voice calling, <b>FCM</b> and <b>Brevo</b> for notifications, and <b>PayMongo API v1</b> for GCash payments.
+</li>
+<li><b>And third, test and evaluate</b> the system's software product quality through <b>IT developer evaluation</b> and technical benchmarking under the <b>ISO/IEC 25010:2011</b> standard across <b>Functional Suitability, Performance Efficiency, Usability, and Reliability</b>."
+</li></ol></blockquote>
+<h2>SLIDE 2: Scope of the Study (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"On <b>Slide 2</b>, E-Parada operates across an <b>Android mobile application</b> and an <b>Administrative Web Portal</b>, synchronized in real time via <b>Supabase PostgreSQL</b>, targeting residential driveways, vacant lots, and commercial parking spaces in <b>Calamba City</b>.</p>
+<p>The system serves three core roles:</p>
+<ul>
+<li><b>Parking Space Providers</b> can verify property ownership, list parking spaces with operating schedules, configure interactive <b>2D floor plan slot layouts</b> with specific vehicle dimensions and clearances, set hourly rates within admin-approved boundaries, approve reservations, and validate entry and exit using our <b>QR code scanner</b> or manual <b><code>RES-#</code> reservation code fallback</b>.
+</li>
+<li><b>Drivers</b> can register up to three vehicles using <b>Tesseract OCR plate extraction</b>, search for compatible nearby slots via <b>Google Maps</b>, generate an encrypted <b>HMAC-SHA256 QR pass</b>, settle automated duration and overstay bills via <b>Cash or GCash through PayMongo</b>, and contact providers through <b>reservation-bound chat and WebRTC voice calls</b>.
+</li>
+<li><b>System Administrators</b> govern the platform by reviewing KYC documents and OCR vehicle registrations, enforcing minimum and maximum parking rate boundaries, monitoring live QR and payment logs, mediating disputes, and exporting <b>CSV forensic audit reports</b>."
+</li></ul></blockquote>
+<h2>SLIDE 3: Limitations of the Study (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"<b>Slide 3</b> outlines our operational and technical boundaries:</p>
+<ol>
+<li><b>Platform &amp; Connectivity:</b> The mobile app targets <b>Android 8.0 and above</b>, and the system requires an active internet connection for real-time database synchronization, Google Maps routing, and PayMongo payment webhooks.
+</li>
+<li><b>100% Software-Driven Architecture:</b> E-Parada intentionally excludes physical hardware—meaning <b>no automated gate barriers, no RFID readers, no ultrasonic ground sensors, no predictive AI demand modeling, and no live CCTV streaming</b>. Instead, entry and exit checkpoints are validated directly through the parking provider’s smartphone camera.
+</li>
+<li><b>Verification &amp; Billing:</b> User IDs, property documents, and vehicle records undergo administrative review on the platform rather than direct government LTO/PNP database queries. Billing is strictly calculated from validated QR <b>time-in</b> and <b>time-out</b> timestamps within admin-approved rate bounds, with 100% of the parking fee going directly to the parking provider.
+</li>
+<li><b>Evaluation Scope:</b> Finally, rather than mass public deployment, the system is evaluated through controlled technical benchmarking and end-to-end software quality assessment by <b>qualified IT developers</b>."
+</li></ol></blockquote>
+<h2>SLIDE 4: Conceptual Framework — IPO Model (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"<b>Slide 4</b> presents our Conceptual Framework using the <b>Input–Process–Output (IPO) Model</b>.</p>
+<ul>
+<li><b>For our Inputs:</b> We gathered role requirements for Drivers, Providers, and Admins; architectural designs including <b>2D Floor Plan wireframes</b> and <b>Crow's Foot ERDs</b>; and our updated development stack—<b>Flutter 3.x</b>, <b>PHP 8.2 / Laravel 12 on Docker and Render</b>, <b>Supabase PostgreSQL 15+</b>, <b>Google Maps</b>, <b>Tesseract OCR</b>, <b>Google ML Kit (<code>mobile_scanner</code>)</b>, <b>WebRTC</b>, <b>FCM</b>, <b>Brevo SMTP</b>, and <b>PayMongo API v1</b>—alongside our 20 test cases and ISO/IEC 25010 instrument.
+</li>
+<li><b>For our Process:</b> We executed five stages: Planning and Analysis, System Design, <b>Incremental Development across five sequential increments</b>, System Integration and Testing, and finally <b>System Evaluation by IT Developers</b>.
+</li>
+<li><b>This yields our Output:</b> <b>E-Parada: A Digital Marketplace for Parking Spaces</b>—a verified cross-platform Flutter Android application and Laravel Administrative Web Portal."
+</li></ul></blockquote>
+<h1 class="chapter">CHAPTER 2: REVIEW OF RELATED LITERATURE AND STUDIES</h1>
+<h2>SLIDE 5: Literature Matrix (~20 Seconds)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"Moving to Chapter 2 on <b>Slide 5</b>, here is our <b>Literature Matrix</b>, which summarizes the local and foreign literature and studies that informed our architectural and algorithmic design decisions."</p>
+<p><i>(Pause briefly to let the panel view the matrix table on the slide.)</i></p></blockquote>
+<h2>SLIDE 6: Literature &amp; Design Synthesis (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"<b>Slide 6</b> synthesizes our literature review across six core themes and highlights the research gap E-Parada addresses:</p>
+<ol>
+<li><b>Geolocation &amp; Urban Navigation:</b> Because mobile GPS experiences multipath drift in dense areas, coupling device geolocation with the <b>Google Maps Platform API</b> ensures accurate pin discovery and turn-by-turn routing to residential parking spaces.
+</li>
+<li><b>Smart Parking vs. Software-Only Design:</b> Prior smart parking studies rely heavily on costly IoT ultrasonic sensors and microcontrollers. E-Parada closes this cost barrier by using a <b>100% software-driven architecture</b> with interactive <b>2D floor plan slot mapping</b> and smartphone camera validation.
+</li>
+<li><b>Digital Sharing Economy:</b> Our platform unlocks idle private driveways and vacant lots to increase Calamba City's parking supply without building new physical infrastructure.
+</li>
+<li><b>Cryptographic QR Validation:</b> To prevent screenshot sharing and replay attacks common in static QR codes, E-Parada implements <b>HMAC-SHA256 cryptographic signing</b> with strict single-use state transitions.
+</li>
+<li><b>Transactional Integrity:</b> Using <b>Supabase PostgreSQL 15+</b> with pessimistic row-level locking (<code>SELECT ... FOR UPDATE</code>) eliminates race-condition double bookings while streaming live slot updates via WebSockets.
+</li>
+<li><b>Automated Billing &amp; Cashless Settlement:</b> Timestamp-based billing removes human calculation errors, while <b>GCash via PayMongo API v1</b> ensures webhook-verified digital payments alongside cash options."
+</li></ol></blockquote>
+<h1 class="chapter">CHAPTER 3: METHODOLOGY</h1>
+<h2>SLIDE 7: Research Design and Development Method (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"Beginning Chapter 3 on <b>Slide 7</b>, we utilized a <b>Descriptive-Developmental Research Design</b>. The <b>developmental</b> aspect covers the engineering of our multi-tenant cross-platform software, while the <b>descriptive</b> aspect quantifies software quality through <b>IT developer evaluation</b> under <b>ISO/IEC 25010:2011</b>.</p>
+<p>We followed the <b>Incremental Development Model</b> across five sequential increments:</p>
+<ul>
+<li><b>Increment 1:</b> User authentication, Laravel Sanctum role-based access control, KYC uploads, and <b>Tesseract OCR</b> vehicle plate registration.
+</li>
+<li><b>Increment 2:</b> Parking space listings, admin fee boundary controls, and our interactive <b>2D floor plan slot configurator</b>.
+</li>
+<li><b>Increment 3:</b> Geolocation search, <b>Google Maps</b> routing, and pessimistic row-locked reservation booking.
+</li>
+<li><b>Increment 4:</b> <b>HMAC-SHA256 QR</b> entry and exit scanning via Google ML Kit, automated duration and overstay billing, and <b>GCash PayMongo</b> plus Cash checkout.
+</li>
+<li><b>Increment 5:</b> Reservation-bound chat, <b>WebRTC</b> voice calling, <b>FCM and Brevo</b> notifications, dispute mediation, and Admin CSV forensic reporting."
+</li></ul></blockquote>
+<h2>SLIDE 8: System Architecture &amp; Database Design (~1 Minute 15 Seconds)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"<b>Slide 8</b> illustrates our <b>Three-Tier System Architecture</b> and <b>Relational Database Design</b>.</p>
+<ul>
+<li>At the <b>Client Tier</b>, we have our <b>Flutter 3.x Android app</b> and <b>Laravel Blade + Tailwind CSS + Alpine.js web portal</b>.
+</li>
+<li>At the <b>Application Tier</b>, our <b>PHP 8.2 / Laravel 12 RESTful API</b> runs inside a <b>Docker and Nginx container on Render Cloud</b>, handling Sanctum authentication, OCR processing, HMAC signing, and billing logic.
+</li>
+<li>At the <b>Data Tier</b>, we use <b>Supabase Managed PostgreSQL 15+</b> with connection pooling, Row-Level Security, and Realtime Change Data Capture.
+</li></ul>
+<p>Our <b>Crow's Foot ERD</b> consists of <b>14 relational tables</b> organized into three functional subsystems:</p>
+<ol>
+<li>The <b>Core Booking Subsystem (6 tables):</b> <code>users</code>, <code>vehicles</code>, <code>parking_spaces</code>, <code>parking_slots</code>, <code>reservations</code>, and <code>parking_space_feedback</code>.
+</li>
+<li>The <b>Communications &amp; Notification Subsystem (5 tables):</b> <code>reservation_messages</code>, <code>reservation_calls</code>, <code>reservation_call_signals</code> for WebRTC signaling, <code>notifications</code>, and <code>user_device_tokens</code>.
+</li>
+<li>The <b>Security Audit &amp; Telemetry Subsystem (3 tables):</b> <code>activity_logs</code>, <code>qr_transaction_logs</code>, and <code>support_requests</code>."
+</li></ol></blockquote>
+<h2>SLIDE 9: Proposed Prototype &amp; User Interfaces (~1 Minute 15 Seconds)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"<b>Slide 9</b> showcases our actual cross-platform user interfaces across all three roles:</p>
+<ul>
+<li><b>First, on the Driver Interface:</b> Motorists can browse verified Calamba City parking pins on <b>Google Maps</b>, filter by vehicle compatibility, and inspect a property’s <b>interactive 2D floor plan</b> to pick a specific slot. In <b>My Reservations</b>, drivers track their booking across a <b>6-stage live progress bar</b>—from <i>Requested</i> to <i>Paid</i>—view their encrypted <b>Entry QR Code</b>, and message or call the provider via WebRTC.
+</li>
+<li><b>Second, on the Parking Space Provider Interface:</b> The Owner Dashboard displays real-time counters for active slots, pending requests, and payments. Providers can visually lay out slots on a <b>2D grid</b> and use the built-in <b>Entry and Exit Checkpoint Scanner</b>—powered by Google ML Kit—or enter the <b><code>RES-#</code> reference code</b> manually if a driver's screen is damaged.
+</li>
+<li><b>Third, on the System Administrator Interface:</b> Accessible on both mobile and web, administrators perform side-by-side audits of KYC IDs, property documents, and OCR-extracted license plates, monitor live QR telemetry and reservations, resolve disputes, and export <b>CSV audit reports</b> with one click."
+</li></ul></blockquote>
+<h2>SLIDE 10: Hardware and Software Components (~45 Seconds)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"<b>Slide 10</b> summarizes our Hardware and Software Specifications.</p>
+<ul>
+<li>For <b>Hardware</b>, development was conducted on PCs with at least an Intel Core i3 or Ryzen 3 processor and 8 GB RAM, while field testing used <b>Android smartphones running Android 8.0 or higher</b> equipped with camera, GPS, and microphone sensors over Wi-Fi and 4G LTE.
+</li>
+<li>For <b>Software</b>, our updated <b>E-Parada (16) stack</b> pairs <b>Flutter 3.x</b> and <b>Laravel 12 (PHP 8.2)</b> on <b>Docker and Render</b> with <b>Supabase PostgreSQL 15+</b>. Key engines include our custom <b>2D Floor Plan Slot Engine</b>, <b>Google Maps SDK</b>, <b>Tesseract OCR CLI</b> with LTO regex validation, <b>Google ML Kit &amp; CameraX (<code>mobile_scanner</code>)</b> with <b><code>qr_flutter</code></b>, <b>WebRTC (<code>flutter_webrtc</code>)</b>, <b>Firebase Cloud Messaging</b>, <b>Brevo SMTP</b>, and <b>PayMongo API v1</b> for GCash."
+</li></ul></blockquote>
+<h2>SLIDE 11: Data Flow and Control Logic (~1 Minute 30 Seconds)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"<b>Slide 11</b> details our system's Data Flow and Control Logic.</p>
+<ul>
+<li>Our <b>Cross-Functional Activity Diagram and 12-Phase Flowchart</b> map the complete lifecycle across five swimlanes—from KYC and OCR onboarding in Phases 1 to 3, to 2D slot listing and row-locked reservation in Phases 4 to 6, QR gate check-in/check-out and automated billing in Phases 7 to 9, and Admin governance in Phases 10 to 12.
+</li>
+<li>Our <b>Partitioned Data Flow Diagrams</b> decompose the system from the <b>Level-0 Context and Core Processes</b> across 6 data stores, down to <b>Level-1 (Driver Search &amp; Reservation)</b> and <b>Level-2 (HMAC-SHA256 QR Pass Generation)</b>.
+</li>
+<li>Underneath, four core technical subroutines power the backend:
+<ol>
+<li><b>Subroutine 1 (Tesseract OCR):</b> Applies grayscale conversion, contrast boosting, and adaptive thresholding before running <b>PSM 11 sparse-text extraction</b> and Philippine LTO plate regex matching.
+</li>
+<li><b>Subroutine 2 (Pessimistic Concurrency Locking):</b> Executes <code>SELECT ... FOR UPDATE</code> on the target <code>parking_slots</code> row inside an ACID transaction and checks for temporal overlap before committing, guaranteeing <b>zero double-bookings</b>.
+</li>
+<li><b>Subroutine 3 (Cryptographic QR Replay Guard):</b> Recomputes the <b>256-bit HMAC-SHA256 signature</b>, verifies single-use state and checkpoint matching, and records an immutable entry in <code>qr_transaction_logs</code>.
+</li>
+<li><b>Subroutine 4 (Automated Duration &amp; Overstay Billing):</b> Calculates exact elapsed time (time_out &minus; time_in), applies a <b>15-minute grace period</b>, computes ceiling-rounded base and overstay charges with zero platform commission deduction, and finalizes payment via Cash or <b>PayMongo GCash webhooks</b>."
+</li></ol>
+</li></ul></blockquote>
+<h2>SLIDE 12: Testing Environment, Phases, and Test Coverage (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"On <b>Slide 12</b>, we validated E-Parada across physical Android smartphones (Android 8.0 to 14.0), web browsers, and our cloud-hosted Render and Supabase environment under Wi-Fi, 4G LTE, and throttled network conditions.</p>
+<p>Testing followed <b>three sequential phases</b>:</p>
+<ol>
+<li><b>Alpha Testing:</b> Unit and modular verification across all 5 development increments.
+</li>
+<li><b>System &amp; Scenario Evaluation:</b> End-to-end role-based workflow testing conducted by purposively selected <b>IT Developers</b>.
+</li>
+<li><b>Regression Testing:</b> Re-verifying all modules after every increment to ensure zero regression defects.
+</li></ol>
+<p>In total, our <b>20-item Test Case Suite (TC-01 to TC-20)</b> covers Sanctum RBAC security, Tesseract OCR accuracy, 2D slot rendering, Google Maps routing, <b>concurrent booking stress tests</b>, <b>QR replay-attack rejection</b>, automated overstay billing math, PayMongo webhook settlement, and WebRTC voice calling."</p></blockquote>
+<h2>SLIDE 13: Evaluation and Statistical Treatment (~1 Minute)</h2>
+<div class="speaker">🎙️ Speaker:</div>
+<blockquote><p>"Finally, on <b>Slide 13</b>, our system evaluation is conducted using <b>Purposive Sampling of qualified IT Developers and Software Engineering Professionals</b>.</p>
+<p>Each IT developer executes complete Driver, Provider, and Administrator workflows, inspects our database concurrency and QR security controls, and evaluates the software using the <b>ISO/IEC 25010:2011 Software Product Quality Model</b> across four core characteristics:</p>
+<ul>
+<li><b>Functional Suitability</b>
+</li>
+<li><b>Performance Efficiency</b>
+</li>
+<li><b>Usability</b>
+</li>
+<li><b>Reliability</b>
+</li></ul>
+<p>Alongside the survey, we measure <b>six objective technical benchmarks</b>: REST API latency under 350 milliseconds, QR validation under 600 milliseconds, <b>zero double-bookings under 25 simultaneous requests</b>, OCR extraction under 1.8 seconds with at least 90% precision, WebRTC audio latency under 200 milliseconds, and PayMongo webhook turnaround under 1.2 seconds.</p>
+<p>Survey responses are analyzed using <b>Percentage Distribution</b>, <b>Weighted Mean</b>, and <b>Standard Deviation</b>, and interpreted using a <b>5-Point Likert Scale</b> where <b>4.21 to 5.00</b> corresponds to <b>Excellent / Highly Compliant</b>.</p>
+<p>That concludes our presentation of <b>E-Parada</b>. Thank you, and we are now ready for your questions and recommendations."</p></blockquote></body></html>

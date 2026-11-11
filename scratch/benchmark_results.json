@@ -1,0 +1,44 @@
+[
+  {
+    "metric": "Centralized REST API Latency",
+    "measured": "1.01 ms (P95: 1.35 ms)",
+    "threshold": "< 350 ms",
+    "iso_attribute": "Performance Efficiency (Time Behaviour)",
+    "status": "PASS"
+  },
+  {
+    "metric": "QR Checkpoint Validation Speed",
+    "measured": "0.0098 ms",
+    "threshold": "< 600 ms",
+    "iso_attribute": "Security (Integrity & Authenticity)",
+    "status": "PASS"
+  },
+  {
+    "metric": "Slot Concurrency Race Protection",
+    "measured": "0 double bookings (100% collision rejected)",
+    "threshold": "0 double bookings",
+    "iso_attribute": "Reliability (Fault Tolerance)",
+    "status": "PASS"
+  },
+  {
+    "metric": "Plate OCR Normalization Accuracy",
+    "measured": "100.0%",
+    "threshold": "\u2265 90.0%",
+    "iso_attribute": "Functional Suitability (Accuracy)",
+    "status": "PASS"
+  },
+  {
+    "metric": "WebRTC Voice Signaling Latency",
+    "measured": "0.0085 ms",
+    "threshold": "< 200 ms",
+    "iso_attribute": "Performance Efficiency (Time Behaviour)",
+    "status": "PASS"
+  },
+  {
+    "metric": "Payment Webhook Roundtrip Latency",
+    "measured": "0.0084 ms",
+    "threshold": "< 1.2 s (1200 ms)",
+    "iso_attribute": "Performance Efficiency (Throughput)",
+    "status": "PASS"
+  }
+]
