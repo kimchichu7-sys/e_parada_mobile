@@ -34,13 +34,25 @@ class ApiClient {
   static const Duration _timeout = Duration(seconds: 30);
   static const Duration _uploadTimeout = Duration(seconds: 120);
   static final ValueNotifier<bool> isOfflineNotifier = ValueNotifier<bool>(false);
+  static http.Client _client = http.Client();
+
+  @visibleForTesting
+  static void setClientForTesting(http.Client client) {
+    _client = client;
+  }
+
+  @visibleForTesting
+  static void resetClient() {
+    _client.close();
+    _client = http.Client();
+  }
 
   static Future<http.Response> get(
     String path, {
     Map<String, String>? headers,
   }) {
     return _send(
-      () => http.get(ApiConfig.endpoint(path), headers: _headers(headers)),
+      () => _client.get(ApiConfig.endpoint(path), headers: _headers(headers)),
     );
   }
 
@@ -50,7 +62,7 @@ class ApiClient {
     Map<String, dynamic>? body,
   }) {
     return _send(
-      () => http.post(
+      () => _client.post(
         ApiConfig.endpoint(path),
         headers: _headers(headers, json: true),
         body: jsonEncode(body ?? <String, dynamic>{}),
@@ -64,7 +76,7 @@ class ApiClient {
     Map<String, dynamic>? body,
   }) {
     return _send(
-      () => http.patch(
+      () => _client.patch(
         ApiConfig.endpoint(path),
         headers: _headers(headers, json: true),
         body: jsonEncode(body ?? <String, dynamic>{}),
@@ -78,7 +90,7 @@ class ApiClient {
     Map<String, dynamic>? body,
   }) {
     return _send(
-      () => http.put(
+      () => _client.put(
         ApiConfig.endpoint(path),
         headers: _headers(headers, json: true),
         body: jsonEncode(body ?? <String, dynamic>{}),
@@ -91,7 +103,7 @@ class ApiClient {
     Map<String, String>? headers,
   }) {
     return _send(
-      () => http.post(ApiConfig.endpoint(path), headers: _headers(headers)),
+      () => _client.post(ApiConfig.endpoint(path), headers: _headers(headers)),
     );
   }
 
@@ -100,7 +112,8 @@ class ApiClient {
     Map<String, String>? headers,
   }) {
     return _send(
-      () => http.delete(ApiConfig.endpoint(path), headers: _headers(headers)),
+      () =>
+          _client.delete(ApiConfig.endpoint(path), headers: _headers(headers)),
     );
   }
 
@@ -110,7 +123,7 @@ class ApiClient {
     Map<String, dynamic>? body,
   }) {
     return _send(
-      () => http.delete(
+      () => _client.delete(
         ApiConfig.endpoint(path),
         headers: _headers(headers, json: true),
         body: jsonEncode(body ?? <String, dynamic>{}),
@@ -151,7 +164,7 @@ class ApiClient {
         );
       }
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await _client.send(request);
       return http.Response.fromStream(streamedResponse);
     }, timeout: timeout);
   }

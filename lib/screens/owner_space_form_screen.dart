@@ -1059,7 +1059,9 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                                 : () async {
                                     final picked = await _picker.pickImage(
                                       source: ImageSource.gallery,
-                                      imageQuality: 80,
+                                      maxWidth: 1280,
+                                      maxHeight: 1280,
+                                      imageQuality: 78,
                                     );
                                     if (picked != null && mounted) {
                                       setState(() => _barangayClearance = picked);
@@ -1113,7 +1115,9 @@ class _OwnerSpaceFormScreenState extends State<OwnerSpaceFormScreen> {
                                 : () async {
                                     final picked = await _picker.pickImage(
                                       source: ImageSource.gallery,
-                                      imageQuality: 80,
+                                      maxWidth: 1280,
+                                      maxHeight: 1280,
+                                      imageQuality: 78,
                                     );
                                     if (picked != null && mounted) {
                                       setState(() => _taxDeclaration = picked);

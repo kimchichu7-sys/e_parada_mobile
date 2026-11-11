@@ -60,7 +60,9 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   Future<void> _pickPhoto() async {
     final photo = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
+      maxWidth: 1280,
+      maxHeight: 1280,
+      imageQuality: 78,
     );
     if (photo != null) {
       setState(() => _evidencePhoto = photo);

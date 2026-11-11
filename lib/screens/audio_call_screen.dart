@@ -45,9 +45,12 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   MediaStreamTrack? _remoteAudioTrack;
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   Timer? _pollTimer;
+  Timer? _iceBatchTimer;
   Timer? _connectionTimeoutTimer;
   late ReservationCall _call;
   final List<RTCIceCandidate> _pendingCandidates = [];
+  final List<Map<String, dynamic>> _queuedIceSignals = [];
+  Duration _pollInterval = const Duration(milliseconds: 450);
   RTCSessionDescription? _localAnswer;
   int _lastSignalId = 0;
   bool _remoteDescriptionSet = false;
@@ -57,6 +60,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   bool _speakerOn = false;
   bool _busy = true;
   bool _polling = false;
+  bool _flushingIceSignals = false;
+  bool _disposed = false;
   bool _setupFailed = false;
   bool _needsPermissionSettings = false;
   String _status = 'Connecting...';
@@ -86,6 +91,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
     try {
       await _releaseMedia();
+      _pollInterval = const Duration(milliseconds: 450);
       if (mounted) {
         setState(() {
           _busy = true;
@@ -152,16 +158,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         await _peerConnection!.addTrack(track, _localStream!);
       }
 
-      _peerConnection!.onIceCandidate = (candidate) {
-        if (candidate.candidate == null) return;
-        unawaited(
-          ConversationService.sendSignal(_call, 'ice', {
-            'candidate': candidate.candidate,
-            'sdpMid': candidate.sdpMid,
-            'sdpMLineIndex': candidate.sdpMLineIndex,
-          }),
-        );
-      };
+      _peerConnection!.onIceCandidate = _enqueueIceCandidate;
       _peerConnection!.onTrack = (event) {
         if (event.track.kind != 'audio') return;
         event.track.enabled = true;
@@ -212,7 +209,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
             (state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
              state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
              state == RTCPeerConnectionState.RTCPeerConnectionStateClosed)) {
-          _pollTimer?.cancel();
+          _stopPolling();
           if (mounted) Navigator.of(context).pop();
         }
       };
@@ -230,16 +227,15 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
             _status = 'Connected';
           });
           // Connection established; relax polling frequency to 800ms to reduce network & server load
-          _pollTimer?.cancel();
-          _pollTimer = Timer.periodic(
-            const Duration(milliseconds: 800),
-            (_) => unawaited(_pollSignals()),
-          );
+          _pollInterval = const Duration(milliseconds: 800);
+          if (!_polling) {
+            _scheduleNextPoll();
+          }
         } else if (_connected &&
             (state == RTCIceConnectionState.RTCIceConnectionStateDisconnected ||
              state == RTCIceConnectionState.RTCIceConnectionStateFailed ||
              state == RTCIceConnectionState.RTCIceConnectionStateClosed)) {
-          _pollTimer?.cancel();
+          _stopPolling();
           if (mounted) Navigator.of(context).pop();
         }
       };
@@ -270,11 +266,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
           Navigator.of(context).pop();
         }
       });
-      await _pollSignals();
-      _pollTimer = Timer.periodic(
-        const Duration(milliseconds: 450),
-        (_) => unawaited(_pollSignals()),
-      );
+      if (!_polling) {
+        await _pollSignals();
+      }
     } on Object catch (error) {
       if (!mounted) return;
       final msg = error is ApiException
@@ -302,11 +296,84 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     await _start();
   }
 
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+  }
+
+  void _scheduleNextPoll() {
+    if (_disposed || !mounted || !_call.isActive) return;
+    _stopPolling();
+    _pollTimer = Timer(_pollInterval, () {
+      if (_disposed || !mounted || !_call.isActive) return;
+      unawaited(_pollSignals());
+    });
+  }
+
+  void _stopIceBatching() {
+    _iceBatchTimer?.cancel();
+    _iceBatchTimer = null;
+    _queuedIceSignals.clear();
+  }
+
+  void _enqueueIceCandidate(RTCIceCandidate candidate) {
+    if (_disposed || candidate.candidate == null || !_call.isActive) return;
+    _queuedIceSignals.add({
+      'type': 'ice',
+      'payload': {
+        'candidate': candidate.candidate,
+        'sdpMid': candidate.sdpMid,
+        'sdpMLineIndex': candidate.sdpMLineIndex,
+      },
+    });
+    if (_queuedIceSignals.length >= 12) {
+      _iceBatchTimer?.cancel();
+      _iceBatchTimer = null;
+      unawaited(_flushIceSignals());
+      return;
+    }
+    _iceBatchTimer ??= Timer(const Duration(milliseconds: 150), () {
+      _iceBatchTimer = null;
+      unawaited(_flushIceSignals());
+    });
+  }
+
+  Future<void> _flushIceSignals() async {
+    if (_disposed ||
+        _flushingIceSignals ||
+        _queuedIceSignals.isEmpty ||
+        !_call.isActive) {
+      return;
+    }
+    _flushingIceSignals = true;
+    try {
+      while (!_disposed && _queuedIceSignals.isNotEmpty && _call.isActive) {
+        final takeCount =
+            _queuedIceSignals.length > 50 ? 50 : _queuedIceSignals.length;
+        final batch = List<Map<String, dynamic>>.from(
+          _queuedIceSignals.take(takeCount),
+        );
+        _queuedIceSignals.removeRange(0, takeCount);
+        await ConversationService.sendSignalsBatch(_call, batch);
+      }
+    } catch (error) {
+      debugPrint('ICE candidate batch send failed: $error');
+    } finally {
+      _flushingIceSignals = false;
+      if (!_disposed && _queuedIceSignals.isNotEmpty && _call.isActive) {
+        _iceBatchTimer ??= Timer(const Duration(milliseconds: 150), () {
+          _iceBatchTimer = null;
+          unawaited(_flushIceSignals());
+        });
+      }
+    }
+  }
+
   Future<void> _releaseMedia() async {
     _connectionTimeoutTimer?.cancel();
     _connectionTimeoutTimer = null;
-    _pollTimer?.cancel();
-    _pollTimer = null;
+    _stopPolling();
+    _stopIceBatching();
     for (final track in _localStream?.getTracks() ?? <MediaStreamTrack>[]) {
       track.stop();
     }
@@ -333,8 +400,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
   }
 
   Future<void> _pollSignals() async {
-    if (_polling || !_call.isActive) return;
+    if (_disposed || _polling || !_call.isActive) return;
     _polling = true;
+    _stopPolling();
     try {
       final batch = await ConversationService.signals(
         _call,
@@ -377,7 +445,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       }
 
       if (!_call.isActive && mounted) {
-        _pollTimer?.cancel();
+        _stopPolling();
         if (mounted) Navigator.of(context).pop();
       }
     } on Object catch (error) {
@@ -385,6 +453,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
       // A later poll retries brief network interruptions without consuming data.
     } finally {
       _polling = false;
+      if (!_disposed && mounted && _call.isActive) {
+        _scheduleNextPoll();
+      }
     }
   }
 
@@ -392,7 +463,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     final type = signal['type']?.toString();
     if (type == 'bye') {
       if (mounted) {
-        _pollTimer?.cancel();
+        _stopPolling();
         Navigator.of(context).pop();
       }
       return;
@@ -507,8 +578,8 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     if (_busy) return;
     _busy = true;
     final callToEnd = _call;
-    _pollTimer?.cancel();
-    _pollTimer = null;
+    _stopPolling();
+    _stopIceBatching();
 
     // Immediately pop the screen and clean up media for 0ms hangup latency
     if (mounted) Navigator.of(context).pop();
@@ -576,9 +647,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
   @override
   void dispose() {
+    _disposed = true;
     _connectionTimeoutTimer?.cancel();
     _connectionTimeoutTimer = null;
-    _pollTimer?.cancel();
+    _stopPolling();
+    _stopIceBatching();
     if (!kIsWeb) {
       unawaited(AudioRoutingHelper.resetAudioRoute());
     }

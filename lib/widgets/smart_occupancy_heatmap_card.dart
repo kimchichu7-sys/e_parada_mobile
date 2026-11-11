@@ -24,6 +24,7 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
     with SingleTickerProviderStateMixin {
   Timer? _refreshTimer;
   bool _isAutoRefreshing = true;
+  bool _disposed = false;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -41,18 +42,21 @@ class _SmartOccupancyHeatmapCardState extends State<SmartOccupancyHeatmapCard>
 
   void _startAutoRefresh() {
     _refreshTimer?.cancel();
-    if (_isAutoRefreshing) {
-      _refreshTimer = Timer.periodic(widget.autoRefreshInterval, (_) {
-        if (mounted && _isAutoRefreshing) {
-          widget.onRefreshRequested?.call();
-        }
+    _refreshTimer = null;
+    if (!_disposed && mounted && _isAutoRefreshing) {
+      _refreshTimer = Timer(widget.autoRefreshInterval, () {
+        if (_disposed || !mounted || !_isAutoRefreshing) return;
+        widget.onRefreshRequested?.call();
+        _startAutoRefresh();
       });
     }
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _refreshTimer?.cancel();
+    _refreshTimer = null;
     _pulseController.dispose();
     super.dispose();
   }

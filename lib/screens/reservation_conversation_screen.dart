@@ -35,25 +35,36 @@ class _ReservationConversationScreenState
   bool _loading = true;
   bool _sending = false;
   bool _refreshing = false;
+  bool _pollSuspended = false;
+  bool _disposed = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
     unawaited(_refresh(initial: true));
-    _startRefreshTimer();
   }
 
-  void _startRefreshTimer() {
+  void _stopRefreshTimer() {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(
+    _refreshTimer = null;
+  }
+
+  void _scheduleNextRefresh() {
+    if (_disposed || _pollSuspended || !mounted) return;
+    _stopRefreshTimer();
+    _refreshTimer = Timer(
       const Duration(milliseconds: 650),
-      (_) => unawaited(_refresh()),
+      () {
+        if (_disposed || _pollSuspended || !mounted) return;
+        unawaited(_refresh());
+      },
     );
   }
 
   Future<void> _openCall(ReservationCall call) async {
-    _refreshTimer?.cancel();
+    _pollSuspended = true;
+    _stopRefreshTimer();
     try {
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
@@ -65,16 +76,17 @@ class _ReservationConversationScreenState
         ),
       );
     } finally {
-      if (mounted) {
-        _startRefreshTimer();
+      _pollSuspended = false;
+      if (mounted && !_disposed) {
         unawaited(_refresh());
       }
     }
   }
 
   Future<void> _refresh({bool initial = false}) async {
-    if (_refreshing) return;
+    if (_disposed || _refreshing) return;
     _refreshing = true;
+    _stopRefreshTimer();
     try {
       final validMessages = _messages.where((m) => m.id > 0).toList();
       final afterId = validMessages.isEmpty ? 0 : validMessages.last.id;
@@ -82,7 +94,7 @@ class _ReservationConversationScreenState
         widget.reservationId,
         afterId: afterId,
       );
-      if (!mounted) return;
+      if (!mounted || _disposed) return;
 
       setState(() {
         _conversation = conversation;
@@ -118,6 +130,9 @@ class _ReservationConversationScreenState
       }
     } finally {
       _refreshing = false;
+      if (mounted && !_disposed && !_pollSuspended) {
+        _scheduleNextRefresh();
+      }
     }
   }
 
@@ -234,7 +249,8 @@ class _ReservationConversationScreenState
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
+    _disposed = true;
+    _stopRefreshTimer();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import '../models/driver_reservation.dart';
 import '../models/rebook_alternative.dart';
 import '../models/reservation_availability.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
+import 'notification_service.dart';
 
 class ReservationService {
   static Future<List<DriverReservation>> fetchReservations() async {
@@ -74,6 +77,7 @@ class ReservationService {
       },
     );
     ApiClient.requireStatus(response, const {201});
+    unawaited(NotificationService.refreshUnreadCount());
     return _message(response, 'Reservation submitted.');
   }
 
@@ -84,6 +88,7 @@ class ReservationService {
       body: {'cancellation_reason': reason ?? ''},
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return _message(response, 'Reservation cancelled.');
   }
 
@@ -109,6 +114,7 @@ class ReservationService {
       },
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return _message(response, 'Reservation rescheduled.');
   }
 
@@ -128,6 +134,7 @@ class ReservationService {
       },
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return _message(response, 'Extension requested.');
   }
 
@@ -148,6 +155,7 @@ class ReservationService {
       files: paymentProof == null ? null : {'payment_proof': paymentProof},
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return _message(response, 'Payment submitted.');
   }
 
@@ -175,7 +183,11 @@ class ReservationService {
       },
     );
     ApiClient.requireStatus(response, const {200});
-    return ApiClient.decodeObject(response);
+    final body = ApiClient.decodeObject(response);
+    if (body['is_paid'] == true || body['status'] == 'paid') {
+      unawaited(NotificationService.refreshUnreadCount());
+    }
+    return body;
   }
 
   static Future<String> submitFeedback({
@@ -189,6 +201,7 @@ class ReservationService {
       body: {'rating': rating, 'comment': comment},
     );
     ApiClient.requireStatus(response, const {201});
+    unawaited(NotificationService.refreshUnreadCount());
     return _message(response, 'Feedback submitted.');
   }
 
@@ -218,6 +231,7 @@ class ReservationService {
       },
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return _message(response, 'Rebooking requested. Awaiting space owner approval.');
   }
 

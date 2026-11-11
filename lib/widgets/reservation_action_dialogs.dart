@@ -428,7 +428,9 @@ Future<PaymentSelection?> showBillingPaymentDialog(
                           onPressed: () async {
                             final selected = await ImagePicker().pickImage(
                               source: ImageSource.gallery,
-                              imageQuality: 85,
+                              maxWidth: 1280,
+                              maxHeight: 1280,
+                              imageQuality: 78,
                             );
                             if (selected != null) {
                               setDialogState(() => proof = selected);

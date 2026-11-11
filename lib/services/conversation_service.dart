@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import '../models/conversation_message.dart';
 import '../models/reservation_call.dart';
 import '../models/reservation_conversation.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
+import 'notification_service.dart';
 
 class CallSignalBatch {
   const CallSignalBatch({required this.call, required this.signals});
@@ -39,6 +42,7 @@ class ConversationService {
     );
     ApiClient.requireStatus(response, const {201});
     final message = ApiClient.decodeObject(response)['message'];
+    unawaited(NotificationService.refreshUnreadCount());
     return ConversationMessage.fromJson(Map<String, dynamic>.from(message));
   }
 
@@ -48,6 +52,7 @@ class ConversationService {
       headers: await _headers(),
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
   }
 
   static Future<ReservationCall?> activeCall(int reservationId) async {
@@ -113,6 +118,29 @@ class ConversationService {
       body: {'type': type, 'payload': payload},
     );
     ApiClient.requireStatus(response, const {201});
+    if (type == 'bye') {
+      unawaited(NotificationService.refreshUnreadCount());
+    }
+  }
+
+  static Future<void> sendSignalsBatch(
+    ReservationCall call,
+    List<Map<String, dynamic>> signals,
+  ) async {
+    if (signals.isEmpty) return;
+    final headers = await _headers();
+    for (var i = 0; i < signals.length; i += 50) {
+      final chunk = signals.sublist(
+        i,
+        i + 50 > signals.length ? signals.length : i + 50,
+      );
+      final response = await ApiClient.postJson(
+        'reservations/${call.reservationId}/conversation/calls/${call.id}/signals',
+        headers: headers,
+        body: {'signals': chunk},
+      );
+      ApiClient.requireStatus(response, const {201});
+    }
   }
 
   static Future<ReservationCall> _changeCall(
@@ -124,6 +152,7 @@ class ConversationService {
       headers: await _headers(),
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return _callFrom(response);
   }
 

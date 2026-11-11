@@ -102,6 +102,8 @@ class AdminVehicleReview {
   String get description =>
       '$vehicleType | $color ${make.isEmpty ? '' : '$make '}$model';
 
+  bool get isPlateScanPending => plateScanStatus == 'pending';
+
   factory AdminVehicleReview.fromJson(Map<String, dynamic> json) {
     return AdminVehicleReview(
       id: _integer(json['id']),

@@ -27,6 +27,25 @@ class MobileNotification {
 
   bool get isUnread => readAt == null;
 
+  MobileNotification copyWith({
+    DateTime? readAt,
+    bool clearReadAt = false,
+  }) {
+    return MobileNotification(
+      id: id,
+      title: title,
+      message: message,
+      type: type,
+      link: link,
+      readAt: clearReadAt ? null : (readAt ?? this.readAt),
+      createdAt: createdAt,
+      reservationId: reservationId,
+      dedupeKey: dedupeKey,
+      otherPartyName: otherPartyName,
+      canMessage: canMessage,
+    );
+  }
+
   bool get isMessageOrCall =>
       type == 'message' ||
       type == 'call' ||

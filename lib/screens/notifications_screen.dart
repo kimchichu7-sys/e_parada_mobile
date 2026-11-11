@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/mobile_notification.dart';
@@ -112,10 +114,62 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  void _markNotificationReadOptimistically(
+    MobileNotification notification, {
+    bool showError = true,
+  }) {
+    if (!notification.isUnread) return;
+    final readAt = DateTime.now();
+
+    setState(() {
+      _notifications = _notifications
+          .map(
+            (item) => item.id == notification.id
+                ? item.copyWith(readAt: readAt)
+                : item,
+          )
+          .toList(growable: false);
+      if (_unreadCount > 0) {
+        _unreadCount -= 1;
+      }
+    });
+    NotificationService.decrementUnreadCount();
+
+    unawaited(
+      NotificationService.markAsRead(notification.id).then((_) {
+        if (!mounted) return;
+        setState(() {
+          _unreadCount = NotificationService.unreadCountNotifier.value;
+        });
+      }).catchError((Object error) {
+        if (!mounted) return;
+        setState(() {
+          _notifications = _notifications
+              .map(
+                (item) => item.id == notification.id
+                    ? item.copyWith(clearReadAt: true)
+                    : item,
+              )
+              .toList(growable: false);
+          _unreadCount += 1;
+        });
+        NotificationService.syncUnreadCount(
+          NotificationService.unreadCountNotifier.value + 1,
+        );
+        if (showError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.toString()),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }),
+    );
+  }
+
   Future<void> _handleMessageNotification(MobileNotification notification) async {
-    if (notification.isUnread) {
-      NotificationService.markAsRead(notification.id).catchError((_) => '');
-    }
+    _markNotificationReadOptimistically(notification, showError: false);
 
     int? reservationId = notification.extractedReservationId;
     String otherPartyName = notification.otherPartyDisplayName;
@@ -149,25 +203,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _open(MobileNotification notification) async {
-    if (notification.isUnread) {
-      await _perform(() => NotificationService.markAsRead(notification.id));
-      if (!mounted) return;
-    }
+    final openedNotification = notification.isUnread
+        ? notification.copyWith(readAt: DateTime.now())
+        : notification;
+    _markNotificationReadOptimistically(notification);
 
-    final canMessage = notification.isMessageOrCall;
-    final otherPartyName = notification.otherPartyDisplayName;
+    final canMessage = openedNotification.isMessageOrCall;
+    final otherPartyName = openedNotification.otherPartyDisplayName;
     final otherPartyFirstName = otherPartyName.split(' ').first;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: Icon(_icon(notification)),
-        title: Text(notification.title),
+        icon: Icon(_icon(openedNotification)),
+        title: Text(openedNotification.title),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(notification.message),
+            Text(openedNotification.message),
             if (canMessage) ...[
               const SizedBox(height: 16),
               Container(
@@ -182,7 +236,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      notification.type == 'call'
+                      openedNotification.type == 'call'
                           ? Icons.phone_in_talk_rounded
                           : Icons.chat_bubble_outline_rounded,
                       size: 20,
@@ -191,7 +245,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        notification.type == 'call'
+                        openedNotification.type == 'call'
                             ? 'Call / Chat connected with $otherPartyName'
                             : 'Direct chat available with $otherPartyName',
                         style: TextStyle(
@@ -216,16 +270,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             FilledButton.icon(
               onPressed: () {
                 Navigator.pop(dialogContext);
-                _handleMessageNotification(notification);
+                _handleMessageNotification(openedNotification);
               },
               icon: Icon(
-                notification.type == 'call'
+                openedNotification.type == 'call'
                     ? Icons.phone_rounded
                     : Icons.chat_bubble_rounded,
                 size: 18,
               ),
               label: Text(
-                notification.type == 'call'
+                openedNotification.type == 'call'
                     ? 'Call / Open Chat'
                     : 'Message $otherPartyFirstName',
               ),

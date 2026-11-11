@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../screens/notifications_screen.dart';
@@ -12,21 +14,10 @@ class NotificationActionButton extends StatefulWidget {
 }
 
 class _NotificationActionButtonState extends State<NotificationActionButton> {
-  int _unreadCount = 0;
-
   @override
   void initState() {
     super.initState();
-    _refresh();
-  }
-
-  Future<void> _refresh() async {
-    try {
-      final inbox = await NotificationService.fetchInbox();
-      if (mounted) setState(() => _unreadCount = inbox.unreadCount);
-    } catch (_) {
-      // The inbox itself presents connection errors when the user opens it.
-    }
+    unawaited(NotificationService.refreshUnreadCount());
   }
 
   Future<void> _openInbox() async {
@@ -34,21 +25,28 @@ class _NotificationActionButtonState extends State<NotificationActionButton> {
       context,
       MaterialPageRoute(builder: (_) => const NotificationsScreen()),
     );
-    if (mounted) await _refresh();
+    if (mounted) {
+      unawaited(NotificationService.refreshUnreadCount());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: _unreadCount == 0
-          ? 'Notifications'
-          : 'Notifications, $_unreadCount unread',
-      onPressed: _openInbox,
-      icon: Badge(
-        isLabelVisible: _unreadCount > 0,
-        label: Text(_unreadCount > 99 ? '99+' : '$_unreadCount'),
-        child: const Icon(Icons.notifications_none_rounded),
-      ),
+    return ValueListenableBuilder<int>(
+      valueListenable: NotificationService.unreadCountNotifier,
+      builder: (context, unreadCount, _) {
+        return IconButton(
+          tooltip: unreadCount == 0
+              ? 'Notifications'
+              : 'Notifications, $unreadCount unread',
+          onPressed: _openInbox,
+          icon: Badge(
+            isLabelVisible: unreadCount > 0,
+            label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),
+            child: const Icon(Icons.notifications_none_rounded),
+          ),
+        );
+      },
     );
   }
 }

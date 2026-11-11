@@ -78,6 +78,7 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
   bool _isLiveGateway = false;
   Timer? _pollTimer;
   bool _isVerifying = false;
+  bool _disposed = false;
 
   @override
   void initState() {
@@ -92,7 +93,9 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
 
   @override
   void dispose() {
+    _disposed = true;
     _pollTimer?.cancel();
+    _pollTimer = null;
     _phoneController.dispose();
     _pinController.dispose();
     super.dispose();
@@ -154,27 +157,50 @@ class _GcashPaymentGatewayDialogState extends State<GcashPaymentGatewayDialog> {
 
   void _startStatusPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
-      if (!mounted || _step != 2 || widget.reservationId == null) {
-        timer.cancel();
+    _pollTimer = null;
+    if (_disposed || !mounted || _step != 2 || widget.reservationId == null) {
+      return;
+    }
+    _pollTimer = Timer(const Duration(seconds: 3), () {
+      if (_disposed || !mounted || _step != 2 || widget.reservationId == null) {
         return;
       }
-      try {
-        final res = await ReservationService.verifyPayMongo(
-          reservationId: widget.reservationId!,
-          checkoutSessionId: _checkoutSessionId,
-        );
-        if (res['is_paid'] == true || res['status'] == 'paid') {
-          timer.cancel();
-          if (mounted) {
-            final ref = res['reference']?.toString();
-            _completeSuccessfulPayment(referenceId: ref);
-          }
-        }
-      } catch (_) {
-        // Continue polling silently
-      }
+      unawaited(_pollPayMongoStatus());
     });
+  }
+
+  Future<void> _pollPayMongoStatus() async {
+    if (_disposed || !mounted || _step != 2 || widget.reservationId == null) {
+      return;
+    }
+    if (_isVerifying) {
+      _startStatusPolling();
+      return;
+    }
+    var paid = false;
+    try {
+      final res = await ReservationService.verifyPayMongo(
+        reservationId: widget.reservationId!,
+        checkoutSessionId: _checkoutSessionId,
+      );
+      if (res['is_paid'] == true || res['status'] == 'paid') {
+        paid = true;
+        if (mounted && !_disposed) {
+          final ref = res['reference']?.toString();
+          _completeSuccessfulPayment(referenceId: ref);
+        }
+      }
+    } catch (_) {
+      // Continue polling silently
+    } finally {
+      if (!paid &&
+          !_disposed &&
+          mounted &&
+          _step == 2 &&
+          widget.reservationId != null) {
+        _startStatusPolling();
+      }
+    }
   }
 
   Future<void> _checkPaymentStatusManually() async {

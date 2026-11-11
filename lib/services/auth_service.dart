@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth_user.dart';
 import 'api_client.dart';
+import 'notification_service.dart';
 
 class AuthService {
   static Future<AuthUser> registerAccount({
@@ -293,6 +294,7 @@ class AuthService {
     await prefs.remove('can_reserve');
     await prefs.remove('can_manage_parking_spaces');
     await prefs.remove('remaining_vehicle_slots');
+    NotificationService.syncUnreadCount(0);
   }
 
   static Future<AuthUser> _saveSessionFromResponse(

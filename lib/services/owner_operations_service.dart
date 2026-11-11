@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import '../models/checkpoint_transaction.dart';
@@ -5,6 +6,7 @@ import '../models/owner_parking_space.dart';
 import '../models/owner_reservation.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
+import 'notification_service.dart';
 
 class OwnerCheckpointData {
   const OwnerCheckpointData({
@@ -259,6 +261,7 @@ class OwnerOperationsService {
       throw const ApiException('The checkpoint result is incomplete.');
     }
 
+    unawaited(NotificationService.refreshUnreadCount());
     return CheckpointResult(
       message: body['message']?.toString() ?? 'Checkpoint validated.',
       eventType: body['event_type']?.toString() ?? 'validated',
@@ -306,6 +309,7 @@ class OwnerOperationsService {
       body: body,
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return ApiClient.decodeObject(response)['message']?.toString() ??
         'Reservation updated.';
   }

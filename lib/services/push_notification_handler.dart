@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -100,6 +101,7 @@ class PushNotificationHandler {
           'Foreground message received: ${message.notification?.title}',
           name: 'PushNotificationHandler',
         );
+        unawaited(NotificationService.refreshUnreadCount());
 
         final notification = message.notification;
         if (notification != null) {
@@ -129,6 +131,7 @@ class PushNotificationHandler {
           'App opened via notification: ${message.data}',
           name: 'PushNotificationHandler',
         );
+        unawaited(NotificationService.refreshUnreadCount());
       });
 
       _isInitialized = true;

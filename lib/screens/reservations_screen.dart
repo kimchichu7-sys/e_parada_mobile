@@ -32,6 +32,9 @@ class _ReservationsScreenState extends State<ReservationsScreen>
   bool _loading = true;
   String? _errorMessage;
   bool _acting = false;
+  bool _refreshing = false;
+  bool _shouldPollStatus = false;
+  bool _disposed = false;
   Timer? _statusPollTimer;
   late TabController _tabController;
 
@@ -48,7 +51,8 @@ class _ReservationsScreenState extends State<ReservationsScreen>
 
   @override
   void dispose() {
-    _statusPollTimer?.cancel();
+    _disposed = true;
+    _stopStatusPoll();
     _tabController.dispose();
     super.dispose();
   }
@@ -77,6 +81,20 @@ class _ReservationsScreenState extends State<ReservationsScreen>
           .toList() ??
       [];
 
+  void _stopStatusPoll() {
+    _statusPollTimer?.cancel();
+    _statusPollTimer = null;
+  }
+
+  void _scheduleNextStatusPoll() {
+    if (_disposed || !mounted || !_shouldPollStatus) return;
+    _stopStatusPoll();
+    _statusPollTimer = Timer(const Duration(seconds: 3), () {
+      if (_disposed || !mounted || !_shouldPollStatus || _refreshing) return;
+      unawaited(_refresh());
+    });
+  }
+
   void _checkPendingPoll(List<DriverReservation>? items) {
     final shouldPoll = items?.any((r) {
           final status = r.status.toLowerCase();
@@ -89,18 +107,19 @@ class _ReservationsScreenState extends State<ReservationsScreen>
           return false;
         }) ??
         false;
-    if (shouldPoll && (_statusPollTimer == null || !_statusPollTimer!.isActive)) {
-      _statusPollTimer?.cancel();
-      _statusPollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-        if (mounted) _refresh();
-      });
-    } else if (!shouldPoll && _statusPollTimer != null) {
-      _statusPollTimer?.cancel();
-      _statusPollTimer = null;
+    _shouldPollStatus = shouldPoll;
+    if (shouldPoll) {
+      if (_statusPollTimer == null || !_statusPollTimer!.isActive) {
+        _scheduleNextStatusPoll();
+      }
+    } else {
+      _stopStatusPoll();
     }
   }
 
   Future<void> _fetch() async {
+    _stopStatusPoll();
+    _refreshing = true;
     setState(() {
       _loading = true;
       _errorMessage = null;
@@ -108,36 +127,49 @@ class _ReservationsScreenState extends State<ReservationsScreen>
     try {
       final items = await ReservationService.fetchReservations();
       await OfflineParkingPassService.cacheReservations(items);
-      if (!mounted) return;
+      if (!mounted || _disposed) return;
       setState(() {
         _reservations = items;
         _loading = false;
       });
       _checkPendingPoll(items);
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || _disposed) return;
       setState(() {
         _errorMessage = error.toString();
         _loading = false;
       });
+    } finally {
+      _refreshing = false;
+      if (mounted && !_disposed && _shouldPollStatus) {
+        _scheduleNextStatusPoll();
+      }
     }
   }
 
   Future<void> _refresh() async {
+    if (_disposed || _refreshing) return;
+    _refreshing = true;
+    _stopStatusPoll();
     try {
       final items = await ReservationService.fetchReservations();
       await OfflineParkingPassService.cacheReservations(items);
-      if (!mounted) return;
+      if (!mounted || _disposed) return;
       setState(() {
         _reservations = items;
         _errorMessage = null;
       });
       _checkPendingPoll(items);
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || _disposed) return;
       setState(() {
         _errorMessage = error.toString();
       });
+    } finally {
+      _refreshing = false;
+      if (mounted && !_disposed && _shouldPollStatus) {
+        _scheduleNextStatusPoll();
+      }
     }
   }
 

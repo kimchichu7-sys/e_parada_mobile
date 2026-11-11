@@ -1082,6 +1082,46 @@ class _VehicleCard extends StatelessWidget {
       );
     }
 
+    if (status == 'pending') {
+      final blueFg = isDark ? Colors.blue.shade200 : Colors.blue.shade800;
+      final blueIcon = isDark ? Colors.blue.shade300 : Colors.blue.shade700;
+
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 2, bottom: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.blue.withValues(alpha: isDark ? 0.2 : 0.12),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: (isDark ? Colors.blue.shade400 : Colors.blue.shade600)
+                .withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.5),
+              child: Icon(Icons.hourglass_top_rounded, size: 16, color: blueIcon),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Photo scan: ${_scanStatus(status)}',
+                style: TextStyle(
+                  color: blueFg,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                softWrap: true,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final amberFg = isDark ? Colors.amber.shade300 : Colors.amber.shade900;
     final amberIcon = isDark ? Colors.amber.shade300 : Colors.amber.shade800;
 
@@ -1122,6 +1162,7 @@ class _VehicleCard extends StatelessWidget {
 
   String _scanStatus(String status) {
     return switch (status) {
+      'pending' => 'OCR scan in progress',
       'matched' => 'plate matched',
       'mismatch' => 'mismatch detected',
       'not_detected' => 'plate not readable',

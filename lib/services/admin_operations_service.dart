@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import '../models/admin_models.dart';
 import 'api_client.dart';
 import 'auth_service.dart';
+import 'notification_service.dart';
 
 class AdminOperationsService {
   static Future<List<AdminUserReview>> fetchUsers({String? status}) async {
@@ -184,6 +186,7 @@ class AdminOperationsService {
       body: body,
     );
     ApiClient.requireStatus(response, const {200});
+    unawaited(NotificationService.refreshUnreadCount());
     return ApiClient.decodeObject(response)['message']?.toString() ?? fallback;
   }
 
