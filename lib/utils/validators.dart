@@ -77,7 +77,7 @@ class Validators {
     final normalized = value.trim().toUpperCase();
     if (!_plate4WheelRegex.hasMatch(normalized) &&
         !_plate2WheelRegex.hasMatch(normalized)) {
-      return 'Enter a valid Philippine plate (e.g., ABC 1234 or 123 ABC).';
+      return 'Enter a valid Philippine plate (e.g., ABC 1234, ABC 123, or 123 ABC).';
     }
     return null;
   }

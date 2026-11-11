@@ -3,13 +3,32 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('vehicle plate validation', () {
-    test('accepts and normalizes four-wheeled plates', () {
+    test('accepts and normalizes four-wheeled plates including legacy 3-digit format', () {
       expect(
         RegistrationValidation.normalizePlate('abc-1234', 'Car'),
         'ABC 1234',
       );
+      expect(
+        RegistrationValidation.normalizePlate('abc-123', 'Car'),
+        'ABC 123',
+      );
+      expect(
+        RegistrationValidation.normalizePlate('abc123', 'SUV/MPV'),
+        'ABC 123',
+      );
       expect(RegistrationValidation.plate('ABC 1234', 'Car'), isNull);
+      expect(RegistrationValidation.plate('ABC 123', 'Car'), isNull);
+      expect(RegistrationValidation.plate('abc-123', 'Pickup/Van'), isNull);
       expect(RegistrationValidation.plate('AB 1234', 'Car'), isNotNull);
+      expect(RegistrationValidation.plate('ABC 12', 'Car'), isNotNull);
+      expect(RegistrationValidation.plate('ABC 12345', 'Car'), isNotNull);
+      expect(
+        RegistrationValidation.plate(
+          'ABC 123',
+          RegistrationValidation.motorcycleType,
+        ),
+        isNotNull,
+      );
     });
 
     test('accepts all supported motorcycle formats', () {

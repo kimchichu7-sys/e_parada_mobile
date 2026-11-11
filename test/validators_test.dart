@@ -30,8 +30,12 @@ void main() {
     test('validateLicensePlate accepts valid 4-wheel and 2-wheel plates', () {
       expect(Validators.validateLicensePlate('ABC 1234'), isNull);
       expect(Validators.validateLicensePlate('ABC1234'), isNull);
+      expect(Validators.validateLicensePlate('ABC 123'), isNull);
+      expect(Validators.validateLicensePlate('ABC123'), isNull);
       expect(Validators.validateLicensePlate('123 ABC'), isNull);
       expect(Validators.validateLicensePlate('AB 12345'), isNull);
+      expect(Validators.validateLicensePlate('ABC 12'), isNotNull);
+      expect(Validators.validateLicensePlate('ABC 12345'), isNotNull);
       expect(Validators.validateLicensePlate('INVALID PLATE 999'), isNotNull);
     });
 

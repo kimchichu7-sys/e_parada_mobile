@@ -65,6 +65,7 @@ void main() {
     test('TC-03: Vehicle plate character extraction and normalization', () {
       // 4-Wheel vehicle plate format validation
       expect(Validators.validateLicensePlate('ABC 1234'), isNull);
+      expect(Validators.validateLicensePlate('ABC 123'), isNull);
       expect(Validators.validateLicensePlate('NDL 5678'), isNull);
 
       // 2-Wheel / Motorcycle plate format validation

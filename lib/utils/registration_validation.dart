@@ -63,7 +63,7 @@ class RegistrationValidation {
         ? RegExp(
             r'^(?:[A-Z] \d{3} [A-Z]{2}|[A-Z]{2} \d{3} [A-Z]|\d [A-Z]{3} \d{2}|[A-Z] \d{4} [A-Z]|[A-Z] \d[A-Z] \d{3}|[A-Z] \d{2}[A-Z] \d{2})$',
           ).hasMatch(normalized)
-        : RegExp(r'^[A-Z]{3} \d{4}$').hasMatch(normalized);
+        : RegExp(r'^[A-Z]{3} \d{3,4}$').hasMatch(normalized);
 
     return valid ? null : plateHint(vehicleType);
   }
@@ -71,7 +71,7 @@ class RegistrationValidation {
   static String plateHint(String vehicleType) {
     return isMotorcycle(vehicleType)
         ? 'Use A 123 BC, AB 123 C, 1 ABC 23, A 1234 C, A 1C 234, or A 12C 34.'
-        : 'Use three letters and four digits, for example ABC 1234.';
+        : 'Use three letters and three or four digits, for example ABC 1234 or ABC 123.';
   }
 
   static String normalizePlate(String value, String vehicleType) {
@@ -103,7 +103,7 @@ class RegistrationValidation {
         if (match != null) return format.$2(match);
       }
     } else {
-      final match = RegExp(r'^([A-Z]{3})(\d{4})$').firstMatch(compact);
+      final match = RegExp(r'^([A-Z]{3})(\d{3,4})$').firstMatch(compact);
       if (match != null) return '${match[1]} ${match[2]}';
     }
 

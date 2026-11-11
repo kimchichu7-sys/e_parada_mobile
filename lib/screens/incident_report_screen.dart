@@ -289,7 +289,7 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                         TextFormField(
                           controller: _plateController,
                           decoration: const InputDecoration(
-                            hintText: 'e.g. ABC 1234',
+                            hintText: 'e.g. ABC 1234 or ABC 123',
                             prefixIcon: Icon(Icons.directions_car_outlined),
                           ),
                         ),

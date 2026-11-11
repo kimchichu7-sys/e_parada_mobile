@@ -617,9 +617,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               textCapitalization: TextCapitalization.characters,
               decoration: InputDecoration(
                 labelText: 'Plate number',
-                hintText: _vehicleType == RegistrationValidation.motorcycleType
+                hintText: RegistrationValidation.isMotorcycle(_vehicleType)
                     ? 'A 123 BC'
-                    : 'ABC 1234',
+                    : 'ABC 1234 or ABC 123',
                 helperText: RegistrationValidation.plateHint(_vehicleType),
               ),
               validator: (value) =>

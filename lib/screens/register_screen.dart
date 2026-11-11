@@ -376,9 +376,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Plate number',
                     prefixIcon: const Icon(Icons.confirmation_number_outlined),
                     hintText:
-                        _vehicleType == RegistrationValidation.motorcycleType
+                        RegistrationValidation.isMotorcycle(_vehicleType)
                         ? 'A 123 BC'
-                        : 'ABC 1234',
+                        : 'ABC 1234 or ABC 123',
                     helperText: RegistrationValidation.plateHint(_vehicleType),
                   ),
                   validator: (value) =>
