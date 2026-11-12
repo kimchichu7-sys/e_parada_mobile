@@ -9,10 +9,16 @@ class VehicleCatalogFields extends StatefulWidget {
     required this.vehicleType,
     required this.onChanged,
     this.enabled = true,
+    this.initialMake,
+    this.initialModel,
+    this.initialColor,
   });
 
   final String vehicleType;
   final bool enabled;
+  final String? initialMake;
+  final String? initialModel;
+  final String? initialColor;
   final void Function(String make, String model, String color) onChanged;
 
   @override
@@ -24,6 +30,7 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
   String? _make;
   String? _model;
   String? _color;
+  bool _hydratedInitial = false;
   final _customMakeController = TextEditingController();
   final _customModelController = TextEditingController();
   final _customColorController = TextEditingController();
@@ -50,11 +57,66 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
         _make = null;
         _model = null;
         _color = null;
+        _hydratedInitial = true;
         _customMakeController.clear();
         _customModelController.clear();
         _customColorController.clear();
       });
       _notify();
+    }
+  }
+
+  void _hydrateInitial(VehicleCatalog catalog) {
+    if (_hydratedInitial) return;
+    _hydratedInitial = true;
+
+    final rawMake = widget.initialMake?.trim() ?? '';
+    final rawModel = widget.initialModel?.trim() ?? '';
+    final rawColor = widget.initialColor?.trim() ?? '';
+    if (rawMake.isEmpty && rawModel.isEmpty && rawColor.isEmpty) return;
+
+    final other = catalog.otherValue;
+    final makes = catalog.makesFor(widget.vehicleType);
+    final foundMake = _firstWhereOrNull(
+      makes,
+      (item) => item.name.toLowerCase() == rawMake.toLowerCase(),
+    );
+
+    if (foundMake != null && foundMake.name != other) {
+      _make = foundMake.name;
+    } else if (rawMake.isNotEmpty) {
+      _make = other;
+      _customMakeController.text = rawMake;
+    }
+
+    final models = _make == other
+        ? [VehicleCatalogModel(name: other, colors: [other])]
+        : (foundMake?.models ?? const <VehicleCatalogModel>[]);
+    final foundModel = _firstWhereOrNull(
+      models,
+      (item) => item.name.toLowerCase() == rawModel.toLowerCase(),
+    );
+
+    if (foundModel != null && foundModel.name != other && _make != other) {
+      _model = foundModel.name;
+    } else if (rawModel.isNotEmpty) {
+      _model = other;
+      _customModelController.text = rawModel;
+    }
+
+    final colors = (_model == other || _make == other)
+        ? [other]
+        : (foundModel?.colors ?? const <String>[]);
+    final foundColor = _firstWhereOrNull(
+      colors,
+      (c) => c.toLowerCase() == rawColor.toLowerCase(),
+    );
+
+    if (foundColor != null && foundColor != other && _model != other && _make != other) {
+      _color = foundColor;
+    } else if (rawColor.isNotEmpty) {
+      _color = other;
+      _customColorController.text = rawColor;
     }
   }
 
@@ -118,6 +180,7 @@ class _VehicleCatalogFieldsState extends State<VehicleCatalogFields> {
         }
 
         final catalog = snapshot.data!;
+        _hydrateInitial(catalog);
         final other = catalog.otherValue;
         final makes = catalog.makesFor(widget.vehicleType);
         final selectedMake = _firstWhereOrNull(

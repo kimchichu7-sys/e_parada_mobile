@@ -66,6 +66,8 @@ class VehicleService {
         ? meta['can_add_vehicle'] == true
         : (accountVerified && remaining > 0);
 
+    await _syncMetaMap(Map<String, dynamic>.from(meta));
+
     return VehicleListResult(
       vehicles: data
           .whereType<Map>()
@@ -119,8 +121,57 @@ class VehicleService {
       },
     );
     ApiClient.requireStatus(response, const {201});
-    return ApiClient.decodeObject(response)['message']?.toString() ??
-        'Vehicle submitted for review.';
+    final body = ApiClient.decodeObject(response);
+    await _syncMetaIfPresent(body);
+    return body['message']?.toString() ?? 'Vehicle submitted for review.';
+  }
+
+  static Future<String> updateRejectedVehicle({
+    required int vehicleId,
+    required String plateNumber,
+    required String vehicleType,
+    required String vehicleMake,
+    required String vehicleColor,
+    required String vehicleModel,
+    UploadFileData? vehiclePhoto,
+    UploadFileData? vehiclePhotoBack,
+    UploadFileData? orPhoto,
+    UploadFileData? crPhoto,
+    UploadFileData? authorizationLetter,
+    DateTime? registrationExpiry,
+    bool isOwnerDriving = true,
+    String? registeredOwnerName,
+  }) async {
+    final token = await AuthService.requireToken();
+    final response = await ApiClient.postMultipart(
+      'vehicles/$vehicleId',
+      headers: AuthService.bearerHeaders(token),
+      fields: {
+        'plate_number': plateNumber,
+        'vehicle_type': vehicleType,
+        'vehicle_make': vehicleMake,
+        'vehicle_color': vehicleColor,
+        'vehicle_model': vehicleModel,
+        'vehicle_photo_consent': '1',
+        'is_owner_driving': isOwnerDriving ? '1' : '0',
+        if (registrationExpiry != null)
+          'registration_expiry': registrationExpiry.toIso8601String().substring(0, 10),
+        if (!isOwnerDriving && registeredOwnerName != null && registeredOwnerName.trim().isNotEmpty)
+          'registered_owner_name': registeredOwnerName.trim(),
+      },
+      files: {
+        'vehicle_photo': ?vehiclePhoto,
+        'vehicle_photo_back': ?vehiclePhotoBack,
+        'or_photo': ?orPhoto,
+        'cr_photo': ?crPhoto,
+        'authorization_letter': ?authorizationLetter,
+      },
+    );
+    ApiClient.requireStatus(response, const {200});
+    final body = ApiClient.decodeObject(response);
+    await _syncMetaIfPresent(body);
+    return body['message']?.toString() ??
+        'Vehicle updated and resubmitted for admin review.';
   }
 
   static Future<String> uploadVehicleDocuments({
@@ -197,8 +248,38 @@ class VehicleService {
       headers: AuthService.bearerHeaders(token),
     );
     ApiClient.requireStatus(response, const {200});
-    return ApiClient.decodeObject(response)['message']?.toString() ??
-        'Vehicle removed.';
+    final body = ApiClient.decodeObject(response);
+    await _syncMetaIfPresent(body);
+    return body['message']?.toString() ?? 'Vehicle removed.';
+  }
+
+  static Future<void> _syncMetaIfPresent(Map<String, dynamic> body) async {
+    final meta = body['meta'];
+    if (meta is Map) {
+      await _syncMetaMap(Map<String, dynamic>.from(meta));
+    }
+  }
+
+  static Future<void> _syncMetaMap(Map<String, dynamic> meta) async {
+    if (!meta.containsKey('remaining')) return;
+    final remaining = (meta['remaining'] as num?)?.toInt() ?? 0;
+    final accountVerified = meta.containsKey('account_verified')
+        ? meta['account_verified'] == true
+        : true;
+    final canAddVehicle = meta.containsKey('can_add_vehicle')
+        ? meta['can_add_vehicle'] == true
+        : (accountVerified && remaining > 0);
+
+    await AuthService.syncGarageMeta(
+      remainingVehicleSlots: remaining,
+      canAddVehicle: canAddVehicle,
+      hasApprovedVehicle: meta.containsKey('has_approved_vehicle')
+          ? meta['has_approved_vehicle'] == true
+          : null,
+      canReserve: meta.containsKey('can_reserve')
+          ? meta['can_reserve'] == true
+          : null,
+    );
   }
 
   static Future<Map<String, String>> photoHeaders() async {

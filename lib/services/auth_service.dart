@@ -353,4 +353,22 @@ class AuthService {
     );
     await prefs.setInt('remaining_vehicle_slots', user.remainingVehicleSlots);
   }
+
+  static Future<void> syncGarageMeta({
+    required int remainingVehicleSlots,
+    required bool canAddVehicle,
+    bool? hasApprovedVehicle,
+    bool? canReserve,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('auth_token')) return;
+    await prefs.setInt('remaining_vehicle_slots', remainingVehicleSlots);
+    await prefs.setBool('can_add_vehicle', canAddVehicle);
+    if (hasApprovedVehicle != null) {
+      await prefs.setBool('has_approved_vehicle', hasApprovedVehicle);
+    }
+    if (canReserve != null) {
+      await prefs.setBool('can_reserve', canReserve);
+    }
+  }
 }

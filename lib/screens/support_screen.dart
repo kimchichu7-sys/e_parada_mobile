@@ -77,9 +77,9 @@ class _SupportScreenState extends State<SupportScreen> {
     ),
     _FaqItem(
       category: 'Vehicles & Spaces',
-      question: 'Can I edit a submitted plate number?',
+      question: 'Can I edit a submitted vehicle or plate number?',
       answer:
-          'No. Vehicle details are locked after submission to protect the integrity of verification records. If a rejected submission contains errors, remove it from My Vehicles and submit a new record.',
+          'Approved and pending vehicles are locked to protect the integrity of verification records. If a vehicle submission is rejected, you can edit and resubmit its details or photos directly from My Vehicles, or remove it to free up a slot.',
     ),
     _FaqItem(
       category: 'Reservations',

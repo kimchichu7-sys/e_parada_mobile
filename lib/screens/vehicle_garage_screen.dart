@@ -47,6 +47,16 @@ class _VehicleGarageScreenState extends State<VehicleGarageScreen> {
     if (added == true && mounted) await _refresh();
   }
 
+  Future<void> _openEditVehicle(Vehicle vehicle) async {
+    final updated = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddVehicleScreen(existingVehicle: vehicle),
+      ),
+    );
+    if (updated == true && mounted) await _refresh();
+  }
+
   Future<void> _openUploadDocuments(Vehicle vehicle) async {
     final updated = await Navigator.push<bool>(
       context,
@@ -63,7 +73,7 @@ class _VehicleGarageScreenState extends State<VehicleGarageScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Remove rejected vehicle?'),
         content: Text(
-          'Remove ${vehicle.plateNumber}? You may submit a replacement afterward.',
+          'Remove ${vehicle.plateNumber}? This frees up its vehicle slot so you can add another vehicle.',
         ),
         actions: [
           TextButton(
@@ -125,7 +135,7 @@ class _VehicleGarageScreenState extends State<VehicleGarageScreen> {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Plate numbers cannot be edited after submission. An administrator must approve each vehicle before it can be used for reservations.',
+                  'Approved and pending vehicles are locked. If a vehicle is rejected, you can edit and resubmit it or remove it to free a slot.',
                 ),
                 const SizedBox(height: 18),
                 if (!data.result.accountVerified) ...[
@@ -185,6 +195,9 @@ class _VehicleGarageScreenState extends State<VehicleGarageScreen> {
                                 vehicle.crPhotoUrl!.isEmpty) ||
                             !vehicle.isApproved)
                         ? () => _openUploadDocuments(vehicle)
+                        : null,
+                    onEdit: vehicle.isRejected
+                        ? () => _openEditVehicle(vehicle)
                         : null,
                     onDelete: vehicle.isRejected
                         ? () => _deleteVehicle(vehicle)
@@ -279,12 +292,14 @@ class _VehicleCard extends StatelessWidget {
     required this.vehicle,
     required this.photoHeaders,
     this.onUploadDocuments,
+    this.onEdit,
     this.onDelete,
   });
 
   final Vehicle vehicle;
   final Map<String, String> photoHeaders;
   final VoidCallback? onUploadDocuments;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   @override
@@ -447,6 +462,14 @@ class _VehicleCard extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (onEdit != null) ...[
+                  const SizedBox(height: 8),
+                  FilledButton.tonalIcon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Edit & resubmit'),
+                  ),
+                ],
                 if (onDelete != null) ...[
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
@@ -553,7 +576,9 @@ class _ErrorState extends StatelessWidget {
 }
 
 class AddVehicleScreen extends StatefulWidget {
-  const AddVehicleScreen({super.key});
+  const AddVehicleScreen({super.key, this.existingVehicle});
+
+  final Vehicle? existingVehicle;
 
   @override
   State<AddVehicleScreen> createState() => _AddVehicleScreenState();
@@ -568,6 +593,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String _vehicleMake = '';
   String _vehicleModel = '';
   String _vehicleColor = '';
+  String? _initialMake;
+  String? _initialModel;
+  String? _initialColor;
   XFile? _frontPhoto;
   XFile? _backPhoto;
   XFile? _orPhoto;
@@ -584,6 +612,35 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String? _frontDetectedPlate;
   String? _backDetectedPlate;
   String? _error;
+
+  bool get _isEditing => widget.existingVehicle != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existingVehicle;
+    if (existing != null) {
+      _plateController.text = existing.plateNumber;
+      _vehicleType = VehicleService.vehicleTypes.contains(existing.vehicleType)
+          ? existing.vehicleType
+          : (existing.vehicleType.contains('Motorcycle')
+                ? 'Motorcycle'
+                : (existing.vehicleType.contains('Van') ||
+                          existing.vehicleType.contains('Pickup')
+                      ? 'Pickup/Van'
+                      : 'Car'));
+      _vehicleMake = existing.make;
+      _vehicleModel = existing.model;
+      _vehicleColor = existing.color;
+      _initialMake = existing.make;
+      _initialModel = existing.model;
+      _initialColor = existing.color;
+      _registrationExpiry = existing.registrationExpiry;
+      _isOwnerDriving = existing.isOwnerDriving;
+      _ownerNameController.text = existing.registeredOwnerName ?? '';
+      _consent = true;
+    }
+  }
 
   Future<void> _pickPhoto(
     ValueSetter<XFile> onPicked, {
@@ -681,13 +738,19 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_frontPhoto == null || _backPhoto == null || !_consent) {
+
+    if (!_isEditing && (_frontPhoto == null || _backPhoto == null)) {
       setState(() {
         _error = _frontPhoto == null
             ? 'Choose a clear front photo showing the plate.'
-            : _backPhoto == null
-            ? 'Choose a clear back photo showing the plate.'
-            : 'Consent is required before submitting the photo.';
+            : 'Choose a clear back photo showing the plate.';
+      });
+      return;
+    }
+
+    if (!_consent) {
+      setState(() {
+        _error = 'Consent is required before submitting the vehicle.';
       });
       return;
     }
@@ -695,6 +758,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     if (!_isOwnerDriving && _ownerNameController.text.trim().isEmpty) {
       setState(() {
         _error = 'Please enter the registered owner\'s full name.';
+      });
+      return;
+    }
+
+    final hasExistingAuth =
+        widget.existingVehicle?.authorizationLetterUrl?.isNotEmpty == true;
+    if (!_isOwnerDriving &&
+        _authLetter == null &&
+        (!_isEditing || !hasExistingAuth)) {
+      setState(() {
+        _error =
+            'Please upload an authorization letter or deed of sale from the registered owner.';
       });
       return;
     }
@@ -710,42 +785,74 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     );
 
     try {
-      final message = await VehicleService.addVehicle(
-        plateNumber: _plateController.text,
-        vehicleType: _vehicleType,
-        vehicleMake: _vehicleMake,
-        vehicleColor: _vehicleColor,
-        vehicleModel: _vehicleModel,
-        vehiclePhoto: UploadFileData(
-          bytes: await _frontPhoto!.readAsBytes(),
-          filename: _frontPhoto!.name,
-        ),
-        vehiclePhotoBack: UploadFileData(
-          bytes: await _backPhoto!.readAsBytes(),
-          filename: _backPhoto!.name,
-        ),
-        orPhoto: _orPhoto != null
-            ? UploadFileData(
-                bytes: await _orPhoto!.readAsBytes(),
-                filename: _orPhoto!.name,
-              )
-            : null,
-        crPhoto: _crPhoto != null
-            ? UploadFileData(
-                bytes: await _crPhoto!.readAsBytes(),
-                filename: _crPhoto!.name,
-              )
-            : null,
-        authorizationLetter: _authLetter != null
-            ? UploadFileData(
-                bytes: await _authLetter!.readAsBytes(),
-                filename: _authLetter!.name,
-              )
-            : null,
-        registrationExpiry: _registrationExpiry,
-        isOwnerDriving: _isOwnerDriving,
-        registeredOwnerName: !_isOwnerDriving ? _ownerNameController.text.trim() : null,
-      );
+      final frontData = _frontPhoto != null
+          ? UploadFileData(
+              bytes: await _frontPhoto!.readAsBytes(),
+              filename: _frontPhoto!.name,
+            )
+          : null;
+      final backData = _backPhoto != null
+          ? UploadFileData(
+              bytes: await _backPhoto!.readAsBytes(),
+              filename: _backPhoto!.name,
+            )
+          : null;
+      final orData = _orPhoto != null
+          ? UploadFileData(
+              bytes: await _orPhoto!.readAsBytes(),
+              filename: _orPhoto!.name,
+            )
+          : null;
+      final crData = _crPhoto != null
+          ? UploadFileData(
+              bytes: await _crPhoto!.readAsBytes(),
+              filename: _crPhoto!.name,
+            )
+          : null;
+      final authData = _authLetter != null
+          ? UploadFileData(
+              bytes: await _authLetter!.readAsBytes(),
+              filename: _authLetter!.name,
+            )
+          : null;
+
+      final String message;
+      if (_isEditing) {
+        message = await VehicleService.updateRejectedVehicle(
+          vehicleId: widget.existingVehicle!.id,
+          plateNumber: _plateController.text,
+          vehicleType: _vehicleType,
+          vehicleMake: _vehicleMake,
+          vehicleColor: _vehicleColor,
+          vehicleModel: _vehicleModel,
+          vehiclePhoto: frontData,
+          vehiclePhotoBack: backData,
+          orPhoto: orData,
+          crPhoto: crData,
+          authorizationLetter: authData,
+          registrationExpiry: _registrationExpiry,
+          isOwnerDriving: _isOwnerDriving,
+          registeredOwnerName:
+              !_isOwnerDriving ? _ownerNameController.text.trim() : null,
+        );
+      } else {
+        message = await VehicleService.addVehicle(
+          plateNumber: _plateController.text,
+          vehicleType: _vehicleType,
+          vehicleMake: _vehicleMake,
+          vehicleColor: _vehicleColor,
+          vehicleModel: _vehicleModel,
+          vehiclePhoto: frontData!,
+          vehiclePhotoBack: backData!,
+          orPhoto: orData,
+          crPhoto: crData,
+          authorizationLetter: authData,
+          registrationExpiry: _registrationExpiry,
+          isOwnerDriving: _isOwnerDriving,
+          registeredOwnerName:
+              !_isOwnerDriving ? _ownerNameController.text.trim() : null,
+        );
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -767,15 +874,40 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final existing = widget.existingVehicle;
     return Scaffold(
-      appBar: AppBar(title: const Text('Add vehicle')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit & resubmit vehicle' : 'Add vehicle'),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
-              'The plate number and submitted vehicle details become read-only. Check them carefully before submitting.',
+            if (_isEditing &&
+                existing?.verificationNotes != null &&
+                existing!.verificationNotes!.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 14),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.35)),
+                ),
+                child: Text(
+                  'Admin rejection note: ${existing.verificationNotes}',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+            Text(
+              _isEditing
+                  ? 'Update any corrected details, plate number, or photos below. Resubmitting returns this vehicle to pending admin review.'
+                  : 'The plate number and submitted vehicle details become read-only while pending or approved. Check them carefully before submitting.',
             ),
             const SizedBox(height: 18),
             TextFormField(
@@ -823,7 +955,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     _vehicleMake = '';
                     _vehicleModel = '';
                     _vehicleColor = '';
-                    _plateController.text = '';
+                    _initialMake = null;
+                    _initialModel = null;
+                    _initialColor = null;
+                    if (!_isEditing) {
+                      _plateController.text = '';
+                    }
                     _plateAutoFilled = false;
                     _frontDetectedPlate = null;
                     _backDetectedPlate = null;
@@ -837,6 +974,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               key: ValueKey(_vehicleType),
               vehicleType: _vehicleType,
               enabled: !_loading,
+              initialMake: _initialMake,
+              initialModel: _initialModel,
+              initialColor: _initialColor,
               onChanged: (make, model, color) {
                 _vehicleMake = make;
                 _vehicleModel = model;
@@ -890,7 +1030,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 Expanded(
                   child: _photoUploadCard(
                     title: 'Vehicle Front',
-                    subtitle: 'Front view (auto-scans)',
+                    subtitle: _isEditing && existing?.photoUrl.isNotEmpty == true
+                        ? 'Current photo on file (tap to replace)'
+                        : 'Front view (auto-scans)',
                     file: _frontPhoto,
                     onTap: _loading
                         ? null
@@ -904,7 +1046,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 Expanded(
                   child: _photoUploadCard(
                     title: 'Vehicle Rear',
-                    subtitle: 'Rear plate (auto-scans)',
+                    subtitle: _isEditing && existing?.photoBackUrl.isNotEmpty == true
+                        ? 'Current photo on file (tap to replace)'
+                        : 'Rear plate (auto-scans)',
                     file: _backPhoto,
                     onTap: _loading
                         ? null
@@ -953,7 +1097,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       Expanded(
                         child: _photoUploadCard(
                           title: 'Official Receipt (OR)',
-                          subtitle: 'Latest LTO OR',
+                          subtitle: _isEditing &&
+                                  (existing?.orPhotoUrl?.isNotEmpty == true)
+                              ? 'On file (tap to replace)'
+                              : 'Latest LTO OR',
                           file: _orPhoto,
                           onTap: _loading ? null : () => _pickPhoto((file) => _orPhoto = file),
                         ),
@@ -962,7 +1109,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       Expanded(
                         child: _photoUploadCard(
                           title: 'Cert. of Reg. (CR)',
-                          subtitle: 'LTO CR document',
+                          subtitle: _isEditing &&
+                                  (existing?.crPhotoUrl?.isNotEmpty == true)
+                              ? 'On file (tap to replace)'
+                              : 'LTO CR document',
                           file: _crPhoto,
                           onTap: _loading ? null : () => _pickPhoto((file) => _crPhoto = file),
                         ),
@@ -1020,7 +1170,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     const SizedBox(height: 10),
                     _photoUploadCard(
                       title: 'Owner Authorization Letter / Deed of Sale',
-                      subtitle: 'Signed permission to operate',
+                      subtitle: _isEditing &&
+                              (existing?.authorizationLetterUrl?.isNotEmpty == true)
+                          ? 'On file (tap to replace)'
+                          : 'Signed permission to operate',
                       file: _authLetter,
                       onTap: _loading ? null : () => _pickPhoto((file) => _authLetter = file),
                     ),
@@ -1057,7 +1210,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.send_rounded),
-              label: Text(_loading ? 'Submitting...' : 'Submit for review'),
+              label: Text(
+                _loading
+                    ? (_isEditing ? 'Resubmitting...' : 'Submitting...')
+                    : (_isEditing ? 'Save & resubmit' : 'Submit for review'),
+              ),
             ),
           ],
         ),
