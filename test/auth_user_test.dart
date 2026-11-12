@@ -59,4 +59,44 @@ void main() {
     expect(user.isAdmin, true);
     expect(user.roleLabel, 'Administrator');
   });
+
+  test('tracks driver_only subtype and vehicle addition gating by verification', () {
+    final pendingDriverOnly = AuthUser.fromJson({
+      'id': 31,
+      'name': 'Pending Driver',
+      'email': 'pending-driver@example.test',
+      'role': 'driver',
+      'user_subtype': 'driver_only',
+      'verification_status': 'pending',
+      'email_verified': true,
+      'has_approved_vehicle': false,
+      'can_reserve': false,
+      'can_add_vehicle': false,
+      'can_manage_parking_spaces': false,
+      'remaining_vehicle_slots': 3,
+    });
+
+    expect(pendingDriverOnly.isDriverOnly, true);
+    expect(pendingDriverOnly.isAccountVerified, false);
+    expect(pendingDriverOnly.canAddVehicle, false);
+
+    final approvedDriverOnly = AuthUser.fromJson({
+      'id': 32,
+      'name': 'Approved Driver',
+      'email': 'approved-driver@example.test',
+      'role': 'driver',
+      'user_subtype': 'driver_only',
+      'verification_status': 'approved',
+      'email_verified': true,
+      'has_approved_vehicle': false,
+      'can_reserve': false,
+      'can_add_vehicle': true,
+      'can_manage_parking_spaces': false,
+      'remaining_vehicle_slots': 3,
+    });
+
+    expect(approvedDriverOnly.isDriverOnly, true);
+    expect(approvedDriverOnly.isAccountVerified, true);
+    expect(approvedDriverOnly.canAddVehicle, true);
+  });
 }

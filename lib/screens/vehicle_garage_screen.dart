@@ -47,6 +47,16 @@ class _VehicleGarageScreenState extends State<VehicleGarageScreen> {
     if (added == true && mounted) await _refresh();
   }
 
+  Future<void> _openUploadDocuments(Vehicle vehicle) async {
+    final updated = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _UploadVehicleDocumentsScreen(vehicle: vehicle),
+      ),
+    );
+    if (updated == true && mounted) await _refresh();
+  }
+
   Future<void> _deleteVehicle(Vehicle vehicle) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -118,23 +128,70 @@ class _VehicleGarageScreenState extends State<VehicleGarageScreen> {
                   'Plate numbers cannot be edited after submission. An administrator must approve each vehicle before it can be used for reservations.',
                 ),
                 const SizedBox(height: 18),
+                if (!data.result.accountVerified) ...[
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.amber.shade700.withValues(alpha: 0.45),
+                      ),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.verified_user_outlined, size: 22),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Account verification required',
+                                style: TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                'Your email and account must be verified by an administrator before you can add a vehicle.',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (data.result.vehicles.isEmpty)
-                  const Card(
+                  Card(
                     child: Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Text('No vehicles registered yet.'),
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        data.result.accountVerified
+                            ? 'No vehicles registered yet. Tap Add vehicle below to register your first vehicle.'
+                            : 'No vehicles registered yet. You can add a vehicle once your account is verified.',
+                      ),
                     ),
                   ),
                 ...data.result.vehicles.map(
                   (vehicle) => _VehicleCard(
                     vehicle: vehicle,
                     photoHeaders: data.photoHeaders,
+                    onUploadDocuments:
+                        ((vehicle.orPhotoUrl == null ||
+                                vehicle.orPhotoUrl!.isEmpty) ||
+                            (vehicle.crPhotoUrl == null ||
+                                vehicle.crPhotoUrl!.isEmpty) ||
+                            !vehicle.isApproved)
+                        ? () => _openUploadDocuments(vehicle)
+                        : null,
                     onDelete: vehicle.isRejected
                         ? () => _deleteVehicle(vehicle)
                         : null,
                   ),
                 ),
-                if (data.result.remaining > 0) ...[
+                if (data.result.canAddVehicle && data.result.remaining > 0) ...[
                   const SizedBox(height: 8),
                   FilledButton.icon(
                     onPressed: _openAddVehicle,
@@ -221,11 +278,13 @@ class _VehicleCard extends StatelessWidget {
   const _VehicleCard({
     required this.vehicle,
     required this.photoHeaders,
+    this.onUploadDocuments,
     this.onDelete,
   });
 
   final Vehicle vehicle;
   final Map<String, String> photoHeaders;
+  final VoidCallback? onUploadDocuments;
   final VoidCallback? onDelete;
 
   @override
@@ -359,6 +418,14 @@ class _VehicleCard extends StatelessWidget {
                       ),
                   ],
                 ),
+                if ((vehicle.orPhotoUrl == null || vehicle.orPhotoUrl!.isEmpty) ||
+                    (vehicle.crPhotoUrl == null || vehicle.crPhotoUrl!.isEmpty)) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Missing LTO OR / CR document. Upload below so admins can verify it.',
+                    style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
+                  ),
+                ],
                 if (vehicle.verificationNotes?.isNotEmpty == true) ...[
                   const SizedBox(height: 10),
                   Text(
@@ -366,8 +433,22 @@ class _VehicleCard extends StatelessWidget {
                     style: TextStyle(color: colors.error),
                   ),
                 ],
-                if (onDelete != null) ...[
+                if (onUploadDocuments != null) ...[
                   const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: onUploadDocuments,
+                    icon: const Icon(Icons.upload_file_outlined),
+                    label: Text(
+                      (vehicle.orPhotoUrl == null || vehicle.orPhotoUrl!.isEmpty) ||
+                              (vehicle.crPhotoUrl == null ||
+                                  vehicle.crPhotoUrl!.isEmpty)
+                          ? 'Upload OR / CR Documents'
+                          : 'Update OR / CR Documents',
+                    ),
+                  ),
+                ],
+                if (onDelete != null) ...[
+                  const SizedBox(height: 8),
                   OutlinedButton.icon(
                     onPressed: onDelete,
                     icon: const Icon(Icons.delete_outline),
@@ -496,9 +577,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   bool _isOwnerDriving = true;
   bool _consent = false;
   bool _loading = false;
+  bool _scanningPlate = false;
+  bool _plateAutoFilled = false;
+  int _scanEpoch = 0;
+  String? _ocrHint;
+  String? _frontDetectedPlate;
+  String? _backDetectedPlate;
   String? _error;
 
-  Future<void> _pickPhoto(ValueSetter<XFile> onPicked) async {
+  Future<void> _pickPhoto(
+    ValueSetter<XFile> onPicked, {
+    String? scanSide,
+  }) async {
     final photo = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 75,
@@ -510,6 +600,82 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         onPicked(photo);
         _error = null;
       });
+      if (scanSide != null) {
+        await _scanPickedVehiclePhoto(photo, side: scanSide);
+      }
+    }
+  }
+
+  Future<void> _scanPickedVehiclePhoto(
+    XFile photo, {
+    required String side,
+  }) async {
+    final sideLabel = side == 'back' ? 'rear' : 'front';
+    final selectedType = _vehicleType;
+    final epoch = ++_scanEpoch;
+
+    setState(() {
+      _scanningPlate = true;
+      _ocrHint = 'Scanning $sideLabel photo for license plate...';
+    });
+
+    try {
+      final bytes = await photo.readAsBytes();
+      final detected = await VehicleService.scanPlateFromPhoto(
+        photo: UploadFileData(bytes: bytes, filename: photo.name),
+        vehicleType: selectedType,
+        side: side,
+      );
+      if (!mounted || _vehicleType != selectedType || epoch != _scanEpoch) {
+        return;
+      }
+
+      if (detected != null && detected.isNotEmpty) {
+        final normalized = RegistrationValidation.normalizePlate(
+          detected,
+          _vehicleType,
+        );
+        final shouldAutofill =
+            _plateController.text.trim().isEmpty || _plateAutoFilled;
+
+        setState(() {
+          if (side == 'back') {
+            _backDetectedPlate = normalized;
+          } else {
+            _frontDetectedPlate = normalized;
+          }
+          if (shouldAutofill) {
+            _plateController.text = normalized;
+            _plateAutoFilled = true;
+            _ocrHint = 'Auto-detected plate from $sideLabel photo: $normalized';
+          } else {
+            _ocrHint = 'Scanned $sideLabel photo: $normalized';
+          }
+        });
+        return;
+      }
+
+      final otherDetected = side == 'back'
+          ? _frontDetectedPlate
+          : _backDetectedPlate;
+      setState(() {
+        if (side == 'back') {
+          _backDetectedPlate = null;
+        } else {
+          _frontDetectedPlate = null;
+        }
+        if (otherDetected != null && otherDetected.isNotEmpty) {
+          _ocrHint =
+              'No plate detected in $sideLabel photo (keeping $otherDetected).';
+        } else {
+          _ocrHint =
+              'No clear plate detected in $sideLabel photo. You can type it manually.';
+        }
+      });
+    } finally {
+      if (mounted && epoch == _scanEpoch) {
+        setState(() => _scanningPlate = false);
+      }
     }
   }
 
@@ -615,12 +781,28 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
             TextFormField(
               controller: _plateController,
               textCapitalization: TextCapitalization.characters,
+              onChanged: (_) {
+                if (_plateAutoFilled) {
+                  _plateAutoFilled = false;
+                }
+              },
               decoration: InputDecoration(
                 labelText: 'Plate number',
                 hintText: RegistrationValidation.isMotorcycle(_vehicleType)
                     ? 'A 123 BC'
                     : 'ABC 1234 or ABC 123',
-                helperText: RegistrationValidation.plateHint(_vehicleType),
+                helperText: _ocrHint ?? RegistrationValidation.plateHint(_vehicleType),
+                helperMaxLines: 2,
+                suffixIcon: _scanningPlate
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
               ),
               validator: (value) =>
                   RegistrationValidation.plate(value, _vehicleType),
@@ -642,6 +824,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     _vehicleModel = '';
                     _vehicleColor = '';
                     _plateController.text = '';
+                    _plateAutoFilled = false;
+                    _frontDetectedPlate = null;
+                    _backDetectedPlate = null;
+                    _ocrHint = null;
                   });
                 }
               },
@@ -686,7 +872,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          'Ensure photos are clear and the license plate is directly readable. OCR extracts characters to cross-verify against Philippine LTO syntax (${RegistrationValidation.plateHint(_vehicleType)}).',
+                          'Ensure photos are clear and the license plate is readable in at least one view (front or rear, such as rear motorcycle plates). OCR auto-scans both photos against Philippine LTO syntax (${RegistrationValidation.plateHint(_vehicleType)}).',
                           style: TextStyle(
                             fontSize: 14,
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -704,25 +890,34 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 Expanded(
                   child: _photoUploadCard(
                     title: 'Vehicle Front',
-                    subtitle: 'Front plate visible',
+                    subtitle: 'Front view (auto-scans)',
                     file: _frontPhoto,
-                    onTap: _loading ? null : () => _pickPhoto((file) => _frontPhoto = file),
+                    onTap: _loading
+                        ? null
+                        : () => _pickPhoto(
+                            (file) => _frontPhoto = file,
+                            scanSide: 'front',
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _photoUploadCard(
                     title: 'Vehicle Rear',
-                    subtitle: 'Rear plate visible',
+                    subtitle: 'Rear plate (auto-scans)',
                     file: _backPhoto,
-                    onTap: _loading ? null : () => _pickPhoto((file) => _backPhoto = file),
+                    onTap: _loading
+                        ? null
+                        : () => _pickPhoto(
+                            (file) => _backPhoto = file,
+                            scanSide: 'back',
+                          ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
@@ -730,7 +925,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                   color: Theme.of(context).colorScheme.outlineVariant,
                 ),
               ),
-              child: Column(
+              child: Material(
+                type: MaterialType.transparency,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -827,6 +1026,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     ),
                   ],
                 ],
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 14),
@@ -960,6 +1161,280 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     return Center(child: Text(file.name));
                   },
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UploadVehicleDocumentsScreen extends StatefulWidget {
+  const _UploadVehicleDocumentsScreen({required this.vehicle});
+
+  final Vehicle vehicle;
+
+  @override
+  State<_UploadVehicleDocumentsScreen> createState() =>
+      _UploadVehicleDocumentsScreenState();
+}
+
+class _UploadVehicleDocumentsScreenState
+    extends State<_UploadVehicleDocumentsScreen> {
+  final _picker = ImagePicker();
+  late final TextEditingController _ownerNameController;
+  late bool _isOwnerDriving;
+  DateTime? _registrationExpiry;
+  XFile? _orPhoto;
+  XFile? _crPhoto;
+  XFile? _authLetter;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _isOwnerDriving = widget.vehicle.isOwnerDriving;
+    _registrationExpiry = widget.vehicle.registrationExpiry;
+    _ownerNameController = TextEditingController(
+      text: widget.vehicle.registeredOwnerName ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _ownerNameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickPhoto(void Function(XFile file) assign) async {
+    final file = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
+    if (file == null || !mounted) return;
+    setState(() => assign(file));
+  }
+
+  Future<void> _submit() async {
+    if (_orPhoto == null && _crPhoto == null && _authLetter == null) {
+      setState(() {
+        _error = 'Choose at least an OR, CR, or authorization photo to upload.';
+      });
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final message = await VehicleService.uploadVehicleDocuments(
+        vehicleId: widget.vehicle.id,
+        orPhoto: _orPhoto != null
+            ? UploadFileData(
+                bytes: await _orPhoto!.readAsBytes(),
+                filename: _orPhoto!.name,
+              )
+            : null,
+        crPhoto: _crPhoto != null
+            ? UploadFileData(
+                bytes: await _crPhoto!.readAsBytes(),
+                filename: _crPhoto!.name,
+              )
+            : null,
+        authorizationLetter: _authLetter != null
+            ? UploadFileData(
+                bytes: await _authLetter!.readAsBytes(),
+                filename: _authLetter!.name,
+              )
+            : null,
+        registrationExpiry: _registrationExpiry,
+        isOwnerDriving: _isOwnerDriving,
+        registeredOwnerName:
+            !_isOwnerDriving ? _ownerNameController.text.trim() : null,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      Navigator.pop(context, true);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(title: Text('OR / CR - ${widget.vehicle.plateNumber}')),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Text(
+            'Upload Official Receipt (OR) and Certificate of Registration (CR) for ${widget.vehicle.plateNumber}. If both appear on one page, upload it in the OR card.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _docCard(
+                  context,
+                  title: 'Official Receipt (OR)',
+                  subtitle: _orPhoto?.name ?? 'Tap to select OR photo',
+                  selected: _orPhoto != null,
+                  onTap: _loading
+                      ? null
+                      : () => _pickPhoto((file) => _orPhoto = file),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _docCard(
+                  context,
+                  title: 'Cert. of Reg. (CR)',
+                  subtitle: _crPhoto?.name ?? 'Tap to select CR photo',
+                  selected: _crPhoto != null,
+                  onTap: _loading
+                      ? null
+                      : () => _pickPhoto((file) => _crPhoto = file),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.calendar_month_outlined),
+            title: const Text(
+              'Registration Expiry Date',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              _registrationExpiry != null
+                  ? '${_registrationExpiry!.year}-${_registrationExpiry!.month.toString().padLeft(2, '0')}-${_registrationExpiry!.day.toString().padLeft(2, '0')}'
+                  : 'Not selected',
+            ),
+            trailing: OutlinedButton(
+              onPressed: _loading
+                  ? null
+                  : () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate:
+                            _registrationExpiry ??
+                            DateTime.now().add(const Duration(days: 365)),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2040),
+                      );
+                      if (picked != null && mounted) {
+                        setState(() => _registrationExpiry = picked);
+                      }
+                    },
+              child: const Text('Select Date'),
+            ),
+          ),
+          const Divider(),
+          CheckboxListTile(
+            value: _isOwnerDriving,
+            onChanged: _loading
+                ? null
+                : (val) => setState(() => _isOwnerDriving = val ?? true),
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: const Text(
+              'I am the registered owner of this vehicle',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
+          if (!_isOwnerDriving) ...[
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _ownerNameController,
+              decoration: const InputDecoration(
+                labelText: "Registered Owner's Full Name",
+                hintText: 'e.g., Juan Dela Cruz',
+              ),
+            ),
+            const SizedBox(height: 10),
+            _docCard(
+              context,
+              title: 'Owner Authorization Letter / Deed of Sale',
+              subtitle: _authLetter?.name ?? 'Tap to select authorization photo',
+              selected: _authLetter != null,
+              onTap: _loading
+                  ? null
+                  : () => _pickPhoto((file) => _authLetter = file),
+            ),
+          ],
+          if (_error != null) ...[
+            const SizedBox(height: 14),
+            Text(_error!, style: TextStyle(color: colors.error)),
+          ],
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: _loading ? null : _submit,
+            icon: _loading
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.cloud_upload_outlined),
+            label: Text(_loading ? 'Uploading...' : 'Upload Documents'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _docCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required bool selected,
+    required VoidCallback? onTap,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 112),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected
+              ? colors.primaryContainer.withValues(alpha: 0.45)
+              : colors.surfaceContainerHighest.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? colors.primary : colors.outlineVariant,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              selected ? Icons.check_circle : Icons.upload_file_outlined,
+              color: colors.primary,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
+            ),
+          ],
         ),
       ),
     );

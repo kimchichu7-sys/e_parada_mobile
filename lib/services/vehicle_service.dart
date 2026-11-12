@@ -8,11 +8,15 @@ class VehicleListResult {
     required this.vehicles,
     required this.maximum,
     required this.remaining,
+    this.canAddVehicle = true,
+    this.accountVerified = true,
   });
 
   final List<Vehicle> vehicles;
   final int maximum;
   final int remaining;
+  final bool canAddVehicle;
+  final bool accountVerified;
 }
 
 class VehicleService {
@@ -53,13 +57,24 @@ class VehicleService {
       );
     }
 
+    final maximum = (meta['maximum'] as num?)?.toInt() ?? 3;
+    final remaining = (meta['remaining'] as num?)?.toInt() ?? 0;
+    final accountVerified = meta.containsKey('account_verified')
+        ? meta['account_verified'] == true
+        : true;
+    final canAddVehicle = meta.containsKey('can_add_vehicle')
+        ? meta['can_add_vehicle'] == true
+        : (accountVerified && remaining > 0);
+
     return VehicleListResult(
       vehicles: data
           .whereType<Map>()
           .map((item) => Vehicle.fromJson(Map<String, dynamic>.from(item)))
           .toList(),
-      maximum: (meta['maximum'] as num?)?.toInt() ?? 3,
-      remaining: (meta['remaining'] as num?)?.toInt() ?? 0,
+      maximum: maximum,
+      remaining: remaining,
+      canAddVehicle: canAddVehicle,
+      accountVerified: accountVerified,
     );
   }
 
@@ -106,6 +121,73 @@ class VehicleService {
     ApiClient.requireStatus(response, const {201});
     return ApiClient.decodeObject(response)['message']?.toString() ??
         'Vehicle submitted for review.';
+  }
+
+  static Future<String> uploadVehicleDocuments({
+    required int vehicleId,
+    UploadFileData? orPhoto,
+    UploadFileData? crPhoto,
+    UploadFileData? authorizationLetter,
+    DateTime? registrationExpiry,
+    bool? isOwnerDriving,
+    String? registeredOwnerName,
+  }) async {
+    final token = await AuthService.requireToken();
+    final response = await ApiClient.postMultipart(
+      'vehicles/$vehicleId/documents',
+      headers: AuthService.bearerHeaders(token),
+      fields: {
+        if (isOwnerDriving != null)
+          'is_owner_driving': isOwnerDriving ? '1' : '0',
+        if (registrationExpiry != null)
+          'registration_expiry': registrationExpiry.toIso8601String().substring(0, 10),
+        if (registeredOwnerName != null && registeredOwnerName.trim().isNotEmpty)
+          'registered_owner_name': registeredOwnerName.trim(),
+      },
+      files: {
+        'or_photo': ?orPhoto,
+        'cr_photo': ?crPhoto,
+        'authorization_letter': ?authorizationLetter,
+      },
+    );
+    ApiClient.requireStatus(response, const {200});
+    return ApiClient.decodeObject(response)['message']?.toString() ??
+        'LTO registration documents uploaded.';
+  }
+
+  static Future<String?> scanPlateFromPhoto({
+    required UploadFileData photo,
+    required String vehicleType,
+    String side = 'front',
+  }) async {
+    try {
+      final token = await AuthService.requireToken();
+      final response = await ApiClient.postMultipart(
+        'ocr/scan-plate',
+        headers: AuthService.bearerHeaders(token),
+        fields: {
+          'vehicle_type': vehicleType,
+          'side': side == 'back' ? 'back' : 'front',
+        },
+        files: {
+          'image': photo,
+        },
+        timeout: const Duration(seconds: 20),
+      );
+      if (response.statusCode != 200) {
+        return null;
+      }
+      final body = ApiClient.decodeObject(response);
+      if (body['success'] == true) {
+        final raw = body['plate_number']?.toString().trim();
+        if (raw != null && raw.isNotEmpty) {
+          return raw;
+        }
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<String> deleteRejectedVehicle(int vehicleId) async {

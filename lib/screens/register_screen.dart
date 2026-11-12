@@ -50,8 +50,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool get _requiresDriversLicense =>
       _userSubtype == 'driver_only' || _userSubtype == 'owner_driver';
 
-  bool get _requiresOrCr =>
+  bool get _requiresVehicle =>
       _userSubtype == 'vehicle_owner_only' || _userSubtype == 'owner_driver';
+
+  bool get _requiresOrCr => _requiresVehicle;
 
   Future<void> _pickImage(ValueSetter<XFile> onPicked) async {
     final image = await _picker.pickImage(
@@ -79,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_role == 'driver') {
+    if (_requiresVehicle) {
       _plateController.text = RegistrationValidation.normalizePlate(
         _plateController.text,
         _vehicleType,
@@ -106,20 +108,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
         role: _role,
         userSubtype: _userSubtype,
         isOwnerDriving: _userSubtype != 'driver_only',
-        registeredOwnerName: _userSubtype == 'driver_only'
-            ? _registeredOwnerController.text.trim()
-            : null,
+        registeredOwnerName: null,
         identityImage: (await _uploadData(_identityFront))!,
         identityImageBack: await _uploadData(_identityBack),
-        plateNumber: _role == 'driver' ? _plateController.text : null,
-        vehicleType: _role == 'driver' ? _vehicleType : null,
-        vehicleMake: _role == 'driver' ? _vehicleMake : null,
-        vehicleColor: _role == 'driver' ? _vehicleColor : null,
-        vehicleModel: _role == 'driver' ? _vehicleModel : null,
-        vehiclePhoto: await _uploadData(_vehicleFront),
-        vehiclePhotoBack: await _uploadData(_vehicleBack),
-        orPhoto: await _uploadData(_orPhoto),
-        crPhoto: await _uploadData(_crPhoto),
+        plateNumber: _requiresVehicle ? _plateController.text : null,
+        vehicleType: _requiresVehicle ? _vehicleType : null,
+        vehicleMake: _requiresVehicle ? _vehicleMake : null,
+        vehicleColor: _requiresVehicle ? _vehicleColor : null,
+        vehicleModel: _requiresVehicle ? _vehicleModel : null,
+        vehiclePhoto: _requiresVehicle ? await _uploadData(_vehicleFront) : null,
+        vehiclePhotoBack:
+            _requiresVehicle ? await _uploadData(_vehicleBack) : null,
+        orPhoto: _requiresVehicle ? await _uploadData(_orPhoto) : null,
+        crPhoto: _requiresVehicle ? await _uploadData(_crPhoto) : null,
       );
 
       if (!mounted) return;
@@ -167,7 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ? 'Upload the back of your driver\'s license.'
           : 'Upload the back of your government-issued valid ID.';
     }
-    if (_role != 'driver') return null;
+    if (!_requiresVehicle) return null;
     if (_vehicleFront == null) {
       return 'Upload a front photo of the vehicle showing its plate.';
     }
@@ -221,7 +222,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 context,
                 value: 'driver_only',
                 title: '1. Driver Only',
-                subtitle: 'Submits a valid Driver\'s License.',
+                subtitle:
+                    'Submits Driver\'s License. Add a vehicle after account verification.',
                 icon: Icons.badge_outlined,
               ),
               const SizedBox(height: 10),
@@ -359,7 +361,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ],
-              if (_role == 'driver') ...[
+              if (_userSubtype == 'driver_only') ...[
+                const SizedBox(height: 18),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: colors.outlineVariant),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.directions_car_outlined, color: colors.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Driver Only Registration: You only need your valid Driver\'s License right now. After your email and account are verified by an administrator, you can add a vehicle in the Garage tab.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              if (_requiresVehicle) ...[
                 const SizedBox(height: 28),
                 _sectionHeading(
                   context,
@@ -440,14 +468,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   icon: Icons.photo_camera_outlined,
                   title: 'Vehicle verification photos',
                   caption:
-                      'Show the full vehicle and make the plate readable in both views.',
+                      'Show the full front and back views. The plate must be readable in at least one view (rear view is checked for motorcycles).',
                 ),
                 const SizedBox(height: 12),
                 _uploadPair(
                   first: _uploadCard(
                     context,
                     title: 'Vehicle front',
-                    hint: 'Front view with plate visible',
+                    hint: 'Front view (plate if applicable)',
                     image: _vehicleFront,
                     icon: Icons.directions_car_filled_outlined,
                     onTap: () => _pickImage((file) => _vehicleFront = file),

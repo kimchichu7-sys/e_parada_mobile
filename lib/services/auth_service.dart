@@ -41,8 +41,11 @@ class AuthService {
       files['id_image_back'] = identityImageBack;
     }
 
-    if (role == 'driver') {
-      final ownerDriving = isOwnerDriving ?? (userSubtype != 'driver_only');
+    final requiresVehicleAtRegistration =
+        userSubtype == 'vehicle_owner_only' || userSubtype == 'owner_driver';
+
+    if (role == 'driver' && requiresVehicleAtRegistration) {
+      final ownerDriving = isOwnerDriving ?? true;
       fields.addAll({
         'plate_number': plateNumber ?? '',
         'vehicle_type': vehicleType ?? '',
@@ -264,19 +267,33 @@ class AuthService {
       return null;
     }
 
+    final verificationStatus =
+        prefs.getString('verification_status') ?? 'pending';
+    final emailVerified = prefs.getBool('email_verified') ?? false;
+    final remainingSlots = prefs.getInt('remaining_vehicle_slots') ?? 0;
+
     return AuthUser(
       id: id,
       name: name,
       email: email,
       role: role,
-      verificationStatus: prefs.getString('verification_status') ?? 'pending',
-      emailVerified: prefs.getBool('email_verified') ?? false,
+      userSubtype:
+          prefs.getString('user_subtype') ??
+          (role == 'parking_owner' ? 'parking_provider' : 'owner_driver'),
+      verificationStatus: verificationStatus,
+      emailVerified: emailVerified,
       termsAccepted: prefs.getBool('terms_accepted') ?? true,
       hasApprovedVehicle: prefs.getBool('has_approved_vehicle') ?? false,
       canReserve: prefs.getBool('can_reserve') ?? false,
+      canAddVehicle:
+          prefs.getBool('can_add_vehicle') ??
+          (role == 'driver' &&
+              emailVerified &&
+              verificationStatus == 'approved' &&
+              remainingSlots > 0),
       canManageParkingSpaces:
           prefs.getBool('can_manage_parking_spaces') ?? false,
-      remainingVehicleSlots: prefs.getInt('remaining_vehicle_slots') ?? 0,
+      remainingVehicleSlots: remainingSlots,
     );
   }
 
@@ -287,11 +304,13 @@ class AuthService {
     await prefs.remove('user_name');
     await prefs.remove('user_email');
     await prefs.remove('user_role');
+    await prefs.remove('user_subtype');
     await prefs.remove('verification_status');
     await prefs.remove('email_verified');
     await prefs.remove('terms_accepted');
     await prefs.remove('has_approved_vehicle');
     await prefs.remove('can_reserve');
+    await prefs.remove('can_add_vehicle');
     await prefs.remove('can_manage_parking_spaces');
     await prefs.remove('remaining_vehicle_slots');
     NotificationService.syncUnreadCount(0);
@@ -321,11 +340,13 @@ class AuthService {
     await prefs.setString('user_name', user.name);
     await prefs.setString('user_email', user.email);
     await prefs.setString('user_role', user.role);
+    await prefs.setString('user_subtype', user.userSubtype);
     await prefs.setString('verification_status', user.verificationStatus);
     await prefs.setBool('email_verified', user.emailVerified);
     await prefs.setBool('terms_accepted', user.termsAccepted);
     await prefs.setBool('has_approved_vehicle', user.hasApprovedVehicle);
     await prefs.setBool('can_reserve', user.canReserve);
+    await prefs.setBool('can_add_vehicle', user.canAddVehicle);
     await prefs.setBool(
       'can_manage_parking_spaces',
       user.canManageParkingSpaces,

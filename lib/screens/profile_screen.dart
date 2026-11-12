@@ -140,7 +140,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'Approved vehicle',
                     value: user.hasApprovedVehicle
                         ? 'Available for reservations'
-                        : 'Waiting for approval',
+                        : (user.isAccountVerified
+                              ? 'Add a vehicle in Garage'
+                              : 'Waiting for approval'),
                     approved: user.hasApprovedVehicle,
                   ),
                   const SizedBox(height: 12),
@@ -150,8 +152,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     disabledTitle: 'Reservation access locked',
                     enabledText:
                         'Your account and vehicle meet the reservation requirements.',
-                    disabledText:
-                        'Verify your email and wait for account and vehicle approval.',
+                    disabledText: user.isAccountVerified
+                        ? 'Your account is verified. Add a vehicle in Garage and wait for vehicle approval before booking.'
+                        : 'Verify your email and wait for account approval before adding a vehicle and reserving.',
                   ),
                 ] else if (user.isParkingOwner) ...[
                   const SizedBox(height: 18),
