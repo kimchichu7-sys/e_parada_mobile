@@ -61,7 +61,28 @@ class RegistrationValidation {
     final normalized = normalizePlate(value ?? '', vehicleType);
     final valid = isMotorcycle(vehicleType)
         ? RegExp(
-            r'^(?:[A-Z] \d{3} [A-Z]{2}|[A-Z]{2} \d{3} [A-Z]|\d [A-Z]{3} \d{2}|[A-Z] \d{4} [A-Z]|[A-Z] \d[A-Z] \d{3}|[A-Z] \d{2}[A-Z] \d{2})$',
+            r'^(?:'
+            r'[A-Z] \d{3} [A-Z]{2}|'
+            r'[A-Z]{2} \d{3} [A-Z]|'
+            r'\d [A-Z]{3} \d{2}|'
+            r'[A-Z] \d{4} [A-Z]|'
+            r'[A-Z] \d[A-Z] \d{3}|'
+            r'[A-Z] \d{2}[A-Z] \d{2}|'
+            r'\d{2}[A-Z]{2}\d[A-Z]|'
+            r'[A-Z]{2}\d[A-Z]\d{2}|'
+            r'\d[A-Z]\d[A-Z]{2}\d|'
+            r'[A-Z]\d[A-Z]\d[A-Z]\d|'
+            r'[A-Z]\d{2}[A-Z]\d[A-Z]|'
+            r'\d[A-Z]{2}\d{2}[A-Z]|'
+            r'[A-Z]\d[A-Z]\d{2}[A-Z]|'
+            r'[A-Z]{2}\d{2}[A-Z]\d|'
+            r'\d[A-Z]{2}\d[A-Z]\d|'
+            r'[A-Z]\d{2}[A-Z]{2}\d|'
+            r'\d[A-Z]\d[A-Z]\d[A-Z]|'
+            r'[A-Z]\d{3}[A-Z]\d|'
+            r'\d{2}[A-Z]{3}\d|'
+            r'[A-Z]\d[A-Z]{2}\d{2}'
+            r')$',
           ).hasMatch(normalized)
         : RegExp(r'^[A-Z]{3} \d{3,4}$').hasMatch(normalized);
 
@@ -70,7 +91,7 @@ class RegistrationValidation {
 
   static String plateHint(String vehicleType) {
     return isMotorcycle(vehicleType)
-        ? 'Use A 123 BC, AB 123 C, 1 ABC 23, A 1234 C, A 1C 234, or A 12C 34.'
+        ? 'Use a valid LTO motorcycle plate format, such as 1ABC23, 12AB3C, AB1C23, A1B2C3, A1B234, A 123 BC, or A 1234 C.'
         : 'Use three letters and three or four digits, for example ABC 1234 or ABC 123.';
   }
 
@@ -78,7 +99,7 @@ class RegistrationValidation {
     final compact = value.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
     if (isMotorcycle(vehicleType)) {
-      final formats = <(RegExp, String Function(Match))>[
+      final formattedPatterns = <(RegExp, String Function(Match))>[
         (
           RegExp(r'^([A-Z])(\d{3})([A-Z]{2})$'),
           (m) => '${m[1]} ${m[2]} ${m[3]}',
@@ -98,9 +119,29 @@ class RegistrationValidation {
           (m) => '${m[1]} ${m[2]} ${m[3]}',
         ),
       ];
-      for (final format in formats) {
+      for (final format in formattedPatterns) {
         final match = format.$1.firstMatch(compact);
         if (match != null) return format.$2(match);
+      }
+
+      final compactMotorcyclePatterns = <RegExp>[
+        RegExp(r'^\d{2}[A-Z]{2}\d[A-Z]$'),
+        RegExp(r'^[A-Z]{2}\d[A-Z]\d{2}$'),
+        RegExp(r'^\d[A-Z]\d[A-Z]{2}\d$'),
+        RegExp(r'^[A-Z]\d[A-Z]\d[A-Z]\d$'),
+        RegExp(r'^[A-Z]\d{2}[A-Z]\d[A-Z]$'),
+        RegExp(r'^\d[A-Z]{2}\d{2}[A-Z]$'),
+        RegExp(r'^[A-Z]\d[A-Z]\d{2}[A-Z]$'),
+        RegExp(r'^[A-Z]{2}\d{2}[A-Z]\d$'),
+        RegExp(r'^\d[A-Z]{2}\d[A-Z]\d$'),
+        RegExp(r'^[A-Z]\d{2}[A-Z]{2}\d$'),
+        RegExp(r'^\d[A-Z]\d[A-Z]\d[A-Z]$'),
+        RegExp(r'^[A-Z]\d{3}[A-Z]\d$'),
+        RegExp(r'^\d{2}[A-Z]{3}\d$'),
+        RegExp(r'^[A-Z]\d[A-Z]{2}\d{2}$'),
+      ];
+      for (final pattern in compactMotorcyclePatterns) {
+        if (pattern.hasMatch(compact)) return compact;
       }
     } else {
       final match = RegExp(r'^([A-Z]{3})(\d{3,4})$').firstMatch(compact);
